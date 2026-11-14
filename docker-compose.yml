@@ -1,13 +1,13 @@
-# PhotoTag stack for Portainer (Stacks → from Git repository or Web editor).
-# Secrets come from environment variables set in Portainer; see .env.example.
+# PhotoTag stack for Portainer (Stacks → Add stack → Repository).
+# Secrets come from environment variables set in Portainer; see .env.example and
+# docs/deployment.md.
 name: phototag
 
 x-app: &app
   image: phototag:latest
-  build:
-    context: .
-    target: runtime
   restart: unless-stopped
+  # Match the owner of the NAS folders (OpenMediaVault: your user, group "users" = 100).
+  user: "${PUID:-1000}:${PGID:-100}"
   environment: &app-env
     DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
     DATABASE_URL: postgres://phototag:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/phototag
@@ -19,6 +19,12 @@ x-app: &app
 services:
   web:
     <<: *app
+    # Only web builds the image; "build" makes every (re)deploy rebuild it from the
+    # checked-out repository (layers are cached, so unchanged steps are fast).
+    build:
+      context: .
+      target: runtime
+    pull_policy: build
     command: ["web"]
     environment:
       <<: *app-env
@@ -41,6 +47,7 @@ services:
 
   worker:
     <<: *app
+    pull_policy: never  # uses the image built for web
     command: ["worker"]
     environment:
       <<: *app-env
