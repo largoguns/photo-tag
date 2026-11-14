@@ -222,6 +222,17 @@ Toda creación de propuesta, voto, decisión de administrador, fusión de person
 
 Se ejecutan en el servicio `worker`. Basta con un planificador sencillo (por ejemplo, `django-q2` con PostgreSQL como broker, o APScheduler) para no añadir Redis al stack.
 
+### 5.9 Notificaciones push (app `notifications`)
+
+Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active desde «Mi perfil». En Android funcionan desde el navegador; en iOS/iPadOS ≥ 16.4 solo con la app instalada (5.2) y activándolos desde un botón dentro de ella.
+
+- Tres tipos, activables por usuario: **fotos nuevas para catalogar**, **propuestas pendientes de mi voto** (de otros autores y no votadas) y **mis propuestas aceptadas o rechazadas**.
+- **Resumen agrupado**: el `worker` revisa cada `NOTIFY_POLL_MINUTES` (10) lo ocurrido desde el último aviso de cada tipo y envía como mucho uno por tipo cada `NOTIFY_MIN_INTERVAL_MINUTES` (60). En las horas de silencio `NOTIFY_QUIET_HOURS` (`22-9`, zona `TZ`) no se envía nada; lo acumulado se avisa al terminar.
+- Al activar los avisos no se notifica el histórico anterior.
+- Textos genéricos, sin nombres de personas, en el idioma con el que se suscribió cada dispositivo. Al tocar el aviso se abre la pantalla correspondiente (siguiente foto sin catalogar, galería «pendientes de mi voto» o «Mi actividad»).
+- Las suscripciones caducadas (respuesta 404/410 del servicio push) se eliminan. Sin claves VAPID configuradas la función queda desactivada.
+- Envío con `pywebpush`. Las claves se generan con `python manage.py generate_vapid_keys`.
+
 ## 6. Exportación a Immich (app `exporter`)
 
 - Tarea manual (botón en administración) y opcionalmente periódica.
@@ -237,7 +248,7 @@ Se ejecutan en el servicio `worker`. Basta con un planificador sencillo (por eje
 
 ## 7. Seguridad (exposición pública vía cloudflared)
 
-- Solo `web` es alcanzable desde `cloudflared`. `db` y `worker` no publican puertos y están en una red Docker interna.
+- Solo `web` es alcanzable desde `cloudflared`. `db` y `worker` no publican puertos y están en una red Docker interna. El `worker` tiene además una red `egress` solo de salida para entregar las notificaciones push; `db` no tiene salida.
 - `web` tampoco publica puertos en el host: el túnel accede por la red interna de Docker.
 - Configuración Django detrás de proxy: `SECURE_PROXY_SSL_HEADER`, `CSRF_TRUSTED_ORIGINS`, `ALLOWED_HOSTS` con el dominio público, cookies `Secure` y `HttpOnly`, `DEBUG=False`.
 - Limitar intentos de login (`django-axes`: bloqueo tras 5 fallos durante 30 minutos).
@@ -281,6 +292,9 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `EMBEDDING_POLL_SECONDS` | worker | `60` |
 | `TZ` | todos | `Europe/Madrid` |
 | `PUID` / `PGID` | web, worker | `1000` / `100` (propietario de las carpetas del NAS) |
+| `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | web, worker | — (vacías = sin notificaciones; ver 5.9) |
+| `VAPID_SUBJECT` | web, worker | `mailto:admin@midominio.com` |
+| `NOTIFY_POLL_MINUTES` / `NOTIFY_MIN_INTERVAL_MINUTES` / `NOTIFY_QUIET_HOURS` | worker | `10` / `60` / `22-9` |
 
 ### 8.3 Requisitos del stack
 

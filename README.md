@@ -53,6 +53,10 @@ PhotoTag se puede instalar en el móvil como una app. Al abrirla en un móvil, d
 
 Los iconos se generan con `python scripts/make_icons.py`.
 
+## Notificaciones
+
+Cada usuario puede activar avisos push en «Mi perfil»: fotos nuevas para catalogar, propuestas pendientes de su voto y sus propuestas resueltas. Se envía un resumen agrupado (como mucho uno por hora y tipo, nunca de 22:00 a 9:00). En iPhone requiere tener la app instalada. Necesita claves VAPID (`python manage.py generate_vapid_keys`); la guía de despliegue explica cómo configurarlas.
+
 ## Uso
 
 - **Escanear**: deja los escaneos (JPG, PNG o TIFF) en `scans/inbox`. El worker los procesa en menos de un minuto y mueve el original a `scans/processed` (nunca se borra).

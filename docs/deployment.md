@@ -151,6 +151,9 @@ PhotoTag ya está preparada para esto: el manifest de la app se pide con credenc
    DEFAULT_USER_PASSWORD=
    TUNNEL_TOKEN=
    TZ=Europe/Madrid
+   VAPID_PUBLIC_KEY=
+   VAPID_PRIVATE_KEY=
+   VAPID_SUBJECT=mailto:tu-email@ejemplo.com
    PUID=1000
    PGID=100
    HOST_SCANS_DIR=/srv/dev-disk-by-uuid-1234abcd-…/phototag/scans
@@ -176,6 +179,7 @@ PhotoTag ya está preparada para esto: el manifest de la app se pide con credenc
    | `DEFAULT_USER_PASSWORD` | Contraseña genérica para los usuarios nuevos; tendrán que cambiarla al entrar. |
    | `TUNNEL_TOKEN` | El token del paso 3.1. |
    | `PUID` / `PGID` | Los del paso 1.4. |
+   | `VAPID_*` | Déjalas vacías en el primer despliegue; se configuran en el paso 6.6. |
    | `HOST_*_DIR` | Las rutas del paso 1. |
 
    Opcionales (tienen valor por defecto): `POLL_INTERVAL_SECONDS` (60), `MIN_PHOTO_AREA_RATIO` (0.03), `FACE_SCORE_THRESHOLD` (0.7), `FACE_MATCH_THRESHOLD` (0.363), `EMBEDDING_POLL_SECONDS` (60), `EXPORT_INTERVAL_HOURS` (0 = solo exportación manual).
@@ -214,6 +218,20 @@ Ninguno de los contenedores publica puertos en el NAS; es lo correcto.
    - **iPhone / iPad (Safari)**: el aviso indica **Compartir → Añadir a pantalla de inicio**. iOS no permite instalar con un botón; hay que hacerlo desde ese menú.
    - «Ahora no» oculta el aviso 30 días en ese dispositivo.
 5. **Prueba de escaneo**: deja un escaneo en `phototag/scans/inbox`. En menos de dos minutos aparecerán sus fotos en la galería y el original pasará a `scans/processed`.
+6. **Activar las notificaciones push** (opcional):
+   1. Portainer → `phototag-web-1` → **Console** → *Connect* (`/bin/sh`) y ejecuta:
+
+      ```bash
+      python manage.py generate_vapid_keys
+      ```
+
+      Copia las dos líneas que imprime (`VAPID_PUBLIC_KEY=…` y `VAPID_PRIVATE_KEY=…`).
+   2. **Stacks → phototag → Environment variables**: pega esos valores y pon en `VAPID_SUBJECT` un email tuyo con el prefijo `mailto:`. **Update the stack**.
+   3. Genera las claves **una sola vez**: si las cambias, todos los dispositivos tendrán que volver a activar los avisos.
+   4. En cada móvil: **Mi perfil → Avisos → Activar avisos en este dispositivo**, acepta el permiso y pulsa **Enviar aviso de prueba**.
+      - **Android**: funciona desde Chrome aunque no instales la app.
+      - **iPhone/iPad** (iOS 16.4 o posterior): primero instala la app (paso 6.4), ábrela desde el icono y actívalos desde ahí.
+   5. Cada usuario elige qué avisos quiere en la misma tarjeta. Se envía como mucho un resumen por hora y tipo, y nada entre las 22:00 y las 9:00 (`NOTIFY_QUIET_HOURS`).
 
 ---
 
@@ -283,6 +301,9 @@ docker exec -i phototag-db-1 pg_restore -U phototag -d phototag --clean --if-exi
 | `web` no pasa a *healthy* | La base de datos no arranca o hay un error de configuración | Mira los logs de `web` y `db`. |
 | `Permission denied` en los logs del `worker` | Las carpetas no son de `PUID:PGID` | Repite el paso 1.5 con los valores de `id`. |
 | Los escaneos no se procesan | El fichero aún se está copiando, o el formato no es JPG/PNG/TIFF | El worker espera a que el fichero lleve 5 s sin cambiar; revisa los logs del `worker`. |
+| «Este navegador no admite avisos» | Navegador sin Web Push o iPhone sin la app instalada | En iPhone, instala la app y actívalos desde ella. En Android, usa Chrome. |
+| La prueba de avisos falla | Claves VAPID vacías o mal copiadas, o el `worker`/`web` sin salida a internet | Revisa las variables `VAPID_*` (sin espacios ni comillas) y los logs de `worker` (`event=push_failed`). |
+| No llegan los resúmenes | Horas de silencio, intervalo de una hora o el tipo desactivado | Es lo esperado: comprueba las casillas de la tarjeta «Avisos» y `NOTIFY_QUIET_HOURS`. |
 | El móvil no ofrece instalar la app | No es HTTPS, Rocket Loader activo, o el aviso se descartó | Abre siempre `https://…`; desactiva Rocket Loader; en Android usa menú ⋮ → Instalar; en iPhone, Safari → Compartir. Para volver a ver el aviso, borra los datos del sitio. |
 | La app instalada pide el código de Cloudflare a menudo | Sesión de Access corta | Sube *Session Duration* de la aplicación de Access (paso 3.3). |
 | Las fotos exportadas no aparecen en Immich | La biblioteca externa no se ha reescaneado | Immich → Bibliotecas externas → *Scan*. |

@@ -36,7 +36,7 @@ Resumen de la sección 7 de la especificación, que manda en caso de duda:
 
 - Ningún secreto en el código ni en el repositorio: siempre variables de entorno.
 - Toda vista e imagen exige sesión iniciada; las imágenes nunca se sirven como estáticos públicos.
-- `db` y `worker` no publican puertos.
+- `db` y `worker` no publican puertos. `db` nunca tiene salida a internet; `web` (red `edge`) y `worker` (red `egress`) sí, para el túnel y las notificaciones push.
 
 ## Commits
 
