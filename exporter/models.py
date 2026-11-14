@@ -1,0 +1,31 @@
+from django.conf import settings
+from django.db import models
+from django.utils import timezone
+
+
+class ExportRequest(models.Model):
+    """An export job requested from the web and executed by the worker."""
+
+    class Status(models.TextChoices):
+        PENDING = "pending", "Pendiente"
+        RUNNING = "running", "En curso"
+        DONE = "done", "Completada"
+        FAILED = "failed", "Fallida"
+
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, blank=True, on_delete=models.SET_NULL
+    )
+    requested_at = models.DateTimeField(default=timezone.now)
+    started_at = models.DateTimeField(null=True, blank=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
+    exported_count = models.PositiveIntegerField(default=0)
+    error = models.TextField(blank=True)
+
+    class Meta:
+        ordering = ["-requested_at", "-id"]
+
+    def __str__(self):
+        return f"Exportación {self.pk} ({self.get_status_display()})"
