@@ -1,0 +1,99 @@
+# PhotoTag stack for Portainer (Stacks → from Git repository or Web editor).
+# Secrets come from environment variables set in Portainer; see .env.example.
+name: phototag
+
+x-app: &app
+  image: phototag:latest
+  build:
+    context: .
+    target: runtime
+  restart: unless-stopped
+  environment: &app-env
+    DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
+    DATABASE_URL: postgres://phototag:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/phototag
+    TZ: ${TZ:-Europe/Madrid}
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  web:
+    <<: *app
+    command: ["web"]
+    environment:
+      <<: *app-env
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:?DJANGO_ALLOWED_HOSTS is required}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:?DJANGO_CSRF_TRUSTED_ORIGINS is required}
+      SUPERADMIN_USERNAME: ${SUPERADMIN_USERNAME:-admin}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+      DEFAULT_USER_PASSWORD: ${DEFAULT_USER_PASSWORD:?DEFAULT_USER_PASSWORD is required}
+    volumes:
+      - ${HOST_PHOTOS_DIR:?HOST_PHOTOS_DIR is required}:/data/photos:ro
+    networks: [internal, edge]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/healthz', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    # No published ports: cloudflared reaches web through the Docker network.
+
+  worker:
+    <<: *app
+    command: ["worker"]
+    environment:
+      <<: *app-env
+      POLL_INTERVAL_SECONDS: ${POLL_INTERVAL_SECONDS:-60}
+      MIN_PHOTO_AREA_RATIO: ${MIN_PHOTO_AREA_RATIO:-0.03}
+      FACE_SCORE_THRESHOLD: ${FACE_SCORE_THRESHOLD:-0.7}
+      EXPORT_INTERVAL_HOURS: ${EXPORT_INTERVAL_HOURS:-0}
+    volumes:
+      - ${HOST_SCANS_DIR:?HOST_SCANS_DIR is required}:/data/scans
+      - ${HOST_PHOTOS_DIR}:/data/photos
+      - ${HOST_EXPORT_DIR:?HOST_EXPORT_DIR is required}:/data/export
+      - ${HOST_BACKUPS_DIR:?HOST_BACKUPS_DIR is required}:/data/backups
+    depends_on:
+      db:
+        condition: service_healthy
+      web:
+        condition: service_healthy  # web applies the migrations
+    networks: [internal]
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: phototag
+      POSTGRES_USER: phototag
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      TZ: ${TZ:-Europe/Madrid}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks: [internal]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U phototag -d phototag"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN is required}
+      TZ: ${TZ:-Europe/Madrid}
+    depends_on:
+      web:
+        condition: service_healthy
+    networks: [edge]
+
+networks:
+  # No external access: db and worker only live here.
+  internal:
+    internal: true
+  # web <-> cloudflared; cloudflared needs outbound internet for the tunnel.
+  edge: {}
+
+volumes:
+  pgdata:

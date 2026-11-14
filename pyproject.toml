@@ -1,0 +1,45 @@
+[project]
+name = "phototag"
+version = "0.1.0"
+description = "Collaborative tagging of scanned family photos with export to Immich"
+requires-python = ">=3.12"
+dependencies = [
+    "Django>=5.1,<6",
+    "psycopg[binary]>=3.2",
+    "dj-database-url>=2.2",
+    "gunicorn>=23.0",
+    "whitenoise>=6.7",
+    "django-axes>=7.0",
+    "pillow>=10.4",
+    "opencv-python-headless>=4.10",
+    "numpy>=1.26",
+    "pyexiftool>=0.5.6",
+    "apscheduler>=3.10,<4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-django>=4.9",
+    "ruff>=0.7",
+]
+
+[build-system]
+requires = ["setuptools>=75"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["phototag*", "accounts*", "catalog*", "scanner*", "exporter*"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "phototag.settings_test"
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "DJ"]

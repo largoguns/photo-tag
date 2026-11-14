@@ -1,0 +1,46 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+dev.env
+
+# Runtime data (scans, photos, exports, backups)
+data/
+db.sqlite3
+staticfiles/
+
+# Images: never commit family photos. Test fixtures are generated in code;
+# anything placed under tests/ is still allowed.
+*.jpg
+*.jpeg
+*.png
+*.tif
+*.tiff
+*.heic
+*.xmp
+!tests/**/*.jpg
+!tests/**/*.jpeg
+!tests/**/*.png
+!tests/**/*.tif
+!tests/**/*.tiff
+!static/img/**
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Editors and OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
