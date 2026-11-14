@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Mi perfil{% endblock %}
+{% block content %}
+<h1>Mi perfil</h1>
+<div class="grid-2">
+  <form method="post" class="card stack">
+    {% csrf_token %}
+    <h2>Datos</h2>
+    <p class="muted">Usuario: <strong>{{ user.username }}</strong> · Rol: {{ user.get_role_display }}</p>
+    {% if user.person %}<p class="muted">Apareces en las fotos como <a href="{% url 'person_detail' user.person.pk %}">{{ user.person }}</a>.</p>{% endif %}
+    {{ profile_form.as_div }}
+    <button type="submit" name="save_profile" class="button primary">Guardar</button>
+  </form>
+  <form method="post" class="card stack">
+    {% csrf_token %}
+    <h2>Cambiar contraseña</h2>
+    {{ password_form.as_div }}
+    <button type="submit" name="change_password" class="button primary">Cambiar contraseña</button>
+  </form>
+</div>
+{% endblock %}

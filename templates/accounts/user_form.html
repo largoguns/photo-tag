@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{% if creating %}Nuevo usuario{% else %}Editar usuario{% endif %}{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<form method="post" class="card stack">
+  {% csrf_token %}
+  <h1>{% if creating %}Nuevo usuario{% else %}Editar «{{ target.username }}»{% endif %}</h1>
+  {% if creating %}<p class="muted">El usuario deberá cambiar la contraseña en su primer acceso.</p>{% endif %}
+  {{ form.as_div }}
+  <div class="actions">
+    <button type="submit" class="button primary">Guardar</button>
+    <a class="button" href="{% url 'user_list' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

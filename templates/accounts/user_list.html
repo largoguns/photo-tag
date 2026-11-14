@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Usuarios{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Usuarios</h1>
+  <a class="button primary" href="{% url 'user_create' %}">Nuevo usuario</a>
+</div>
+<form method="get" class="search" role="search">
+  <label for="q" class="visually-hidden">Buscar usuarios</label>
+  <input type="search" id="q" name="q" value="{{ query }}" placeholder="Buscar por usuario o nombre">
+  <button type="submit" class="button">Buscar</button>
+</form>
+<ul class="list">
+  {% for u in page %}
+  <li class="list-item user-row{% if not u.is_active %} inactive{% endif %}">
+    <div class="list-main">
+      <strong>{{ u.get_display_name }}</strong> <span class="muted">@{{ u.username }}</span>
+      <div class="meta">
+        <span class="badge">{{ u.get_role_display }}</span>
+        <span class="badge {% if u.is_active %}ok{% else %}off{% endif %}">{% if u.is_active %}Activo{% else %}Inactivo{% endif %}</span>
+        {% if u.must_change_password %}<span class="badge warn">Contraseña genérica</span>{% endif %}
+        <span class="muted">Último acceso: {% if u.last_login %}{{ u.last_login|date:"d/m/Y H:i" }}{% else %}nunca{% endif %}</span>
+      </div>
+    </div>
+    <div class="actions">
+      <a class="button small" href="{% url 'user_edit' u.pk %}">Editar</a>
+      <form method="post" action="{% url 'user_reset_password' u.pk %}" onsubmit="return confirm('¿Restablecer la contraseña de {{ u.username|escapejs }} a la genérica?')">
+        {% csrf_token %}<button type="submit" class="button small">Restablecer contraseña</button>
+      </form>
+      <form method="post" action="{% url 'user_toggle_active' u.pk %}">
+        {% csrf_token %}<button type="submit" class="button small {% if u.is_active %}danger{% endif %}">{% if u.is_active %}Desactivar{% else %}Reactivar{% endif %}</button>
+      </form>
+    </div>
+  </li>
+  {% empty %}
+  <li class="empty">No hay usuarios que coincidan.</li>
+  {% endfor %}
+</ul>
+{% include "_pagination.html" %}
+{% endblock %}
