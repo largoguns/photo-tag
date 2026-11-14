@@ -201,9 +201,10 @@ def test_user_search(client, superadmin, alice, bob):
 
 def test_profile_updates_display_name(client, alice):
     client.force_login(alice)
-    client.post(reverse("profile"), {"display_name": "Ali", "save_profile": "1"})
+    client.post(reverse("profile"), {"display_name": "Ali", "theme": "dark", "save_profile": "1"})
     alice.refresh_from_db()
     assert alice.display_name == "Ali"
+    assert alice.theme == "dark"
 
 
 def test_link_user_to_person(client, superadmin, alice):

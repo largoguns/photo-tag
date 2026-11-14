@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.forms import NewPasswordForm, ProfileForm, UserCreateForm, UserEditForm
@@ -24,7 +25,7 @@ def password_change_forced(request):
     if request.method == "POST" and form.is_valid():
         user_service.change_own_password(request.user, form.cleaned_data["new_password1"])
         update_session_auth_hash(request, request.user)
-        messages.success(request, "Contraseña actualizada.")
+        messages.success(request, _("Contraseña actualizada."))
         return redirect("home")
     return render(request, "accounts/password_change_forced.html", {"form": form})
 
@@ -37,7 +38,7 @@ def profile(request):
             profile_form = ProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, "Perfil actualizado.")
+                messages.success(request, _("Perfil actualizado."))
                 return redirect("profile")
         elif "change_password" in request.POST:
             password_form = NewPasswordForm(request.user, request.POST)
@@ -46,7 +47,7 @@ def profile(request):
                     request.user, password_form.cleaned_data["new_password1"]
                 )
                 update_session_auth_hash(request, request.user)
-                messages.success(request, "Contraseña actualizada.")
+                messages.success(request, _("Contraseña actualizada."))
                 return redirect("profile")
     return render(
         request,
@@ -80,7 +81,9 @@ def user_create(request):
         except Exception as exc:  # misconfiguration (no generic password) or validation
             form.add_error(None, str(exc))
         else:
-            messages.success(request, f"Usuario «{user.username}» creado.")
+            messages.success(
+                request, _("Usuario «%(username)s» creado.") % {"username": user.username}
+            )
             return redirect("user_list")
     return render(request, "accounts/user_form.html", {"form": form, "creating": True})
 
@@ -104,7 +107,7 @@ def user_edit(request, pk):
         except ValidationError as exc:
             form.add_error("role", exc.messages[0])
         else:
-            messages.success(request, "Usuario actualizado.")
+            messages.success(request, _("Usuario actualizado."))
             return redirect("user_list")
     return render(
         request, "accounts/user_form.html", {"form": form, "target": target, "creating": False}
@@ -120,8 +123,12 @@ def user_toggle_active(request, pk):
     except ValidationError as exc:
         messages.error(request, exc.messages[0])
     else:
-        state = "reactivado" if not target.is_active else "desactivado"
-        messages.success(request, f"Usuario «{target.username}» {state}.")
+        message = (
+            _("Usuario «%(username)s» reactivado.")
+            if not target.is_active
+            else _("Usuario «%(username)s» desactivado.")
+        )
+        messages.success(request, message % {"username": target.username})
     return redirect("user_list")
 
 
@@ -135,6 +142,8 @@ def user_reset_password(request, pk):
         messages.error(request, str(exc))
     else:
         messages.success(
-            request, f"Contraseña de «{target.username}» restablecida a la contraseña genérica."
+            request,
+            _("Contraseña de «%(username)s» restablecida a la contraseña genérica.")
+            % {"username": target.username},
         )
     return redirect("user_list")

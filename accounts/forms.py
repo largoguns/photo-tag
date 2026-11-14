@@ -1,6 +1,7 @@
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import SetPasswordForm
+from django.utils.translation import gettext_lazy as _
 
 from accounts.models import Role, User
 
@@ -15,48 +16,50 @@ class NewPasswordForm(SetPasswordForm):
             and settings.DEFAULT_USER_PASSWORD
             and password == settings.DEFAULT_USER_PASSWORD
         ):
-            raise forms.ValidationError("La nueva contraseña no puede ser la contraseña genérica.")
+            raise forms.ValidationError(
+                _("La nueva contraseña no puede ser la contraseña genérica.")
+            )
         return password
 
 
 class ProfileForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["display_name"]
+        fields = ["display_name", "theme"]
 
 
 class UserCreateForm(forms.Form):
     username = forms.RegexField(
-        label="Nombre de usuario",
+        label=_("Nombre de usuario"),
         max_length=150,
         regex=r"^[\w.@+-]+$",
-        error_messages={"invalid": "Solo letras, números y los caracteres @ . + - _"},
+        error_messages={"invalid": _("Solo letras, números y los caracteres @ . + - _")},
     )
-    display_name = forms.CharField(label="Nombre a mostrar", max_length=150, required=False)
-    role = forms.ChoiceField(label="Rol", choices=Role.choices, initial=Role.COLLABORATOR)
+    display_name = forms.CharField(label=_("Nombre a mostrar"), max_length=150, required=False)
+    role = forms.ChoiceField(label=_("Rol"), choices=Role.choices, initial=Role.COLLABORATOR)
     password = forms.CharField(
-        label="Contraseña inicial",
+        label=_("Contraseña inicial"),
         required=False,
         widget=forms.PasswordInput(render_value=False),
-        help_text="Déjala vacía para usar la contraseña genérica.",
+        help_text=_("Déjala vacía para usar la contraseña genérica."),
     )
 
     def clean_username(self):
         username = self.cleaned_data["username"]
         if User.objects.filter(username__iexact=username).exists():
-            raise forms.ValidationError("Ya existe un usuario con ese nombre.")
+            raise forms.ValidationError(_("Ya existe un usuario con ese nombre."))
         return username
 
 
 class UserEditForm(forms.Form):
-    display_name = forms.CharField(label="Nombre a mostrar", max_length=150, required=False)
-    role = forms.ChoiceField(label="Rol", choices=Role.choices)
+    display_name = forms.CharField(label=_("Nombre a mostrar"), max_length=150, required=False)
+    role = forms.ChoiceField(label=_("Rol"), choices=Role.choices)
     person = forms.ModelChoiceField(
-        label="Persona vinculada",
+        label=_("Persona vinculada"),
         queryset=None,
         required=False,
-        empty_label="— Ninguna —",
-        help_text="«Este usuario soy yo en las fotos».",
+        empty_label=_("— Ninguna —"),
+        help_text=_("«Este usuario soy yo en las fotos»."),
     )
 
     def __init__(self, *args, **kwargs):

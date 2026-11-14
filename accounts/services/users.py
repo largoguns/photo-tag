@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.db import transaction
+from django.utils.translation import gettext as _
 
 from accounts.models import Role, User
 from accounts.services import audit
@@ -27,7 +28,7 @@ def _guard_last_superadmin(user):
     """Raise if `user` is the only active superadmin left."""
     if user.role == Role.SUPERADMIN and user.is_active:
         if not active_superadmins().exclude(pk=user.pk).exists():
-            raise LastSuperadminError("Debe existir al menos un superadmin activo.")
+            raise LastSuperadminError(_("Debe existir al menos un superadmin activo."))
 
 
 @transaction.atomic

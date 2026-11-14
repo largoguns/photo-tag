@@ -3,18 +3,28 @@ from django.db import models
 from django.db.models import ProtectedError
 from django.db.models.signals import pre_delete
 from django.dispatch import receiver
+from django.utils.translation import gettext_lazy as _
 
 
 class Role(models.TextChoices):
     SUPERADMIN = "superadmin", "Superadmin"
-    ADMIN = "admin", "Administrador"
-    COLLABORATOR = "collaborator", "Colaborador"
+    ADMIN = "admin", _("Administrador")
+    COLLABORATOR = "collaborator", _("Colaborador")
+
+
+class Theme(models.TextChoices):
+    AUTO = "auto", _("Automático (según el sistema)")
+    LIGHT = "light", _("Claro")
+    DARK = "dark", _("Oscuro")
 
 
 class User(AbstractUser):
-    display_name = models.CharField("nombre a mostrar", max_length=150, blank=True)
-    role = models.CharField("rol", max_length=20, choices=Role.choices, default=Role.COLLABORATOR)
-    must_change_password = models.BooleanField("debe cambiar la contraseña", default=True)
+    display_name = models.CharField(_("nombre a mostrar"), max_length=150, blank=True)
+    role = models.CharField(
+        _("rol"), max_length=20, choices=Role.choices, default=Role.COLLABORATOR
+    )
+    must_change_password = models.BooleanField(_("debe cambiar la contraseña"), default=True)
+    theme = models.CharField(_("tema"), max_length=10, choices=Theme.choices, default=Theme.AUTO)
 
     objects = UserManager()
 
@@ -59,4 +69,4 @@ def protect_last_superadmin(sender, instance, **kwargs):
     if instance.role == Role.SUPERADMIN and instance.is_active:
         others = User.objects.filter(role=Role.SUPERADMIN, is_active=True).exclude(pk=instance.pk)
         if not others.exists():
-            raise ProtectedError("Debe existir al menos un superadmin activo.", {instance})
+            raise ProtectedError(_("Debe existir al menos un superadmin activo."), {instance})

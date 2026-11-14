@@ -2,7 +2,13 @@ from django.shortcuts import redirect
 from django.urls import resolve
 
 # URL names a user with a pending password change can still reach.
-PASSWORD_CHANGE_ALLOWED = {"password_change_forced", "logout", "login", "healthz"}
+PASSWORD_CHANGE_ALLOWED = {
+    "password_change_forced",
+    "logout",
+    "login",
+    "healthz",
+    "set_language",
+}
 
 
 class ForcePasswordChangeMiddleware:
