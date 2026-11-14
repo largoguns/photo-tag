@@ -1,21 +1,21 @@
-{% extends "base.html" %}
-{% block title %}Administración{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Administración" %}{% endblock %}
 {% block content %}
-<h1>Administración</h1>
+<h1>{% translate "Administración" %}</h1>
 <ul class="admin-grid">
-  <li><a class="card admin-card" href="{% url 'admin_review_queue' %}"><strong>Cola de revisión</strong><span class="muted">{{ review_count }} escaneo{{ review_count|pluralize }} pendiente{{ review_count|pluralize }}</span></a></li>
-  <li><a class="card admin-card" href="{% url 'admin_event_types' %}"><strong>Tipos de evento</strong><span class="muted">Catálogo editable</span></a></li>
-  <li><a class="card admin-card" href="{% url 'admin_thresholds' %}"><strong>Umbrales de votación</strong><span class="muted">{{ settings.vote_min_approvals }} votos · {{ settings.vote_approval_ratio }}</span></a></li>
-  <li><a class="card admin-card" href="{% url 'admin_merge' %}"><strong>Fusionar personas</strong><span class="muted">Unificar duplicados</span></a></li>
-  <li><a class="card admin-card" href="{% url 'export_home' %}"><strong>Exportación a Immich</strong><span class="muted">XMP con caras y eventos</span></a></li>
-  {% if user.is_superadmin %}<li><a class="card admin-card" href="{% url 'user_list' %}"><strong>Usuarios</strong><span class="muted">Altas, roles y contraseñas</span></a></li>{% endif %}
+  <li><a class="card admin-card" href="{% url 'admin_review_queue' %}"><strong>{% translate "Cola de revisión" %}</strong><span class="muted">{% blocktranslate count counter=review_count %}{{ counter }} escaneo pendiente{% plural %}{{ counter }} escaneos pendientes{% endblocktranslate %}</span></a></li>
+  <li><a class="card admin-card" href="{% url 'admin_event_types' %}"><strong>{% translate "Tipos de evento" %}</strong><span class="muted">{% translate "Catálogo editable" %}</span></a></li>
+  <li><a class="card admin-card" href="{% url 'admin_thresholds' %}"><strong>{% translate "Umbrales de votación" %}</strong><span class="muted">{% blocktranslate with votes=settings.vote_min_approvals ratio=settings.vote_approval_ratio %}{{ votes }} votos · {{ ratio }}{% endblocktranslate %}</span></a></li>
+  <li><a class="card admin-card" href="{% url 'admin_merge' %}"><strong>{% translate "Fusionar personas" %}</strong><span class="muted">{% translate "Unificar duplicados" %}</span></a></li>
+  <li><a class="card admin-card" href="{% url 'export_home' %}"><strong>{% translate "Exportación a Immich" %}</strong><span class="muted">{% translate "XMP con caras y eventos" %}</span></a></li>
+  {% if user.is_superadmin %}<li><a class="card admin-card" href="{% url 'user_list' %}"><strong>{% translate "Usuarios" %}</strong><span class="muted">{% translate "Altas, roles y contraseñas" %}</span></a></li>{% endif %}
 </ul>
 <section class="stack">
-  <h2>Actividad reciente</h2>
+  <h2>{% translate "Actividad reciente" %}</h2>
   <ul class="list compact">
     {% for entry in recent_audit %}
-    <li class="list-item"><span class="muted">{{ entry.created_at|date:"d/m H:i" }}</span> <strong>{{ entry.user|default:"sistema" }}</strong> {{ entry.action }} <span class="muted">{{ entry.target_type }} {{ entry.target_id }}</span></li>
-    {% empty %}<li class="empty">Sin actividad.</li>{% endfor %}
+    <li class="list-item"><span class="muted">{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }}</span> <strong>{% if entry.user %}{{ entry.user }}{% else %}{% translate "sistema" %}{% endif %}</strong> {{ entry.action }} <span class="muted">{{ entry.target_type }} {{ entry.target_id }}</span></li>
+    {% empty %}<li class="empty">{% translate "Sin actividad." %}</li>{% endfor %}
   </ul>
 </section>
 {% endblock %}

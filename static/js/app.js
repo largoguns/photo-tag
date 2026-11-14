@@ -177,6 +177,61 @@
     if (url) window.location.href = url;
   });
 
+  // --- Confirmation dialog (replaces window.confirm) ----------------------
+  // Plain forms use data-confirm="…"; HTMX forms use hx-confirm="…". Both may add
+  // data-confirm-ok (button label) and data-confirm-variant="danger".
+  function askConfirmation(message, source) {
+    const dialog = document.getElementById("confirm-dialog");
+    if (!dialog || typeof dialog.showModal !== "function") {
+      return Promise.resolve(window.confirm(message));
+    }
+    const ok = dialog.querySelector("[data-confirm-ok]");
+    if (!ok.dataset.defaultLabel) ok.dataset.defaultLabel = ok.textContent;
+    const settings = source ? source.closest("[data-confirm-ok], [data-confirm-variant]") : null;
+    ok.textContent = (settings && settings.dataset.confirmOk) || ok.dataset.defaultLabel;
+    ok.classList.toggle("danger-fill", !!settings && settings.dataset.confirmVariant === "danger");
+    dialog.querySelector("#confirm-message").textContent = message;
+    dialog.returnValue = "";
+
+    const opener = document.activeElement;
+    dialog.showModal();
+    ok.focus();
+    return new Promise((resolve) => {
+      dialog.addEventListener("close", () => {
+        if (opener && typeof opener.focus === "function") opener.focus({ preventScroll: true });
+        resolve(dialog.returnValue === "ok");
+      }, { once: true });
+    });
+  }
+
+  // Clicking the backdrop cancels, like pressing Escape.
+  document.addEventListener("click", (event) => {
+    const dialog = event.target;
+    if (dialog.id === "confirm-dialog" && dialog.open) dialog.close("cancel");
+  });
+
+  document.addEventListener("submit", (event) => {
+    const form = event.target;
+    if (!form.matches("form[data-confirm]") || form.hasAttribute("hx-confirm")) return;
+    if (form.dataset.confirmed === "true") { delete form.dataset.confirmed; return; }
+    event.preventDefault();
+    const submitter = event.submitter;
+    askConfirmation(form.dataset.confirm, form).then((accepted) => {
+      if (!accepted) return;
+      form.dataset.confirmed = "true";
+      if (typeof form.requestSubmit === "function") form.requestSubmit(submitter || undefined);
+      else form.submit();
+    });
+  }, true);
+
+  document.addEventListener("htmx:confirm", (event) => {
+    if (!event.detail.question) return;
+    event.preventDefault();
+    askConfirmation(event.detail.question, event.detail.elt).then((accepted) => {
+      if (accepted) event.detail.issueRequest(true);
+    });
+  });
+
   // Re-select the highlighted face after HTMX swaps the workspace.
   document.addEventListener("htmx:afterSwap", () => {
     const selected = document.querySelector(".face-box.selected");

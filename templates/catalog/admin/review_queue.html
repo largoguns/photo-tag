@@ -1,29 +1,30 @@
-{% extends "base.html" %}
-{% block title %}Cola de revisión{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Cola de revisión" %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'admin_home' %}">← Administración</a></p>
-<h1>Cola de revisión</h1>
-<p class="muted">Para corregir un recorte, reprocesa el escaneo con <code>process_scans --force &lt;fichero&gt;</code>.</p>
+<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
+<h1>{% translate "Cola de revisión" %}</h1>
+<p class="muted">{% blocktranslate %}Para corregir un recorte, reprocesa el escaneo con <code>process_scans --force &lt;fichero&gt;</code>.{% endblocktranslate %}</p>
 {% for scan in scans %}
 <section class="card stack review-scan">
   <div class="page-header">
     <h2>{{ scan.file_name }}</h2>
-    <form method="post" action="{% url 'admin_review_ok' scan.pk %}">{% csrf_token %}<button type="submit" class="button primary">Marcar como correcto</button></form>
+    <form method="post" action="{% url 'admin_review_ok' scan.pk %}">{% csrf_token %}<button type="submit" class="button primary">{% translate "Marcar como correcto" %}</button></form>
   </div>
-  <p class="muted">Procesado el {{ scan.processed_at|date:"d/m/Y H:i" }} · hash {{ scan.sha256|slice:":12" }}</p>
-  <ul class="reasons">{% for reason in scan.review_reasons %}<li>{{ reason }}</li>{% endfor %}</ul>
+  <p class="muted">{% blocktranslate with date=scan.processed_at|date:"SHORT_DATETIME_FORMAT" hash=scan.sha256|slice:":12" %}Procesado el {{ date }} · hash {{ hash }}{% endblocktranslate %}</p>
+  <ul class="reasons">{% for reason in scan.review_reason_labels %}<li>{{ reason }}</li>{% endfor %}</ul>
   <ul class="photo-grid">
     {% for photo in scan.photos.all %}
     <li class="photo-card{% if photo.discarded %} discarded{% endif %}">
-      <img src="{% url 'photo_image' photo.pk 400 %}" alt="Recorte {{ photo.index }}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
-      <form method="post" action="{% url 'admin_photo_toggle_discard' photo.pk %}">
-        {% csrf_token %}<button type="submit" class="button small {% if not photo.discarded %}danger{% endif %}">{% if photo.discarded %}Restaurar{% else %}Descartar{% endif %}</button>
+      <img src="{% url 'photo_image' photo.pk 400 %}" alt="{% blocktranslate with index=photo.index %}Recorte {{ index }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
+      <form method="post" action="{% url 'admin_photo_toggle_discard' photo.pk %}"
+            {% if not photo.discarded %}data-confirm="{% translate '¿Descartar este recorte? Dejará de aparecer en la galería y no se exportará. Se puede restaurar después.' %}" data-confirm-ok="{% translate 'Descartar' %}" data-confirm-variant="danger"{% endif %}>
+        {% csrf_token %}<button type="submit" class="button small {% if not photo.discarded %}danger{% endif %}">{% if photo.discarded %}{% translate "Restaurar" %}{% else %}{% translate "Descartar" %}{% endif %}</button>
       </form>
     </li>
-    {% empty %}<li class="empty">No se detectó ninguna foto.</li>{% endfor %}
+    {% empty %}<li class="empty">{% translate "No se detectó ninguna foto." %}</li>{% endfor %}
   </ul>
 </section>
 {% empty %}
-<p class="empty">No hay escaneos pendientes de revisión.</p>
+<p class="empty">{% translate "No hay escaneos pendientes de revisión." %}</p>
 {% endfor %}
 {% endblock %}

@@ -1,15 +1,17 @@
-{% extends "base.html" %}
-{% block title %}Fusionar personas{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Fusionar personas" %}{% endblock %}
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
-<form method="post" class="card stack">
+<form method="post" class="card stack"
+      data-confirm="{% translate '¿Fusionar estas personas? Las caras y propuestas de la primera pasarán a la segunda. No se puede deshacer desde la web.' %}"
+      data-confirm-ok="{% translate 'Fusionar' %}" data-confirm-variant="danger">
   {% csrf_token %}
-  <h1>Fusionar personas</h1>
-  <p class="muted">Las caras y propuestas de la primera persona pasan a la segunda. La acción queda registrada.</p>
+  <h1>{% translate "Fusionar personas" %}</h1>
+  <p class="muted">{% translate "Las caras y propuestas de la primera persona pasan a la segunda. La acción queda registrada." %}</p>
   {{ form.as_div }}
   <div class="actions">
-    <button type="submit" class="button primary">Fusionar</button>
-    <a class="button" href="{% url 'admin_home' %}">Cancelar</a>
+    <button type="submit" class="button primary">{% translate "Fusionar" %}</button>
+    <a class="button" href="{% url 'admin_home' %}">{% translate "Cancelar" %}</a>
   </div>
 </form>
 {% endblock %}

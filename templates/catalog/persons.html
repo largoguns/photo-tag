@@ -1,11 +1,11 @@
-{% extends "base.html" %}
-{% block title %}Personas{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Personas" %}{% endblock %}
 {% block content %}
-<h1>Personas</h1>
+<h1>{% translate "Personas" %}</h1>
 <form method="get" class="search" role="search">
-  <label for="q" class="visually-hidden">Buscar personas</label>
-  <input type="search" id="q" name="q" value="{{ query }}" placeholder="Buscar por nombre">
-  <button type="submit" class="button">Buscar</button>
+  <label for="q" class="visually-hidden">{% translate "Buscar personas" %}</label>
+  <input type="search" id="q" name="q" value="{{ query }}" placeholder="{% translate 'Buscar por nombre' %}">
+  <button type="submit" class="button">{% translate "Buscar" %}</button>
 </form>
 <ul class="person-grid">
   {% for person in page %}
@@ -17,11 +17,11 @@
       <span class="avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>
       {% endif %}
       <span class="person-name">{{ person }}</span>
-      <span class="muted">{{ person.photo_count }} foto{{ person.photo_count|pluralize }}</span>
+      <span class="muted">{% blocktranslate count counter=person.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</span>
     </a>
   </li>
   {% empty %}
-  <li class="empty">Todavía no hay personas identificadas.</li>
+  <li class="empty">{% translate "Todavía no hay personas identificadas." %}</li>
   {% endfor %}
 </ul>
 {% include "_pagination.html" %}

@@ -1,9 +1,9 @@
-{% extends "base.html" %}
-{% block title %}Mi actividad{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Mi actividad" %}{% endblock %}
 {% block content %}
-<h1>Mi actividad</h1>
-<nav class="chips" aria-label="Filtrar por estado">
-  <a class="chip" href="{% url 'my_activity' %}" {% if not status %}aria-current="true"{% endif %}>Todas</a>
+<h1>{% translate "Mi actividad" %}</h1>
+<nav class="chips" aria-label="{% translate 'Filtrar por estado' %}">
+  <a class="chip" href="{% url 'my_activity' %}" {% if not status %}aria-current="true"{% endif %}>{% translate "Todas" %}</a>
   {% for value, label in statuses %}
   <a class="chip" href="?status={{ value }}" {% if status == value %}aria-current="true"{% endif %}>{{ label }}</a>
   {% endfor %}
@@ -12,18 +12,18 @@
   {% for proposal in page %}
   <li class="list-item">
     <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">
-      <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="Foto {{ proposal.photo_id }}" loading="lazy" width="80" height="60">
+      <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60">
     </a>
     <div class="list-main">
       <strong>{{ proposal.get_kind_display }}</strong>: {{ proposal.label }}
       <div class="meta">
         <span class="badge proposal-{{ proposal.status }}">{{ proposal.get_status_display }}</span>
-        <span class="muted">{{ proposal.created_at|date:"d/m/Y H:i" }} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}{% if proposal.decided_by %} · decidida por {{ proposal.decided_by }}{% endif %}</span>
+        <span class="muted">{{ proposal.created_at|date:"SHORT_DATETIME_FORMAT" }} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}{% if proposal.decided_by %} · {% blocktranslate with admin=proposal.decided_by %}decidida por {{ admin }}{% endblocktranslate %}{% endif %}</span>
       </div>
     </div>
   </li>
   {% empty %}
-  <li class="empty">Aún no has hecho propuestas.</li>
+  <li class="empty">{% translate "Aún no has hecho propuestas." %}</li>
   {% endfor %}
 </ul>
 {% include "_pagination.html" %}

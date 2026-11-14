@@ -1,21 +1,28 @@
-{% extends "base.html" %}
-{% block title %}Mi perfil{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Mi perfil" %}{% endblock %}
 {% block content %}
-<h1>Mi perfil</h1>
+<h1>{% translate "Mi perfil" %}</h1>
 <div class="grid-2">
+  <div class="stack">
+    <form method="post" class="card stack">
+      {% csrf_token %}
+      <h2>{% translate "Datos y apariencia" %}</h2>
+      <p class="muted">{% blocktranslate with username=user.username role=user.get_role_display %}Usuario: <strong>{{ username }}</strong> · Rol: {{ role }}{% endblocktranslate %}</p>
+      {% if user.person %}<p class="muted">{% url 'person_detail' user.person.pk as person_url %}{% blocktranslate with person=user.person %}Apareces en las fotos como <a href="{{ person_url }}">{{ person }}</a>.{% endblocktranslate %}</p>{% endif %}
+      {{ profile_form.as_div }}
+      <button type="submit" name="save_profile" class="button primary">{% translate "Guardar" %}</button>
+    </form>
+    <section class="card stack" aria-labelledby="language-title">
+      <h2 id="language-title">{% translate "Idioma" %}</h2>
+      <p class="muted">{% translate "Por defecto se usa el idioma del navegador. La elección se guarda en este dispositivo." %}</p>
+      {% include "_language_switch.html" %}
+    </section>
+  </div>
   <form method="post" class="card stack">
     {% csrf_token %}
-    <h2>Datos</h2>
-    <p class="muted">Usuario: <strong>{{ user.username }}</strong> · Rol: {{ user.get_role_display }}</p>
-    {% if user.person %}<p class="muted">Apareces en las fotos como <a href="{% url 'person_detail' user.person.pk %}">{{ user.person }}</a>.</p>{% endif %}
-    {{ profile_form.as_div }}
-    <button type="submit" name="save_profile" class="button primary">Guardar</button>
-  </form>
-  <form method="post" class="card stack">
-    {% csrf_token %}
-    <h2>Cambiar contraseña</h2>
+    <h2>{% translate "Cambiar contraseña" %}</h2>
     {{ password_form.as_div }}
-    <button type="submit" name="change_password" class="button primary">Cambiar contraseña</button>
+    <button type="submit" name="change_password" class="button primary">{% translate "Cambiar contraseña" %}</button>
   </form>
 </div>
 {% endblock %}

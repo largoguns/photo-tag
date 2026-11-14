@@ -1,14 +1,14 @@
-{% extends "base.html" %}
-{% block title %}Editar tipo de evento{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Editar tipo de evento" %}{% endblock %}
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
 <form method="post" class="card stack">
   {% csrf_token %}
-  <h1>Editar «{{ event_type }}»</h1>
+  <h1>{% blocktranslate with name=event_type.name %}Editar «{{ name }}»{% endblocktranslate %}</h1>
   {{ form.as_div }}
   <div class="actions">
-    <button type="submit" class="button primary">Guardar</button>
-    <a class="button" href="{% url 'admin_event_types' %}">Cancelar</a>
+    <button type="submit" class="button primary">{% translate "Guardar" %}</button>
+    <a class="button" href="{% url 'admin_event_types' %}">{% translate "Cancelar" %}</a>
   </div>
 </form>
 {% endblock %}

@@ -1,24 +1,29 @@
-{% extends "base.html" %}
-{% block title %}Exportación{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Exportación" %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'admin_home' %}">← Administración</a></p>
-<h1>Exportación a Immich</h1>
+<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
+<h1>{% translate "Exportación a Immich" %}</h1>
 <section class="card stack">
-  <p><strong>{{ pending_photos }}</strong> foto{{ pending_photos|pluralize }} catalogada{{ pending_photos|pluralize }} con cambios pendientes de exportar.</p>
+  <p>{% blocktranslate count counter=pending_photos %}<strong>{{ counter }}</strong> foto catalogada con cambios pendientes de exportar.{% plural %}<strong>{{ counter }}</strong> fotos catalogadas con cambios pendientes de exportar.{% endblocktranslate %}</p>
   <form method="post" action="{% url 'export_start' %}">
-    {% csrf_token %}<button type="submit" class="button primary">Exportar ahora</button>
+    {% csrf_token %}<button type="submit" class="button primary">{% translate "Exportar ahora" %}</button>
   </form>
-  <p class="muted">El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. Después, reescanea la biblioteca externa en Immich.</p>
+  <p class="muted">{% blocktranslate %}El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. Después, reescanea la biblioteca externa en Immich.{% endblocktranslate %}</p>
 </section>
-<h2>Exportaciones recientes</h2>
+<h2>{% translate "Exportaciones recientes" %}</h2>
 <ul class="list">
   {% for req in requests %}
   <li class="list-item">
     <div class="list-main">
-      <strong>{{ req.requested_at|date:"d/m/Y H:i" }}</strong> <span class="badge">{{ req.get_status_display }}</span>
-      <div class="meta muted">por {{ req.requested_by|default:"sistema" }}{% if req.finished_at %} · {{ req.exported_count }} exportada{{ req.exported_count|pluralize }}{% endif %}{% if req.error %} · {{ req.error }}{% endif %}</div>
+      <strong>{{ req.requested_at|date:"SHORT_DATETIME_FORMAT" }}</strong> <span class="badge">{{ req.get_status_display }}</span>
+      <div class="meta muted">
+        {% if req.requested_by %}{% blocktranslate with user=req.requested_by %}por {{ user }}{% endblocktranslate %}{% else %}{% translate "por el sistema" %}{% endif %}
+        {% if req.finished_at %} · {% blocktranslate count counter=req.exported_count %}{{ counter }} exportada{% plural %}{{ counter }} exportadas{% endblocktranslate %}{% endif %}
+        {% if req.failed_count %} · {% blocktranslate count counter=req.failed_count %}{{ counter }} foto no se pudo exportar; revisa los logs del worker.{% plural %}{{ counter }} fotos no se pudieron exportar; revisa los logs del worker.{% endblocktranslate %}{% endif %}
+        {% if req.error %} · {{ req.error }}{% endif %}
+      </div>
     </div>
   </li>
-  {% empty %}<li class="empty">Todavía no se ha exportado nada.</li>{% endfor %}
+  {% empty %}<li class="empty">{% translate "Todavía no se ha exportado nada." %}</li>{% endfor %}
 </ul>
 {% endblock %}

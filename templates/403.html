@@ -1,7 +1,7 @@
-{% extends "base.html" %}
-{% block title %}Acceso denegado{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Acceso denegado" %}{% endblock %}
 {% block content %}
-<h1>Acceso denegado</h1>
-<p>No tienes permiso para ver esta página.</p>
-<p><a class="button" href="{% url 'home' %}">Volver al inicio</a></p>
+<h1>{% translate "Acceso denegado" %}</h1>
+<p>{% translate "No tienes permiso para ver esta página." %}</p>
+<p><a class="button" href="{% url 'home' %}">{% translate "Volver al inicio" %}</a></p>
 {% endblock %}

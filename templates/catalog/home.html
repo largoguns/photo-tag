@@ -1,33 +1,33 @@
-{% extends "base.html" %}
-{% block title %}Inicio{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Inicio" %}{% endblock %}
 {% block content %}
-<h1>Hola, {{ user.get_display_name }}</h1>
+<h1>{% blocktranslate with name=user.get_display_name %}Hola, {{ name }}{% endblocktranslate %}</h1>
 <section class="card stack" aria-labelledby="progress-title">
-  <h2 id="progress-title">Progreso</h2>
-  <p><strong>{{ cataloged }}</strong> de <strong>{{ total }}</strong> fotos catalogadas ({{ percent }} %)</p>
-  <progress max="100" value="{{ percent }}" aria-label="Fotos catalogadas">{{ percent }} %</progress>
-  <a class="button primary big" href="{% url 'next_uncataloged' %}">Siguiente foto sin catalogar →</a>
+  <h2 id="progress-title">{% translate "Progreso" %}</h2>
+  <p>{% blocktranslate %}<strong>{{ cataloged }}</strong> de <strong>{{ total }}</strong> fotos catalogadas ({{ percent }} %){% endblocktranslate %}</p>
+  <progress max="100" value="{{ percent }}" aria-label="{% translate 'Fotos catalogadas' %}">{{ percent }} %</progress>
+  <a class="button primary big" href="{% url 'next_uncataloged' %}">{% translate "Siguiente foto sin catalogar" %} →</a>
 </section>
 
 <section class="stack" aria-labelledby="pending-title">
   <div class="page-header">
-    <h2 id="pending-title">Pendientes de mi voto ({{ pending_count }})</h2>
-    {% if pending_count %}<a class="button small" href="{% url 'gallery' %}?mine=1">Ver todas</a>{% endif %}
+    <h2 id="pending-title">{% blocktranslate %}Pendientes de mi voto ({{ pending_count }}){% endblocktranslate %}</h2>
+    {% if pending_count %}<a class="button small" href="{% url 'gallery' %}?mine=1">{% translate "Ver todas" %}</a>{% endif %}
   </div>
   <ul class="list">
     {% for proposal in pending %}
     <li class="list-item">
       <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">
-        <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="Foto {{ proposal.photo_id }}" loading="lazy" width="80" height="60">
+        <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60">
       </a>
       <div class="list-main">
         <strong>{{ proposal.get_kind_display }}</strong>: {{ proposal.label }}
-        <div class="meta muted">por {{ proposal.author }} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}</div>
+        <div class="meta muted">{% blocktranslate with author=proposal.author %}por {{ author }}{% endblocktranslate %} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}</div>
       </div>
-      <a class="button small" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">Votar</a>
+      <a class="button small" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">{% translate "Votar" %}</a>
     </li>
     {% empty %}
-    <li class="empty">No tienes propuestas pendientes de votar.</li>
+    <li class="empty">{% translate "No tienes propuestas pendientes de votar." %}</li>
     {% endfor %}
   </ul>
 </section>

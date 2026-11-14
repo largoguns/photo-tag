@@ -1,5 +1,5 @@
-{% extends "base.html" %}
-{% block title %}Foto {{ photo.pk }}{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}{% endblock %}
 {% block main_class %}container wide{% endblock %}
 {% block content %}
 {% include "catalog/_photo_workspace.html" %}

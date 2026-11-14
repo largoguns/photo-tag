@@ -1,9 +1,9 @@
-{% extends "base.html" %}
-{% block title %}Acceso bloqueado{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Acceso bloqueado" %}{% endblock %}
 {% block main_class %}container narrow auth{% endblock %}
 {% block content %}
 <div class="card stack">
-  <h1>Acceso bloqueado temporalmente</h1>
-  <p>Demasiados intentos fallidos. Vuelve a intentarlo dentro de 30 minutos.</p>
+  <h1>{% translate "Acceso bloqueado temporalmente" %}</h1>
+  <p>{% translate "Demasiados intentos fallidos. Vuelve a intentarlo dentro de 30 minutos." %}</p>
 </div>
 {% endblock %}

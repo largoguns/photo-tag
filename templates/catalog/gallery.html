@@ -1,46 +1,46 @@
-{% extends "base.html" %}
-{% block title %}Galería{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Galería" %}{% endblock %}
 {% block content %}
-<h1>Galería</h1>
+<h1>{% translate "Galería" %}</h1>
 <details class="filters card" {% if filters %}open{% endif %}>
-  <summary>Filtros</summary>
+  <summary>{% translate "Filtros" %}</summary>
   <form method="get" class="filter-form">
     <div class="field">
-      <label for="f-status">Estado</label>
+      <label for="f-status">{% translate "Estado" %}</label>
       <select id="f-status" name="status">
-        <option value="">Todos</option>
+        <option value="">{% translate "Todos" %}</option>
         {% for value, label in statuses %}<option value="{{ value }}" {% if filters.status == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
       </select>
     </div>
     <div class="field">
-      <label for="f-person">Persona</label>
+      <label for="f-person">{% translate "Persona" %}</label>
       <select id="f-person" name="person">
-        <option value="">Todas</option>
+        <option value="">{% translate "Todas" %}</option>
         {% for person in persons %}<option value="{{ person.pk }}" {% if filters.person == person.pk|stringformat:"s" %}selected{% endif %}>{{ person }}</option>{% endfor %}
       </select>
     </div>
     <div class="field">
-      <label for="f-event">Evento</label>
+      <label for="f-event">{% translate "Evento" %}</label>
       <select id="f-event" name="event">
-        <option value="">Todos</option>
+        <option value="">{% translate "Todos" %}</option>
         {% for event in event_types %}<option value="{{ event.pk }}" {% if filters.event == event.pk|stringformat:"s" %}selected{% endif %}>{{ event }}</option>{% endfor %}
       </select>
     </div>
     <div class="field">
-      <label for="f-decade">Década</label>
+      <label for="f-decade">{% translate "Década" %}</label>
       <select id="f-decade" name="decade">
-        <option value="">Todas</option>
+        <option value="">{% translate "Todas" %}</option>
         {% for decade in decades %}<option value="{{ decade }}" {% if filters.decade == decade|stringformat:"s" %}selected{% endif %}>{{ decade }}s</option>{% endfor %}
       </select>
     </div>
-    <label class="checkbox"><input type="checkbox" name="mine" value="1" {% if filters.mine %}checked{% endif %}> Pendientes de mi voto</label>
+    <label class="checkbox"><input type="checkbox" name="mine" value="1" {% if filters.mine %}checked{% endif %}> {% translate "Pendientes de mi voto" %}</label>
     <div class="actions">
-      <button type="submit" class="button primary">Filtrar</button>
-      <a class="button" href="{% url 'gallery' %}">Limpiar</a>
+      <button type="submit" class="button primary">{% translate "Filtrar" %}</button>
+      <a class="button" href="{% url 'gallery' %}">{% translate "Limpiar" %}</a>
     </div>
   </form>
 </details>
-<p class="muted">{{ page.paginator.count }} fotos</p>
+<p class="muted">{% blocktranslate count counter=page.paginator.count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</p>
 <ul class="photo-grid">
   {% include "catalog/_gallery_page.html" %}
 </ul>

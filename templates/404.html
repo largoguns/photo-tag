@@ -1,7 +1,7 @@
-{% extends "base.html" %}
-{% block title %}No encontrado{% endblock %}
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "No encontrado" %}{% endblock %}
 {% block content %}
-<h1>No encontrado</h1>
-<p>La página que buscas no existe.</p>
-<p><a class="button" href="/">Volver al inicio</a></p>
+<h1>{% translate "No encontrado" %}</h1>
+<p>{% translate "La página que buscas no existe." %}</p>
+<p><a class="button" href="/">{% translate "Volver al inicio" %}</a></p>
 {% endblock %}
