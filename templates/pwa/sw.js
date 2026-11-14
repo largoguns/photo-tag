@@ -51,3 +51,36 @@ self.addEventListener("fetch", (event) => {
   }
   // Anything else (images, HTMX fragments…) is left to the browser, uncached.
 });
+
+// --- Push notifications ----------------------------------------------------
+// Payload: {title, body, url, tag}. The text never contains people's names.
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (error) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  event.waitUntil(
+    self.registration.showNotification(data.title || "PhotoTag", {
+      body: data.body || "",
+      icon: "{{ icon_url|escapejs }}",
+      badge: "{{ badge_url|escapejs }}",
+      tag: data.tag || "phototag",
+      renotify: true,
+      data: { url: data.url || "/" },
+    })
+  );
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL(event.notification.data.url || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      const open = windows.find((client) => client.url.startsWith(self.location.origin));
+      if (open) return open.navigate(target).then((client) => (client || open).focus());
+      return self.clients.openWindow(target);
+    })
+  );
+});

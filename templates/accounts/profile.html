@@ -17,6 +17,7 @@
       <p class="muted">{% translate "Por defecto se usa el idioma del navegador. La elección se guarda en este dispositivo." %}</p>
       {% include "_language_switch.html" %}
     </section>
+    {% if push_enabled %}{% include "notifications/_profile_card.html" %}{% endif %}
   </div>
   <form method="post" class="card stack">
     {% csrf_token %}

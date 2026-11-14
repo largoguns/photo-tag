@@ -99,34 +99,38 @@ msgstr "theme"
 msgid "Debe existir al menos un superadmin activo."
 msgstr "There must be at least one active superadmin."
 
-#: accounts/views.py:28 accounts/views.py:50
+#: accounts/views.py:32 accounts/views.py:64
 msgid "Contraseña actualizada."
 msgstr "Password updated."
 
-#: accounts/views.py:41
+#: accounts/views.py:49
+msgid "Preferencias de avisos guardadas."
+msgstr "Notification preferences saved."
+
+#: accounts/views.py:55
 msgid "Perfil actualizado."
 msgstr "Profile updated."
 
-#: accounts/views.py:85
+#: accounts/views.py:106
 #, python-format
 msgid "Usuario «%(username)s» creado."
 msgstr "User “%(username)s” created."
 
-#: accounts/views.py:110
+#: accounts/views.py:131
 msgid "Usuario actualizado."
 msgstr "User updated."
 
-#: accounts/views.py:127
+#: accounts/views.py:148
 #, python-format
 msgid "Usuario «%(username)s» reactivado."
 msgstr "User “%(username)s” reactivated."
 
-#: accounts/views.py:129
+#: accounts/views.py:150
 #, python-format
 msgid "Usuario «%(username)s» desactivado."
 msgstr "User “%(username)s” deactivated."
 
-#: accounts/views.py:146
+#: accounts/views.py:167
 #, python-format
 msgid "Contraseña de «%(username)s» restablecida a la contraseña genérica."
 msgstr "Password of “%(username)s” reset to the generic password."
@@ -492,6 +496,75 @@ msgstr "An export is already queued."
 msgid "Exportación solicitada. El worker la ejecutará en breve."
 msgstr "Export requested. The worker will run it shortly."
 
+#: notifications/apps.py:8 templates/notifications/_profile_card.html:8
+msgid "Avisos"
+msgstr "Notifications"
+
+#: notifications/models.py:18
+#| msgid "Falso positivo"
+msgid "dispositivo"
+msgstr "device"
+
+#: notifications/models.py:38
+#| msgid "Fotos catalogadas"
+msgid "Fotos nuevas para catalogar"
+msgstr "New photos to catalog"
+
+#: notifications/models.py:39
+#| msgid "Pendientes de mi voto"
+msgid "Propuestas pendientes de mi voto"
+msgstr "Proposals waiting for my vote"
+
+#: notifications/models.py:40
+msgid "Mis propuestas aceptadas o rechazadas"
+msgstr "My proposals accepted or rejected"
+
+#: notifications/services/digest.py:46
+#, python-format
+#| msgid "Siguiente foto sin catalogar"
+msgid "%(count)s foto nueva para catalogar"
+msgid_plural "%(count)s fotos nuevas para catalogar"
+msgstr[0] "%(count)s new photo to catalog"
+msgstr[1] "%(count)s new photos to catalog"
+
+#: notifications/services/digest.py:53
+#, python-format
+msgid "%(count)s propuesta espera tu voto"
+msgid_plural "%(count)s propuestas esperan tu voto"
+msgstr[0] "%(count)s proposal is waiting for your vote"
+msgstr[1] "%(count)s proposals are waiting for your vote"
+
+#: notifications/services/digest.py:62
+#, python-format
+#| msgid "La propuesta ya está cerrada."
+msgid "%(count)s propuesta tuya aceptada"
+msgid_plural "%(count)s propuestas tuyas aceptadas"
+msgstr[0] "%(count)s of your proposals accepted"
+msgstr[1] "%(count)s of your proposals accepted"
+
+#: notifications/services/digest.py:72
+#, python-format
+msgid "%(count)s propuesta tuya rechazada"
+msgid_plural "%(count)s propuestas tuyas rechazadas"
+msgstr[0] "%(count)s of your proposals rejected"
+msgstr[1] "%(count)s of your proposals rejected"
+
+#: notifications/services/digest.py:178
+msgid "Los avisos funcionan en este dispositivo."
+msgstr "Notifications work on this device."
+
+#: notifications/views.py:102
+#| msgid "Tipo de propuesta desconocido."
+msgid "Aviso de prueba enviado."
+msgstr "Test notification sent."
+
+#: notifications/views.py:104
+#| msgid ""
+#| "Por defecto se usa el idioma del navegador. La elección se guarda en este "
+#| "dispositivo."
+msgid "No se pudo enviar el aviso. Activa los avisos en este dispositivo."
+msgstr "The notification could not be sent. Turn on notifications on this device."
+
 #: phototag/pwa.py:44
 msgid "Catalogación colaborativa de las fotos familiares"
 msgstr "Collaborative cataloging of the family photos"
@@ -570,7 +643,7 @@ msgid "Entrar"
 msgstr "Sign in"
 
 #: templates/accounts/password_change_forced.html:2
-#: templates/accounts/profile.html:23 templates/accounts/profile.html:25
+#: templates/accounts/profile.html:24 templates/accounts/profile.html:26
 msgid "Cambiar contraseña"
 msgstr "Change password"
 
@@ -1312,6 +1385,67 @@ msgstr[1] "%(counter)s photos could not be exported; check the worker logs."
 #: templates/exporter/export.html:27
 msgid "Todavía no se ha exportado nada."
 msgstr "Nothing has been exported yet."
+
+#: templates/notifications/_profile_card.html:7
+msgid "No se ha podido completar. Inténtalo de nuevo."
+msgstr "It could not be completed. Please try again."
+
+#: templates/notifications/_profile_card.html:9
+msgid "Recibe en este dispositivo un resumen de novedades: como mucho uno por hora de cada tipo y nunca de noche."
+msgstr "Get a summary of what's new on this device: at most one per hour of each type, and never at night."
+
+#: templates/notifications/_profile_card.html:12
+msgid "Comprobando este dispositivo…"
+msgstr "Checking this device…"
+
+#: templates/notifications/_profile_card.html:13
+msgid "Este navegador no admite avisos."
+msgstr "This browser does not support notifications."
+
+#: templates/notifications/_profile_card.html:14
+msgid "En iPhone y iPad, instala primero la app (Compartir → Añadir a pantalla de inicio) y activa los avisos desde ella."
+msgstr "On iPhone and iPad, install the app first (Share → Add to Home Screen) and turn on notifications from it."
+
+#: templates/notifications/_profile_card.html:15
+msgid "Has bloqueado los avisos para este sitio. Permítelos en los ajustes del navegador y vuelve a intentarlo."
+msgstr "You have blocked notifications for this site. Allow them in the browser settings and try again."
+
+#: templates/notifications/_profile_card.html:16
+msgid "Los avisos están desactivados en este dispositivo."
+msgstr "Notifications are off on this device."
+
+#: templates/notifications/_profile_card.html:17
+msgid "Los avisos están activados en este dispositivo."
+msgstr "Notifications are on for this device."
+
+#: templates/notifications/_profile_card.html:21
+msgid "Activar avisos en este dispositivo"
+msgstr "Turn on notifications on this device"
+
+#: templates/notifications/_profile_card.html:22
+msgid "Enviar aviso de prueba"
+msgstr "Send a test notification"
+
+#: templates/notifications/_profile_card.html:23
+msgid "Desactivar en este dispositivo"
+msgstr "Turn off on this device"
+
+#: templates/notifications/_profile_card.html:29
+msgid "Avisarme de"
+msgstr "Notify me about"
+
+#: templates/notifications/_profile_card.html:34
+msgid "Guardar preferencias"
+msgstr "Save preferences"
+
+#: templates/notifications/_profile_card.html:39
+msgid "Dispositivos con avisos"
+msgstr "Devices with notifications"
+
+#: templates/notifications/_profile_card.html:42
+#| msgid "Falso positivo"
+msgid "Dispositivo"
+msgstr "Device"
 
 #: templates/pwa/offline.html:8 templates/pwa/offline.html:16
 msgid "Sin conexión"

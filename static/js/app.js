@@ -331,6 +331,102 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", offerInstall);
   else offerInstall();
 
+  // --- Push notifications (profile card) -------------------------------------
+  function base64UrlToBytes(value) {
+    const padded = value + "=".repeat((4 - (value.length % 4)) % 4);
+    const binary = window.atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  }
+
+  function pushSupported() {
+    return "serviceWorker" in navigator && "PushManager" in window
+      && "Notification" in window && window.isSecureContext;
+  }
+
+  async function pushRegistration() {
+    return (await navigator.serviceWorker.getRegistration("/"))
+      || navigator.serviceWorker.register("/sw.js");
+  }
+
+  async function postJSON(card, url, body) {
+    const token = card.querySelector("[name=csrfmiddlewaretoken]").value;
+    const response = await fetch(url, {
+      method: "POST",
+      credentials: "same-origin",
+      headers: { "Content-Type": "application/json", "X-CSRFToken": token },
+      body: JSON.stringify(body || {}),
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return response.json();
+  }
+
+  function showPushState(card, state, message) {
+    card.querySelectorAll("[data-push-state]").forEach((el) => { el.hidden = el.dataset.pushState !== state; });
+    card.querySelector('[data-push-action="enable"]').hidden = state !== "off";
+    card.querySelector('[data-push-action="disable"]').hidden = state !== "on";
+    card.querySelector('[data-push-action="test"]').hidden = state !== "on";
+    const note = card.querySelector("[data-push-message]");
+    note.textContent = message || "";
+    note.hidden = !message;
+  }
+
+  async function currentPushState() {
+    if (!pushSupported()) return mobilePlatform() === "ios" && !isInstalled() ? "ios-install" : "unsupported";
+    if (Notification.permission === "denied") return "denied";
+    const registration = await pushRegistration();
+    return (await registration.pushManager.getSubscription()) ? "on" : "off";
+  }
+
+  async function initPushCard() {
+    const card = document.getElementById("push-card");
+    if (!card) return;
+    try {
+      showPushState(card, await currentPushState());
+    } catch (error) {
+      showPushState(card, "unsupported");
+    }
+
+    card.addEventListener("click", async (event) => {
+      const button = event.target.closest("[data-push-action]");
+      if (!button) return;
+      button.disabled = true;
+      try {
+        const registration = await pushRegistration();
+        const action = button.dataset.pushAction;
+        if (action === "enable") {
+          // The permission prompt must come from this tap (required on iOS).
+          if (await Notification.requestPermission() !== "granted") {
+            showPushState(card, "denied");
+            return;
+          }
+          const subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: base64UrlToBytes(card.dataset.vapidKey),
+          });
+          await postJSON(card, card.dataset.subscribeUrl, subscription.toJSON());
+          window.location.reload(); // refresh the device list
+        } else if (action === "disable") {
+          const subscription = await registration.pushManager.getSubscription();
+          if (subscription) {
+            await postJSON(card, card.dataset.unsubscribeUrl, { endpoint: subscription.endpoint });
+            await subscription.unsubscribe();
+          }
+          window.location.reload();
+        } else if (action === "test") {
+          const result = await postJSON(card, card.dataset.testUrl);
+          showPushState(card, "on", result.message);
+        }
+      } catch (error) {
+        showPushState(card, await currentPushState().catch(() => "unsupported"), card.dataset.errorText);
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initPushCard);
+  else initPushCard();
+
   // Re-select the highlighted face after HTMX swaps the workspace.
   document.addEventListener("htmx:afterSwap", () => {
     const selected = document.querySelector(".face-box.selected");

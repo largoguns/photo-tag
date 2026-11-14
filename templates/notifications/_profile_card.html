@@ -1,0 +1,47 @@
+{% load i18n %}
+<section class="card stack push-card" id="push-card" aria-labelledby="push-title"
+         data-vapid-key="{{ vapid_public_key }}"
+         data-subscribe-url="{% url 'push_subscribe' %}"
+         data-unsubscribe-url="{% url 'push_unsubscribe' %}"
+         data-test-url="{% url 'push_test' %}"
+         data-error-text="{% translate 'No se ha podido completar. Inténtalo de nuevo.' %}">
+  <h2 id="push-title">{% translate "Avisos" %}</h2>
+  <p class="muted">{% translate "Recibe en este dispositivo un resumen de novedades: como mucho uno por hora de cada tipo y nunca de noche." %}</p>
+
+  <div class="push-status" aria-live="polite">
+    <p data-push-state="checking">{% translate "Comprobando este dispositivo…" %}</p>
+    <p data-push-state="unsupported" hidden>{% translate "Este navegador no admite avisos." %}</p>
+    <p data-push-state="ios-install" hidden>{% translate "En iPhone y iPad, instala primero la app (Compartir → Añadir a pantalla de inicio) y activa los avisos desde ella." %}</p>
+    <p data-push-state="denied" hidden>{% translate "Has bloqueado los avisos para este sitio. Permítelos en los ajustes del navegador y vuelve a intentarlo." %}</p>
+    <p data-push-state="off" hidden>{% translate "Los avisos están desactivados en este dispositivo." %}</p>
+    <p data-push-state="on" hidden><strong>{% translate "Los avisos están activados en este dispositivo." %}</strong></p>
+    <p class="push-message" data-push-message hidden></p>
+  </div>
+  <div class="actions">
+    <button type="button" class="button primary" data-push-action="enable" hidden>{% translate "Activar avisos en este dispositivo" %}</button>
+    <button type="button" class="button" data-push-action="test" hidden>{% translate "Enviar aviso de prueba" %}</button>
+    <button type="button" class="button" data-push-action="disable" hidden>{% translate "Desactivar en este dispositivo" %}</button>
+  </div>
+
+  <form method="post" class="stack notification-prefs">
+    {% csrf_token %}
+    <fieldset>
+      <legend>{% translate "Avisarme de" %}</legend>
+      {% for field in notification_form %}
+      <label class="checkbox">{{ field }} {{ field.label }}</label>
+      {% endfor %}
+    </fieldset>
+    <button type="submit" name="save_notifications" class="button">{% translate "Guardar preferencias" %}</button>
+  </form>
+
+  {% if push_devices %}
+  <div class="stack">
+    <h3 class="small-title">{% translate "Dispositivos con avisos" %}</h3>
+    <ul class="device-list">
+      {% for device in push_devices %}
+      <li>{{ device.device_label|default:_("Dispositivo") }} <span class="muted">· {{ device.created_at|date:"SHORT_DATE_FORMAT" }}</span></li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</section>

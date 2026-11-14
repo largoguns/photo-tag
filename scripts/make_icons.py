@@ -68,6 +68,16 @@ def icon(size, *, maskable=False, rounded=True):
     return img.resize((size, size), Image.Resampling.LANCZOS)
 
 
+def badge(size):
+    """Monochrome notification badge (Android shows only the alpha channel)."""
+    big = size * SCALE
+    img = Image.new("RGBA", (big, big), (0, 0, 0, 0))
+    draw = ImageDraw.Draw(img)
+    margin = big * 0.08
+    draw_symbol(draw, (margin, margin, big - margin, big - margin))
+    return img.resize((size, size), Image.Resampling.LANCZOS)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     icon(192).save(OUT / "icon-192.png")
@@ -76,6 +86,7 @@ def main():
     # iOS ignores transparency and adds its own rounding.
     icon(180, rounded=False).convert("RGB").save(OUT / "apple-touch-icon.png")
     icon(32).save(OUT / "favicon-32.png")
+    badge(96).save(OUT / "badge-96.png")
     print(f"Icons written to {OUT}")
 
 

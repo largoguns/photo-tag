@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
@@ -12,6 +13,9 @@ from accounts.forms import NewPasswordForm, ProfileForm, UserCreateForm, UserEdi
 from accounts.models import User
 from accounts.permissions import superadmin_required
 from accounts.services import users as user_service
+from notifications.forms import NotificationSettingsForm
+from notifications.models import NotificationSettings
+from notifications.services import push
 
 
 class LoginView(auth_views.LoginView):
@@ -33,8 +37,18 @@ def password_change_forced(request):
 def profile(request):
     profile_form = ProfileForm(instance=request.user)
     password_form = NewPasswordForm(request.user)
+    notification_settings = NotificationSettings.for_user(request.user)
+    notification_form = NotificationSettingsForm(instance=notification_settings)
     if request.method == "POST":
-        if "save_profile" in request.POST:
+        if "save_notifications" in request.POST:
+            notification_form = NotificationSettingsForm(
+                request.POST, instance=notification_settings
+            )
+            if notification_form.is_valid():
+                notification_form.save()
+                messages.success(request, _("Preferencias de avisos guardadas."))
+                return redirect("profile")
+        elif "save_profile" in request.POST:
             profile_form = ProfileForm(request.POST, instance=request.user)
             if profile_form.is_valid():
                 profile_form.save()
@@ -52,7 +66,14 @@ def profile(request):
     return render(
         request,
         "accounts/profile.html",
-        {"profile_form": profile_form, "password_form": password_form},
+        {
+            "profile_form": profile_form,
+            "password_form": password_form,
+            "notification_form": notification_form,
+            "push_enabled": push.is_enabled(),
+            "vapid_public_key": settings.VAPID_PUBLIC_KEY,
+            "push_devices": request.user.push_subscriptions.all(),
+        },
     )
 
 
