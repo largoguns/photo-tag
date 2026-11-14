@@ -43,6 +43,8 @@ Resumen de la sección 7 de la especificación, que manda en caso de duda:
   - Tipos: `feat`, `fix`, `refactor`, `test`, `docs`, `style`, `chore`, `build`, `ci`, `perf`.
   - Scopes: `scanner`, `catalog`, `voting`, `accounts`, `exporter`, `ui`, `deploy`, `docs`.
   - Cambios incompatibles: `!` tras el scope y pie `BREAKING CHANGE:`.
+- Mensajes simples: solo la línea de Conventional Commit, sin cuerpo ni descripción adicional.
+- **Nunca añadas `Co-Authored-By`** ni ninguna otra línea de atribución a los commits.
 - Al terminar un cambio con entidad de funcionalidad nueva, **propón los comandos git** agrupados en commits atómicos por propósito:
 
   ```bash
