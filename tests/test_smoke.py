@@ -14,6 +14,9 @@ def test_security_settings():
     assert settings.SESSION_COOKIE_AGE == 30 * 24 * 3600
     assert settings.AXES_FAILURE_LIMIT == 5
     assert settings.AXES_COOLOFF_TIME == 0.5
+    # Client IP comes from Tailscale's X-Forwarded-For; CF-Connecting-IP would be spoofable.
+    assert settings.AXES_IPWARE_META_PRECEDENCE_ORDER[0] == "HTTP_X_FORWARDED_FOR"
+    assert "HTTP_CF_CONNECTING_IP" not in settings.AXES_IPWARE_META_PRECEDENCE_ORDER
     min_length = next(
         v["OPTIONS"]["min_length"]
         for v in settings.AUTH_PASSWORD_VALIDATORS

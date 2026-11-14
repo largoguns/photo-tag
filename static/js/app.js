@@ -233,7 +233,7 @@
   });
 
   // --- Progressive Web App ---------------------------------------------------
-  // Service workers need a secure context (HTTPS via Cloudflare, or localhost).
+  // Service workers need a secure context (HTTPS via Tailscale Funnel, or localhost).
   if ("serviceWorker" in navigator && window.isSecureContext) {
     window.addEventListener("load", () => {
       navigator.serviceWorker.register("/sw.js").catch(() => {});

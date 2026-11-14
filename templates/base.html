@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="apple-mobile-web-app-title" content="PhotoTag">
-  {# use-credentials: the manifest must also load when Cloudflare Access protects the site. #}
+  {# use-credentials: the manifest must also load when an authenticating proxy protects the site. #}
   <link rel="manifest" href="{% url 'pwa_manifest' %}" crossorigin="use-credentials">
   <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/icons/favicon-32.png' %}">
   <link rel="apple-touch-icon" href="{% static 'img/icons/apple-touch-icon.png' %}">

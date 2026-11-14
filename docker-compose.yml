@@ -46,7 +46,7 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
-    # No published ports: cloudflared reaches web through the Docker network.
+    # No published ports: tailscale reaches web through the Docker network.
 
   worker:
     <<: *app
@@ -92,13 +92,21 @@ services:
       timeout: 5s
       retries: 5
 
-  cloudflared:
-    image: cloudflare/cloudflared:latest
+  # Publishes web on https://<TS_HOSTNAME>.<tailnet>.ts.net with Tailscale Funnel.
+  # Funnel is enabled once with `tailscale funnel --bg http://web:8000`; the setting
+  # lives in the state volume (see docs/deployment.md).
+  tailscale:
+    image: tailscale/tailscale:stable
     restart: unless-stopped
-    command: ["tunnel", "--no-autoupdate", "run"]
+    hostname: ${TS_HOSTNAME:-phototag}
     environment:
-      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?TUNNEL_TOKEN is required}
+      TS_AUTHKEY: ${TS_AUTHKEY:-}  # only used for the first login
+      TS_AUTH_ONCE: "true"
+      TS_HOSTNAME: ${TS_HOSTNAME:-phototag}
+      TS_STATE_DIR: /var/lib/tailscale
       TZ: ${TZ:-Europe/Madrid}
+    volumes:
+      - tailscale-state:/var/lib/tailscale
     depends_on:
       web:
         condition: service_healthy
@@ -108,10 +116,11 @@ networks:
   # No external access: db and worker only live here.
   internal:
     internal: true
-  # web <-> cloudflared; cloudflared needs outbound internet for the tunnel.
+  # web <-> tailscale; tailscale needs outbound internet for Funnel.
   edge: {}
   # Outbound internet for the worker (Web Push services). Nothing else joins it.
   egress: {}
 
 volumes:
   pgdata:
+  tailscale-state:

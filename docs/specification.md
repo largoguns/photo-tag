@@ -29,7 +29,7 @@ Un único proyecto Django y una única imagen Docker. La aplicación se organiza
 ```
  /data/scans/inbox ──► [worker: scanner] ──► /data/photos + BD
                                                    │
- Internet ─► Cloudflare ─► [cloudflared] ─► [web] ◄┴► [db: PostgreSQL]
+ Internet ─► Tailscale Funnel ─► [tailscale] ─► [web] ◄┴► [db: PostgreSQL]
                                                    │
                               [worker: exporter] ──► /data/export ──► Immich (biblioteca externa)
 ```
@@ -41,7 +41,7 @@ Servicios del stack (Docker Compose, desplegado con Portainer en el NAS):
 | `web` | `phototag` (propia) | Servidor web (Gunicorn) |
 | `worker` | `phototag` (misma imagen) | Tareas en segundo plano: procesado de escaneos, miniaturas y exportación |
 | `db` | `postgres:16-alpine` | Base de datos |
-| `cloudflared` | `cloudflare/cloudflared` | Túnel para exponer `web` a internet |
+| `tailscale` | `tailscale/tailscale` | Expone `web` a internet por HTTPS con Tailscale Funnel |
 
 `web` y `worker` usan la misma imagen con distinto comando de arranque. Immich ya está desplegado en el NAS en otro stack y **no forma parte de este**; solo comparte el volumen `/data/export` en modo lectura.
 
@@ -154,7 +154,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 - Accesibilidad básica: contraste suficiente (AA en ambos temas), etiquetas en formularios, navegación por teclado en escritorio.
 - **Tema claro y oscuro**: por defecto sigue la preferencia del sistema (`prefers-color-scheme`); cada usuario puede forzar «Claro» u «Oscuro» en «Mi perfil» (campo `theme` del usuario). Los recuadros de cara sobre la foto mantienen sus colores en ambos temas.
 - **Idiomas**: español (principal) e inglés con la internacionalización de Django. El idioma se detecta del navegador (`Accept-Language`) y se puede cambiar con un selector Español/English (menú «Más», «Mi perfil» y pantalla de login) que se guarda en una cookie del dispositivo. Los textos fuente están en español y se traducen en `locale/en`. Los tipos de evento tienen un nombre en inglés opcional (`EventType.name_en`); los metadatos exportados (sección 6) siempre se escriben en español.
-- **App instalable (PWA)**: manifest (`/manifest.webmanifest`), iconos (incluido *maskable* y `apple-touch-icon`) y service worker en `/sw.js`. Al abrir la web en un móvil se detecta el navegador por su *user agent* y se propone instalarla: botón «Instalar» donde el navegador lo permite (`beforeinstallprompt`, Chromium en Android) e instrucciones en iOS/iPadOS («Compartir → Añadir a pantalla de inicio») y en otros navegadores Android. El aviso no aparece si ya está instalada y se puede posponer 30 días. Requiere HTTPS (Cloudflare). El service worker solo cachea estáticos y una página sin conexión; nunca fotos ni páginas con datos.
+- **App instalable (PWA)**: manifest (`/manifest.webmanifest`), iconos (incluido *maskable* y `apple-touch-icon`) y service worker en `/sw.js`. Al abrir la web en un móvil se detecta el navegador por su *user agent* y se propone instalarla: botón «Instalar» donde el navegador lo permite (`beforeinstallprompt`, Chromium en Android) e instrucciones en iOS/iPadOS («Compartir → Añadir a pantalla de inicio») y en otros navegadores Android. El aviso no aparece si ya está instalada y se puede posponer 30 días. Requiere HTTPS (Tailscale Funnel). El service worker solo cachea estáticos y una página sin conexión; nunca fotos ni páginas con datos.
 - **Confirmaciones**: las acciones destructivas o con efecto directo (decisiones de administrador, «No es una cara», restablecer contraseña, desactivar usuario, descartar recorte, fusionar personas) piden confirmación con un diálogo modal propio de la aplicación (`<dialog>`), nunca con el diálogo nativo del navegador. En móvil se muestra como hoja inferior.
 
 ### 5.3 Modelo de datos
@@ -246,17 +246,17 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 - Immich debe tener `/data/export` montado como **biblioteca externa** y activada la importación de caras desde metadatos (Administración → Ajustes de metadatos). Debe documentarse en el README.
 - Limitación conocida de Immich: las fotos con caras en metadatos no pasan por su detección facial automática. Es el comportamiento deseado.
 
-## 7. Seguridad (exposición pública vía cloudflared)
+## 7. Seguridad (exposición pública vía Tailscale Funnel)
 
-- Solo `web` es alcanzable desde `cloudflared`. `db` y `worker` no publican puertos y están en una red Docker interna. El `worker` tiene además una red `egress` solo de salida para entregar las notificaciones push; `db` no tiene salida.
-- `web` tampoco publica puertos en el host: el túnel accede por la red interna de Docker.
+- Solo `web` es alcanzable desde `tailscale`. `db` y `worker` no publican puertos y están en una red Docker interna. El `worker` tiene además una red `egress` solo de salida para entregar las notificaciones push; `db` no tiene salida.
+- `web` tampoco publica puertos en el host: `tailscale` accede por la red interna de Docker. No se abren puertos en el router.
 - Configuración Django detrás de proxy: `SECURE_PROXY_SSL_HEADER`, `CSRF_TRUSTED_ORIGINS`, `ALLOWED_HOSTS` con el dominio público, cookies `Secure` y `HttpOnly`, `DEBUG=False`.
 - Limitar intentos de login (`django-axes`: bloqueo tras 5 fallos durante 30 minutos).
 - Validadores de contraseña de Django activos para la contraseña definitiva que elige cada usuario (longitud mínima 10).
 - Sin registro abierto: solo el superadmin crea usuarios.
 - Las imágenes se sirven a través de una vista Django que exige sesión, nunca como estáticos públicos.
-- Todos los secretos (`DJANGO_SECRET_KEY`, contraseña de BD, `SUPERADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`, token del túnel) por variables de entorno en Portainer, nunca en el repositorio.
-- Opcional recomendado: Cloudflare Access delante del dominio como segunda capa.
+- Todos los secretos (`DJANGO_SECRET_KEY`, contraseña de BD, `SUPERADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`, clave de autenticación de Tailscale) por variables de entorno en Portainer, nunca en el repositorio.
+- La dirección de Funnel es pública y no hay una segunda capa de autenticación delante: la protección es el login de PhotoTag con `django-axes`. La IP del cliente para `django-axes` se toma de `X-Forwarded-For`, que Tailscale sobrescribe.
 
 ## 8. Despliegue
 
@@ -277,14 +277,15 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | Variable | Servicio | Ejemplo / defecto |
 |---|---|---|
 | `DJANGO_SECRET_KEY` | web, worker | — (obligatoria) |
-| `DJANGO_ALLOWED_HOSTS` | web | `fotos.midominio.com` |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | web | `https://fotos.midominio.com` |
+| `DJANGO_ALLOWED_HOSTS` | web | `phototag.tu-tailnet.ts.net` |
+| `DJANGO_CSRF_TRUSTED_ORIGINS` | web | `https://phototag.tu-tailnet.ts.net` |
 | `DATABASE_URL` | web, worker | `postgres://phototag:***@db:5432/phototag` |
 | `POSTGRES_PASSWORD` | db | — (obligatoria) |
 | `SUPERADMIN_USERNAME` | web | `admin` |
 | `SUPERADMIN_PASSWORD` | web | — (obligatoria en el primer arranque) |
 | `DEFAULT_USER_PASSWORD` | web | — (obligatoria) |
-| `TUNNEL_TOKEN` | cloudflared | — (obligatoria) |
+| `TS_AUTHKEY` | tailscale | — (solo en el primer arranque) |
+| `TS_HOSTNAME` | tailscale | `phototag` |
 | `POLL_INTERVAL_SECONDS` | worker | `60` |
 | `MIN_PHOTO_AREA_RATIO` | worker | `0.03` |
 | `FACE_SCORE_THRESHOLD` | worker | `0.7` |
@@ -364,4 +365,4 @@ phototag/
 5. Vista de foto con propuestas y votaciones.
 6. Administración (umbrales, revisión, fusión de personas).
 7. App `exporter` y prueba con Immich.
-8. Copias de seguridad y README de despliegue en Portainer con cloudflared.
+8. Copias de seguridad y README de despliegue en Portainer con Tailscale Funnel.

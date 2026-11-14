@@ -125,7 +125,8 @@ AXES_COOLOFF_TIME = 0.5  # hours
 AXES_RESET_ON_SUCCESS = True
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 AXES_LOCKOUT_TEMPLATE = "accounts/lockout.html"
-AXES_IPWARE_META_PRECEDENCE_ORDER = ["HTTP_CF_CONNECTING_IP", "HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"]
+# Tailscale Funnel overwrites X-Forwarded-For with the client address.
+AXES_IPWARE_META_PRECEDENCE_ORDER = ["HTTP_X_FORWARDED_FOR", "REMOTE_ADDR"]
 
 # Sessions and cookies
 SESSION_COOKIE_AGE = int(env("SESSION_COOKIE_AGE", str(30 * 24 * 3600)))
@@ -134,14 +135,14 @@ CSRF_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SECURE = not DEBUG
 CSRF_COOKIE_SECURE = not DEBUG
 
-# Behind Cloudflare tunnel: TLS terminates at Cloudflare.
+# Behind Tailscale Funnel: TLS terminates at the tailscale container.
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 USE_X_FORWARDED_HOST = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "same-origin"
 X_FRAME_OPTIONS = "DENY"
 SECURE_HSTS_SECONDS = 0 if DEBUG else int(env("SECURE_HSTS_SECONDS", "3600"))
-SECURE_SSL_REDIRECT = False  # Cloudflare enforces HTTPS; the tunnel talks plain HTTP internally.
+SECURE_SSL_REDIRECT = False  # Funnel only serves HTTPS; it talks plain HTTP to web internally.
 SILENCED_SYSTEM_CHECKS = ["security.W008"]  # see SECURE_SSL_REDIRECT
 
 # Internationalization

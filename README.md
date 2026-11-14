@@ -16,9 +16,9 @@ La especificación completa está en [docs/specification.md](docs/specification.
 | `web` | Django + Gunicorn. Aplica migraciones y crea el superadmin al arrancar. |
 | `worker` | Misma imagen. Vigila `/data/scans/inbox`, ejecuta exportaciones y la copia diaria de la BD (APScheduler). |
 | `db` | PostgreSQL 16. |
-| `cloudflared` | Túnel de Cloudflare hacia `web`. |
+| `tailscale` | Publica `web` en internet por HTTPS con Tailscale Funnel. |
 
-Ningún servicio publica puertos en el host. `db` y `worker` están en una red interna sin salida a internet; `web` y `cloudflared` comparten además la red `edge`.
+Ningún servicio publica puertos en el host. `db` y `worker` están en una red interna sin salida a internet; `web` y `tailscale` comparten además la red `edge`.
 
 ## Desarrollo local
 
@@ -43,13 +43,13 @@ docker compose up --build
 
 ## Despliegue
 
-La guía paso a paso para instalarla en un NAS con **OpenMediaVault + Portainer** (imagen construida desde este repositorio) y publicarla por **HTTPS con Cloudflare Tunnel**, incluida la conexión con Immich, está en [docs/deployment.md](docs/deployment.md).
+La guía paso a paso para instalarla en un NAS con **OpenMediaVault + Portainer** (imagen construida desde este repositorio) y publicarla por **HTTPS con Tailscale Funnel** (sin dominio propio ni puertos abiertos), incluida la conexión con Immich, está en [docs/deployment.md](docs/deployment.md).
 
-Resumen: carpetas de datos propiedad de `PUID:PGID` → túnel de Cloudflare con la ruta pública `HTTP` → `web:8000` → stack de Portainer «Repository» con las variables de [.env.example](.env.example).
+Resumen: carpetas de datos propiedad de `PUID:PGID` → cuenta de Tailscale con HTTPS y Funnel permitidos y una clave en `TS_AUTHKEY` → stack de Portainer «Repository» con las variables de [.env.example](.env.example) → `tailscale funnel --bg http://web:8000` una sola vez.
 
 ## App instalable (PWA)
 
-PhotoTag se puede instalar en el móvil como una app. Al abrirla en un móvil, detecta el navegador y propone instalarla (botón en Android/Chrome; instrucciones de «Compartir → Añadir a pantalla de inicio» en iPhone). Requiere HTTPS, que aporta Cloudflare. El service worker solo guarda en el dispositivo los ficheros estáticos y una página «sin conexión»: las fotos y las páginas con datos nunca se cachean.
+PhotoTag se puede instalar en el móvil como una app. Al abrirla en un móvil, detecta el navegador y propone instalarla (botón en Android/Chrome; instrucciones de «Compartir → Añadir a pantalla de inicio» en iPhone). Requiere HTTPS, que aporta Tailscale Funnel. El service worker solo guarda en el dispositivo los ficheros estáticos y una página «sin conexión»: las fotos y las páginas con datos nunca se cachean.
 
 Los iconos se generan con `python scripts/make_icons.py`.
 
@@ -120,6 +120,6 @@ Commitea el `.po` y el `.mo`.
 ## Seguridad
 
 - Todas las páginas e imágenes exigen sesión; las imágenes se sirven por una vista de Django, nunca como estáticos.
-- Bloqueo de 30 minutos tras 5 intentos de login fallidos (`django-axes`, por usuario o IP real de Cloudflare).
+- Bloqueo de 30 minutos tras 5 intentos de login fallidos (`django-axes`, por usuario o IP real del cliente, que Tailscale pasa en `X-Forwarded-For`).
 - Contraseñas de al menos 10 caracteres; no hay registro abierto.
 - Ningún secreto en el repositorio: todo por variables de entorno.
