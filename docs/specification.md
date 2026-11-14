@@ -84,6 +84,16 @@ Los escaneos marcados se procesan igualmente y aparecen en la cola de revisión 
 - Logs estructurados por stdout (visibles en Portainer).
 - Dependencias: `opencv-python-headless`, `numpy`. Sin GPU.
 
+### 3.5 Sugerencias de identidad
+
+El sistema **sugiere** quién puede ser una cara, pero **nunca asigna** una identidad: toda identidad se acepta mediante propuesta y votación (5.4).
+
+- Modelo **OpenCV SFace** (`cv2.FaceRecognizerSF`, `face_recognition_sface_2021dec.onnx` incluido en la imagen), complementario de YuNet. Sin GPU ni dependencias nuevas.
+- Para cada cara (automática o dibujada a mano) el `worker` calcula una huella de 128 valores normalizada: recorta la cara con margen, obtiene los puntos de referencia con YuNet para alinearla y, si no los encuentra, usa el recuadro redimensionado.
+- Las huellas se calculan al procesar el escaneo y, para las caras nuevas o sin huella, en una tarea periódica (`EMBEDDING_POLL_SECONDS`, por defecto 60). Al reprocesar un escaneo se recalculan. Comando `python manage.py compute_embeddings [--all]`.
+- Similitud coseno contra las caras con persona aceptada; la puntuación de cada persona es la de su cara más parecida. Se sugiere a partir de `FACE_MATCH_THRESHOLD` (por defecto 0.363) y se marca como «muy probable» a partir de `FACE_MATCH_STRONG` (por defecto 0.5).
+- No se sugieren personas ya aceptadas en otra cara de la misma foto ni personas que ya tengan una propuesta abierta para esa cara.
+
 ## 4. Usuarios y autenticación (app `accounts`)
 
 ### 4.1 Autenticación
@@ -150,7 +160,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed |
 | `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
-| `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable) |
+| `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
 | `EventType` | nombre (catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones, Otro…) |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
 | `Vote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
@@ -188,8 +198,9 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
    - Panel de evento y fecha con el mismo mecanismo.
    - Botón para dibujar una cara nueva y para marcar una cara como falso positivo.
+   - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
-5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos.
+5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla.
 6. **Mi actividad**: mis propuestas y su estado.
 7. **Mi perfil**: cambiar contraseña y nombre a mostrar.
 8. **Administración**: tipos de evento, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
@@ -262,6 +273,8 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `POLL_INTERVAL_SECONDS` | worker | `60` |
 | `MIN_PHOTO_AREA_RATIO` | worker | `0.03` |
 | `FACE_SCORE_THRESHOLD` | worker | `0.7` |
+| `FACE_MATCH_THRESHOLD` | web | `0.363` |
+| `EMBEDDING_POLL_SECONDS` | worker | `60` |
 | `TZ` | todos | `Europe/Madrid` |
 
 ### 8.3 Requisitos del stack
@@ -288,6 +301,7 @@ phototag/
 ├── pyproject.toml
 ├── manage.py
 ├── models/face_detection_yunet_2023mar.onnx
+├── models/face_recognition_sface_2021dec.onnx
 ├── phototag/            (settings, urls, wsgi)
 ├── accounts/
 ├── catalog/
@@ -316,7 +330,7 @@ phototag/
 ## 11. Fuera de alcance (versión inicial)
 
 - Login federado (OAuth, SSO).
-- Reconocimiento facial automático (sugerir quién es quién).
+- Asignación automática de identidades sin votación (las sugerencias de 3.5 siempre pasan por propuesta y votos).
 - Edición manual de recortes en la web.
 - Sincronización inversa desde Immich.
 - Comentarios o chat en las fotos.

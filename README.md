@@ -3,6 +3,7 @@
 Catalogación colaborativa de fotos familiares escaneadas. PhotoTag:
 
 1. Separa cada escaneo A4 en fotos individuales y detecta las caras (OpenCV + YuNet).
+   Además sugiere quién puede ser cada cara comparándola con las ya identificadas (OpenCV SFace); las sugerencias siempre se confirman por votación.
 2. Ofrece una web multiusuario donde la familia propone y vota **quién sale** y **de qué evento es** cada foto.
 3. Exporta las fotos catalogadas con metadatos XMP para que **Immich** las importe con las caras ya etiquetadas.
 
@@ -73,7 +74,7 @@ En Portainer → *Stacks* → *Add stack*, elige **Repository** (este repositori
 | `TUNNEL_TOKEN` | Token del túnel. |
 | `HOST_SCANS_DIR`, `HOST_PHOTOS_DIR`, `HOST_EXPORT_DIR`, `HOST_BACKUPS_DIR` | Rutas del paso 1. |
 | `TZ` | `Europe/Madrid` |
-| `POLL_INTERVAL_SECONDS`, `MIN_PHOTO_AREA_RATIO`, `FACE_SCORE_THRESHOLD`, `EXPORT_INTERVAL_HOURS` | Opcionales (ver `.env.example`). |
+| `POLL_INTERVAL_SECONDS`, `MIN_PHOTO_AREA_RATIO`, `FACE_SCORE_THRESHOLD`, `FACE_MATCH_THRESHOLD`, `EMBEDDING_POLL_SECONDS`, `EXPORT_INTERVAL_HOURS` | Opcionales (ver `.env.example`). |
 
 Despliega el stack. Cuando `web` aparezca como *healthy*, entra en `https://fotos.midominio.com` con el superadmin y crea los usuarios en **Más → Usuarios**. Cada usuario deberá cambiar la contraseña genérica en su primer acceso.
 
@@ -96,6 +97,7 @@ Las fotos con caras en los metadatos no pasan por la detección facial automáti
 
 - **Escanear**: deja los escaneos (JPG, PNG o TIFF) en `scans/inbox`. El worker los procesa en menos de un minuto y mueve el original a `scans/processed` (nunca se borra).
 - **Catalogar**: en la web, abre «Siguiente foto sin catalogar», pulsa cada recuadro de cara para proponer o votar un nombre y propone el evento y la fecha.
+- **Sugerencias**: en cuanto una persona está aceptada en alguna foto, las caras parecidas muestran «¿Es …?» en su panel, y la ficha de la persona lista «Puede que aparezca en». Pulsar una sugerencia crea una propuesta con tu voto. Si salen demasiadas sugerencias erróneas, sube `FACE_MATCH_THRESHOLD`; si salen pocas, bájalo.
 - **Votación**: una propuesta se acepta con al menos 2 votos a favor y un 66 % de apoyo (configurable en *Administración → Umbrales*). Una foto queda catalogada cuando todas sus caras tienen persona y tiene evento.
 - **Exportar**: *Administración → Exportación a Immich → Exportar ahora*. Se exportan solo las fotos catalogadas que han cambiado desde la última exportación, en `export/<año>/` (o `export/sin-fecha/`) junto a su sidecar `.jpg.xmp`.
 
@@ -117,6 +119,9 @@ docker compose exec worker python manage.py process_scans
 # Reprocesar un escaneo (por nombre de fichero o hash). Conserva las propuestas
 # y votos de las fotos que siguen existiendo en el mismo sitio del escaneo.
 docker compose exec worker python manage.py process_scans --force scan01.tif
+
+# Calcular las huellas de caras que falten (o todas con --all) para las sugerencias
+docker compose exec worker python manage.py compute_embeddings
 
 # Exportar sin pasar por la web
 docker compose exec worker python manage.py export_photos
