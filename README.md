@@ -41,57 +41,17 @@ Para levantar el stack en local, copia `.env.example` a `.env`, rellénalo y eje
 docker compose up --build
 ```
 
-## Despliegue en el NAS con Portainer
+## Despliegue
 
-### 1. Carpetas en el NAS
+La guía paso a paso para instalarla en un NAS con **OpenMediaVault + Portainer** (imagen construida desde este repositorio) y publicarla por **HTTPS con Cloudflare Tunnel**, incluida la conexión con Immich, está en [docs/deployment.md](docs/deployment.md).
 
-Crea las carpetas de datos y dáselas al usuario con UID/GID 1000 (el usuario no root de la imagen):
+Resumen: carpetas de datos propiedad de `PUID:PGID` → túnel de Cloudflare con la ruta pública `HTTP` → `web:8000` → stack de Portainer «Repository» con las variables de [.env.example](.env.example).
 
-```bash
-mkdir -p /volume1/phototag/{scans/inbox,scans/processed,photos,export,backups}
-chown -R 1000:1000 /volume1/phototag
-```
+## App instalable (PWA)
 
-### 2. Túnel de Cloudflare
+PhotoTag se puede instalar en el móvil como una app. Al abrirla en un móvil, detecta el navegador y propone instalarla (botón en Android/Chrome; instrucciones de «Compartir → Añadir a pantalla de inicio» en iPhone). Requiere HTTPS, que aporta Cloudflare. El service worker solo guarda en el dispositivo los ficheros estáticos y una página «sin conexión»: las fotos y las páginas con datos nunca se cachean.
 
-1. En Cloudflare Zero Trust → *Networks* → *Tunnels*, crea un túnel de tipo **cloudflared** y copia su **token**.
-2. Añade un *Public hostname*: `fotos.midominio.com` → servicio `HTTP` → URL `web:8000`.
-3. Recomendado: protege el dominio con **Cloudflare Access** como segunda capa (por ejemplo, con lista de emails de la familia).
-
-### 3. Stack
-
-En Portainer → *Stacks* → *Add stack*, elige **Repository** (este repositorio) o pega `docker-compose.yml` en el editor web. En *Environment variables* define:
-
-| Variable | Ejemplo / notas |
-|---|---|
-| `DJANGO_SECRET_KEY` | Cadena aleatoria larga (`python -c "import secrets; print(secrets.token_urlsafe(50))"`). |
-| `DJANGO_ALLOWED_HOSTS` | `fotos.midominio.com` |
-| `DJANGO_CSRF_TRUSTED_ORIGINS` | `https://fotos.midominio.com` |
-| `POSTGRES_PASSWORD` | Contraseña de la BD. |
-| `SUPERADMIN_USERNAME` | `admin` |
-| `SUPERADMIN_PASSWORD` | Solo necesaria en el primer arranque; después se ignora. |
-| `DEFAULT_USER_PASSWORD` | Contraseña genérica inicial de los usuarios nuevos. |
-| `TUNNEL_TOKEN` | Token del túnel. |
-| `HOST_SCANS_DIR`, `HOST_PHOTOS_DIR`, `HOST_EXPORT_DIR`, `HOST_BACKUPS_DIR` | Rutas del paso 1. |
-| `TZ` | `Europe/Madrid` |
-| `POLL_INTERVAL_SECONDS`, `MIN_PHOTO_AREA_RATIO`, `FACE_SCORE_THRESHOLD`, `FACE_MATCH_THRESHOLD`, `EMBEDDING_POLL_SECONDS`, `EXPORT_INTERVAL_HOURS` | Opcionales (ver `.env.example`). |
-
-Despliega el stack. Cuando `web` aparezca como *healthy*, entra en `https://fotos.midominio.com` con el superadmin y crea los usuarios en **Más → Usuarios**. Cada usuario deberá cambiar la contraseña genérica en su primer acceso.
-
-### 4. Immich
-
-Immich vive en otro stack y solo necesita leer la carpeta de exportación:
-
-1. En el `docker-compose` de Immich, monta la carpeta de exportación **en solo lectura** en el contenedor `immich-server`, por ejemplo:
-   ```yaml
-   volumes:
-     - /volume1/phototag/export:/mnt/phototag:ro
-   ```
-2. En Immich → *Administración* → *Bibliotecas externas*, crea una biblioteca con la ruta de importación `/mnt/phototag`.
-3. En Immich → *Administración* → *Ajustes* → *Ajustes de metadatos*, activa la **importación de caras desde los metadatos**.
-4. Tras cada exportación desde PhotoTag, **reescanea** la biblioteca externa.
-
-Las fotos con caras en los metadatos no pasan por la detección facial automática de Immich; es el comportamiento buscado.
+Los iconos se generan con `python scripts/make_icons.py`.
 
 ## Uso
 

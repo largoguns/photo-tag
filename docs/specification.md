@@ -154,6 +154,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 - Accesibilidad básica: contraste suficiente (AA en ambos temas), etiquetas en formularios, navegación por teclado en escritorio.
 - **Tema claro y oscuro**: por defecto sigue la preferencia del sistema (`prefers-color-scheme`); cada usuario puede forzar «Claro» u «Oscuro» en «Mi perfil» (campo `theme` del usuario). Los recuadros de cara sobre la foto mantienen sus colores en ambos temas.
 - **Idiomas**: español (principal) e inglés con la internacionalización de Django. El idioma se detecta del navegador (`Accept-Language`) y se puede cambiar con un selector Español/English (menú «Más», «Mi perfil» y pantalla de login) que se guarda en una cookie del dispositivo. Los textos fuente están en español y se traducen en `locale/en`. Los tipos de evento tienen un nombre en inglés opcional (`EventType.name_en`); los metadatos exportados (sección 6) siempre se escriben en español.
+- **App instalable (PWA)**: manifest (`/manifest.webmanifest`), iconos (incluido *maskable* y `apple-touch-icon`) y service worker en `/sw.js`. Al abrir la web en un móvil se detecta el navegador por su *user agent* y se propone instalarla: botón «Instalar» donde el navegador lo permite (`beforeinstallprompt`, Chromium en Android) e instrucciones en iOS/iPadOS («Compartir → Añadir a pantalla de inicio») y en otros navegadores Android. El aviso no aparece si ya está instalada y se puede posponer 30 días. Requiere HTTPS (Cloudflare). El service worker solo cachea estáticos y una página sin conexión; nunca fotos ni páginas con datos.
 - **Confirmaciones**: las acciones destructivas o con efecto directo (decisiones de administrador, «No es una cara», restablecer contraseña, desactivar usuario, descartar recorte, fusionar personas) piden confirmación con un diálogo modal propio de la aplicación (`<dialog>`), nunca con el diálogo nativo del navegador. En móvil se muestra como hoja inferior.
 
 ### 5.3 Modelo de datos
@@ -279,10 +280,11 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `FACE_MATCH_THRESHOLD` | web | `0.363` |
 | `EMBEDDING_POLL_SECONDS` | worker | `60` |
 | `TZ` | todos | `Europe/Madrid` |
+| `PUID` / `PGID` | web, worker | `1000` / `100` (propietario de las carpetas del NAS) |
 
 ### 8.3 Requisitos del stack
 
-- `docker-compose.yml` compatible con Portainer (stack desde repositorio Git o pegado en el editor).
+- `docker-compose.yml` compatible con Portainer como stack desde repositorio Git: `web` construye la imagen en cada despliegue (`pull_policy: build`) y `worker` la reutiliza. Guía completa en `docs/deployment.md`.
 - Dockerfile multi-stage; usuario no root; incluye `exiftool` y el modelo YuNet.
 - `healthcheck` en `db` y `web`; `web` y `worker` dependen de `db` sano.
 - `web` ejecuta migraciones, `collectstatic` y la creación del superadmin al arrancar.
