@@ -1,0 +1,22 @@
+{% load static i18n %}<!doctype html>
+{% get_current_language as LANGUAGE_CODE %}
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <title>{% translate "Sin conexión" %} · PhotoTag</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <link rel="icon" type="image/png" href="{% static 'img/icons/favicon-32.png' %}">
+</head>
+<body>
+  <main class="container narrow auth">
+    <div class="card stack center">
+      <img src="{% static 'img/icons/icon-192.png' %}" alt="" width="96" height="96" class="offline-icon">
+      <h1>{% translate "Sin conexión" %}</h1>
+      <p>{% translate "No se puede contactar con PhotoTag. Comprueba tu conexión y vuelve a intentarlo." %}</p>
+      <button type="button" class="button primary" onclick="location.reload()">{% translate "Reintentar" %}</button>
+    </div>
+  </main>
+</body>
+</html>

@@ -3,7 +3,6 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-14 22:18+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11,7 +10,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: accounts/apps.py:8 templates/accounts/user_list.html:2
-#: templates/accounts/user_list.html:5 templates/base.html:31
+#: templates/accounts/user_list.html:5 templates/base.html:41
 #: templates/catalog/admin/home.html:11
 msgid "Usuarios"
 msgstr "Users"
@@ -493,6 +492,10 @@ msgstr "An export is already queued."
 msgid "Exportación solicitada. El worker la ejecutará en breve."
 msgstr "Export requested. The worker will run it shortly."
 
+#: phototag/pwa.py:44
+msgid "Catalogación colaborativa de las fotos familiares"
+msgstr "Collaborative cataloging of the family photos"
+
 #: scanner/apps.py:8
 msgid "Escáner"
 msgstr "Scanner"
@@ -576,23 +579,19 @@ msgid "Elige tu contraseña"
 msgstr "Choose your password"
 
 #: templates/accounts/password_change_forced.html:8
-msgid ""
-"Antes de continuar debes sustituir la contraseña inicial por una propia de "
-"al menos 10 caracteres."
-msgstr ""
-"Before you continue, replace the initial password with your own of at least "
-"10 characters."
+msgid "Antes de continuar debes sustituir la contraseña inicial por una propia de al menos 10 caracteres."
+msgstr "Before you continue, replace the initial password with your own of at least 10 characters."
 
 #: templates/accounts/password_change_forced.html:10
 msgid "Guardar y continuar"
 msgstr "Save and continue"
 
-#: templates/accounts/password_change_forced.html:15 templates/base.html:35
+#: templates/accounts/password_change_forced.html:15 templates/base.html:45
 msgid "Cerrar sesión"
 msgstr "Sign out"
 
 #: templates/accounts/profile.html:2 templates/accounts/profile.html:4
-#: templates/base.html:29
+#: templates/base.html:39
 msgid "Mi perfil"
 msgstr "My profile"
 
@@ -617,11 +616,8 @@ msgid "Guardar"
 msgstr "Save"
 
 #: templates/accounts/profile.html:17
-msgid ""
-"Por defecto se usa el idioma del navegador. La elección se guarda en este "
-"dispositivo."
-msgstr ""
-"By default the browser language is used. Your choice is saved on this device."
+msgid "Por defecto se usa el idioma del navegador. La elección se guarda en este dispositivo."
+msgstr "By default the browser language is used. Your choice is saved on this device."
 
 #: templates/accounts/user_form.html:2 templates/accounts/user_form.html:7
 #: templates/accounts/user_list.html:6
@@ -639,10 +635,9 @@ msgstr "Edit “%(username)s”"
 
 #: templates/accounts/user_form.html:8
 msgid "El usuario deberá cambiar la contraseña en su primer acceso."
-msgstr ""
-"The user will have to change the password when signing in for the first time."
+msgstr "The user will have to change the password when signing in for the first time."
 
-#: templates/accounts/user_form.html:12 templates/base.html:55
+#: templates/accounts/user_form.html:12 templates/base.html:79
 #: templates/catalog/_photo_workspace.html:31
 #: templates/catalog/admin/event_type_form.html:11
 #: templates/catalog/admin/merge.html:14
@@ -690,12 +685,8 @@ msgstr "Edit"
 
 #: templates/accounts/user_list.html:28
 #, python-format
-msgid ""
-"¿Restablecer la contraseña de %(username)s a la genérica? Tendrá que "
-"cambiarla en su próximo acceso."
-msgstr ""
-"Reset the password of %(username)s to the generic one? They will have to "
-"change it next time they sign in."
+msgid "¿Restablecer la contraseña de %(username)s a la genérica? Tendrá que cambiarla en su próximo acceso."
+msgstr "Reset the password of %(username)s to the generic one? They will have to change it next time they sign in."
 
 #: templates/accounts/user_list.html:29
 msgid "Restablecer"
@@ -707,12 +698,8 @@ msgstr "Reset password"
 
 #: templates/accounts/user_list.html:33
 #, python-format
-msgid ""
-"¿Desactivar a %(username)s? No podrá iniciar sesión, pero se conservan sus "
-"propuestas y votos."
-msgstr ""
-"Deactivate %(username)s? They will not be able to sign in, but their "
-"proposals and votes are kept."
+msgid "¿Desactivar a %(username)s? No podrá iniciar sesión, pero se conservan sus propuestas y votos."
+msgstr "Deactivate %(username)s? They will not be able to sign in, but their proposals and votes are kept."
 
 #: templates/accounts/user_list.html:33 templates/accounts/user_list.html:34
 msgid "Desactivar"
@@ -726,47 +713,71 @@ msgstr "Reactivate"
 msgid "No hay usuarios que coincidan."
 msgstr "No matching users."
 
-#: templates/base.html:15
+#: templates/base.html:25
 msgid "Saltar al contenido"
 msgstr "Skip to content"
 
-#: templates/base.html:17
+#: templates/base.html:27
 msgid "Navegación principal"
 msgstr "Main navigation"
 
-#: templates/base.html:21 templates/catalog/home.html:2
+#: templates/base.html:31 templates/catalog/home.html:2
 msgid "Inicio"
 msgstr "Home"
 
-#: templates/base.html:22 templates/catalog/gallery.html:2
+#: templates/base.html:32 templates/catalog/gallery.html:2
 #: templates/catalog/gallery.html:4
 msgid "Galería"
 msgstr "Gallery"
 
-#: templates/base.html:23 templates/catalog/persons.html:2
+#: templates/base.html:33 templates/catalog/persons.html:2
 #: templates/catalog/persons.html:4
 msgid "Personas"
 msgstr "People"
 
-#: templates/base.html:24
+#: templates/base.html:34
 msgid "Actividad"
 msgstr "Activity"
 
-#: templates/base.html:27
+#: templates/base.html:37
 msgid "Más"
 msgstr "More"
 
-#: templates/base.html:30 templates/catalog/admin/event_types.html:4
+#: templates/base.html:40 templates/catalog/admin/event_types.html:4
 #: templates/catalog/admin/home.html:2 templates/catalog/admin/home.html:4
 #: templates/catalog/admin/review_queue.html:4 templates/exporter/export.html:4
 msgid "Administración"
 msgstr "Administration"
 
-#: templates/base.html:52
+#: templates/base.html:63
+msgid "Instala PhotoTag"
+msgstr "Install PhotoTag"
+
+#: templates/base.html:64
+msgid "Añádela a tu pantalla de inicio y ábrela como una app."
+msgstr "Add it to your home screen and open it like an app."
+
+#: templates/base.html:65
+msgid "Pulsa <strong>Compartir</strong> <span class=\"share-glyph\" aria-hidden=\"true\"></span> y elige <strong>Añadir a pantalla de inicio</strong>."
+msgstr "Tap <strong>Share</strong> <span class=\"share-glyph\" aria-hidden=\"true\"></span> and choose <strong>Add to Home Screen</strong>."
+
+#: templates/base.html:66
+msgid "Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</strong> o <strong>Añadir a pantalla de inicio</strong>."
+msgstr "Open the browser menu <strong>⋮</strong> and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>."
+
+#: templates/base.html:69
+msgid "Instalar"
+msgstr "Install"
+
+#: templates/base.html:70
+msgid "Ahora no"
+msgstr "Not now"
+
+#: templates/base.html:76
 msgid "¿Confirmar?"
 msgstr "Confirm?"
 
-#: templates/base.html:56
+#: templates/base.html:80
 msgid "Confirmar"
 msgstr "Confirm"
 
@@ -852,8 +863,7 @@ msgid "¿Es %(person)s?"
 msgstr "Is it %(person)s?"
 
 #: templates/catalog/_photo_workspace.html:83
-msgid ""
-"Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
+msgid "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
 
 #: templates/catalog/_photo_workspace.html:89
@@ -875,12 +885,8 @@ msgstr "Propose"
 
 #: templates/catalog/_photo_workspace.html:97
 #, python-format
-msgid ""
-"¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
-"cualquier otra propuesta."
-msgstr ""
-"Propose that box %(number)s is not a face? It will be voted like any other "
-"proposal."
+msgid "¿Proponer que el recuadro %(number)s no es una cara? Se votará como cualquier otra propuesta."
+msgstr "Propose that box %(number)s is not a face? It will be voted like any other proposal."
 
 #: templates/catalog/_photo_workspace.html:106
 msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
@@ -1053,32 +1059,20 @@ msgid "Sin actividad."
 msgstr "No activity."
 
 #: templates/catalog/admin/merge.html:6
-msgid ""
-"¿Fusionar estas personas? Las caras y propuestas de la primera pasarán a la "
-"segunda. No se puede deshacer desde la web."
-msgstr ""
-"Merge these people? The faces and proposals of the first one will move to "
-"the second. This cannot be undone from the web."
+msgid "¿Fusionar estas personas? Las caras y propuestas de la primera pasarán a la segunda. No se puede deshacer desde la web."
+msgstr "Merge these people? The faces and proposals of the first one will move to the second. This cannot be undone from the web."
 
 #: templates/catalog/admin/merge.html:7 templates/catalog/admin/merge.html:13
 msgid "Fusionar"
 msgstr "Merge"
 
 #: templates/catalog/admin/merge.html:10
-msgid ""
-"Las caras y propuestas de la primera persona pasan a la segunda. La acción "
-"queda registrada."
-msgstr ""
-"The faces and proposals of the first person move to the second. The action "
-"is logged."
+msgid "Las caras y propuestas de la primera persona pasan a la segunda. La acción queda registrada."
+msgstr "The faces and proposals of the first person move to the second. The action is logged."
 
 #: templates/catalog/admin/review_queue.html:6
-msgid ""
-"Para corregir un recorte, reprocesa el escaneo con <code>process_scans --"
-"force &lt;fichero&gt;</code>."
-msgstr ""
-"To fix a crop, reprocess the scan with <code>process_scans --force "
-"&lt;file&gt;</code>."
+msgid "Para corregir un recorte, reprocesa el escaneo con <code>process_scans --force &lt;fichero&gt;</code>."
+msgstr "To fix a crop, reprocess the scan with <code>process_scans --force &lt;file&gt;</code>."
 
 #: templates/catalog/admin/review_queue.html:11
 msgid "Marcar como correcto"
@@ -1095,12 +1089,8 @@ msgid "Recorte %(index)s"
 msgstr "Crop %(index)s"
 
 #: templates/catalog/admin/review_queue.html:20
-msgid ""
-"¿Descartar este recorte? Dejará de aparecer en la galería y no se exportará. "
-"Se puede restaurar después."
-msgstr ""
-"Discard this crop? It will no longer appear in the gallery and will not be "
-"exported. It can be restored later."
+msgid "¿Descartar este recorte? Dejará de aparecer en la galería y no se exportará. Se puede restaurar después."
+msgstr "Discard this crop? It will no longer appear in the gallery and will not be exported. It can be restored later."
 
 #: templates/catalog/admin/review_queue.html:20
 #: templates/catalog/admin/review_queue.html:21
@@ -1120,14 +1110,8 @@ msgid "No hay escaneos pendientes de revisión."
 msgstr "No scans waiting for review."
 
 #: templates/catalog/admin/thresholds.html:8
-msgid ""
-"Una propuesta se acepta con al menos N votos a favor y una proporción a "
-"favor mínima. Se rechaza con N votos en contra que superen a los votos a "
-"favor."
-msgstr ""
-"A proposal is accepted with at least N votes in favour and a minimum share "
-"in favour. It is rejected with N votes against that outnumber the votes in "
-"favour."
+msgid "Una propuesta se acepta con al menos N votos a favor y una proporción a favor mínima. Se rechaza con N votos en contra que superen a los votos a favor."
+msgstr "A proposal is accepted with at least N votes in favour and a minimum share in favour. It is rejected with N votes against that outnumber the votes in favour."
 
 #: templates/catalog/gallery.html:6
 msgid "Filtros"
@@ -1181,12 +1165,8 @@ msgstr "Progress"
 
 #: templates/catalog/home.html:7
 #, python-format
-msgid ""
-"<strong>%(cataloged)s</strong> de <strong>%(total)s</strong> fotos "
-"catalogadas (%(percent)s %%)"
-msgstr ""
-"<strong>%(cataloged)s</strong> of <strong>%(total)s</strong> photos "
-"cataloged (%(percent)s%%)"
+msgid "<strong>%(cataloged)s</strong> de <strong>%(total)s</strong> fotos catalogadas (%(percent)s %%)"
+msgstr "<strong>%(cataloged)s</strong> of <strong>%(total)s</strong> photos cataloged (%(percent)s%%)"
 
 #: templates/catalog/home.html:8
 msgid "Fotos catalogadas"
@@ -1254,12 +1234,8 @@ msgstr "May appear in"
 
 #: templates/catalog/person_detail.html:14
 #, python-format
-msgid ""
-"Caras sin identificar que se parecen a %(person)s. Confirmar crea una "
-"propuesta que el resto vota."
-msgstr ""
-"Unidentified faces that look like %(person)s. Confirming creates a proposal "
-"for everyone else to vote on."
+msgid "Caras sin identificar que se parecen a %(person)s. Confirmar crea una propuesta que el resto vota."
+msgstr "Unidentified faces that look like %(person)s. Confirming creates a proposal for everyone else to vote on."
 
 #: templates/catalog/person_detail.html:19
 #, python-format
@@ -1293,30 +1269,18 @@ msgstr "No people have been identified yet."
 
 #: templates/exporter/export.html:7
 #, python-format
-msgid ""
-"<strong>%(counter)s</strong> foto catalogada con cambios pendientes de "
-"exportar."
-msgid_plural ""
-"<strong>%(counter)s</strong> fotos catalogadas con cambios pendientes de "
-"exportar."
-msgstr[0] ""
-"<strong>%(counter)s</strong> cataloged photo with changes waiting to be "
-"exported."
-msgstr[1] ""
-"<strong>%(counter)s</strong> cataloged photos with changes waiting to be "
-"exported."
+msgid "<strong>%(counter)s</strong> foto catalogada con cambios pendientes de exportar."
+msgid_plural "<strong>%(counter)s</strong> fotos catalogadas con cambios pendientes de exportar."
+msgstr[0] "<strong>%(counter)s</strong> cataloged photo with changes waiting to be exported."
+msgstr[1] "<strong>%(counter)s</strong> cataloged photos with changes waiting to be exported."
 
 #: templates/exporter/export.html:9
 msgid "Exportar ahora"
 msgstr "Export now"
 
 #: templates/exporter/export.html:11
-msgid ""
-"El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. "
-"Después, reescanea la biblioteca externa en Immich."
-msgstr ""
-"The worker writes the photos and their XMP files to <code>/data/export</"
-"code>. Then rescan the external library in Immich."
+msgid "El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. Después, reescanea la biblioteca externa en Immich."
+msgstr "The worker writes the photos and their XMP files to <code>/data/export</code>. Then rescan the external library in Immich."
 
 #: templates/exporter/export.html:13
 msgid "Exportaciones recientes"
@@ -1341,11 +1305,22 @@ msgstr[1] "%(counter)s exported"
 #: templates/exporter/export.html:22
 #, python-format
 msgid "%(counter)s foto no se pudo exportar; revisa los logs del worker."
-msgid_plural ""
-"%(counter)s fotos no se pudieron exportar; revisa los logs del worker."
+msgid_plural "%(counter)s fotos no se pudieron exportar; revisa los logs del worker."
 msgstr[0] "%(counter)s photo could not be exported; check the worker logs."
 msgstr[1] "%(counter)s photos could not be exported; check the worker logs."
 
 #: templates/exporter/export.html:27
 msgid "Todavía no se ha exportado nada."
 msgstr "Nothing has been exported yet."
+
+#: templates/pwa/offline.html:8 templates/pwa/offline.html:16
+msgid "Sin conexión"
+msgstr "Offline"
+
+#: templates/pwa/offline.html:17
+msgid "No se puede contactar con PhotoTag. Comprueba tu conexión y vuelve a intentarlo."
+msgstr "PhotoTag cannot be reached. Check your connection and try again."
+
+#: templates/pwa/offline.html:18
+msgid "Reintentar"
+msgstr "Try again"

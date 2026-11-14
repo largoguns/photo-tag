@@ -6,6 +6,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="{% if user.is_authenticated and user.theme != 'auto' %}{{ user.theme }}{% else %}light dark{% endif %}">
   <title>{% block title %}PhotoTag{% endblock %} · PhotoTag</title>
+  <meta name="theme-color" content="#1f5fbf" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#1c1c20" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="PhotoTag">
+  {# use-credentials: the manifest must also load when Cloudflare Access protects the site. #}
+  <link rel="manifest" href="{% url 'pwa_manifest' %}" crossorigin="use-credentials">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/icons/favicon-32.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'img/icons/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
   <script src="{% static 'js/app.js' %}" defer></script>
@@ -46,6 +56,20 @@
     {% include "_messages.html" %}
     {% block content %}{% endblock %}
   </main>
+
+  <div id="install-banner" class="install-banner" role="region" aria-labelledby="install-title" hidden>
+    <img src="{% static 'img/icons/icon-192.png' %}" alt="" width="48" height="48" class="install-icon">
+    <div class="install-text">
+      <p id="install-title" class="install-title">{% translate "Instala PhotoTag" %}</p>
+      <p class="install-hint" data-install-hint="prompt" hidden>{% translate "Añádela a tu pantalla de inicio y ábrela como una app." %}</p>
+      <p class="install-hint" data-install-hint="ios" hidden>{% blocktranslate %}Pulsa <strong>Compartir</strong> <span class="share-glyph" aria-hidden="true"></span> y elige <strong>Añadir a pantalla de inicio</strong>.{% endblocktranslate %}</p>
+      <p class="install-hint" data-install-hint="android" hidden>{% blocktranslate %}Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</strong> o <strong>Añadir a pantalla de inicio</strong>.{% endblocktranslate %}</p>
+    </div>
+    <div class="install-actions">
+      <button type="button" class="button primary" data-install-action="install" hidden>{% translate "Instalar" %}</button>
+      <button type="button" class="button" data-install-action="dismiss">{% translate "Ahora no" %}</button>
+    </div>
+  </div>
 
   <dialog id="confirm-dialog" class="modal" aria-labelledby="confirm-title" aria-describedby="confirm-message">
     <form method="dialog" class="modal-body">

@@ -232,6 +232,105 @@
     });
   });
 
+  // --- Progressive Web App ---------------------------------------------------
+  // Service workers need a secure context (HTTPS via Cloudflare, or localhost).
+  if ("serviceWorker" in navigator && window.isSecureContext) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    });
+  }
+
+  const INSTALL_DISMISS_KEY = "phototag:install-dismissed-at";
+  const INSTALL_DISMISS_DAYS = 30;
+  const INSTALL_PROMPT_WAIT_MS = 2500;
+  let deferredInstall = null;
+
+  function isInstalled() {
+    return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+  }
+
+  // Which install flow the user agent supports: "ios", "android" or null (desktop).
+  function mobilePlatform() {
+    const ua = navigator.userAgent || "";
+    // iPadOS reports itself as a Mac; touch support gives it away.
+    if (/iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1)) {
+      return "ios";
+    }
+    const mobile = navigator.userAgentData ? navigator.userAgentData.mobile : /Mobi/i.test(ua);
+    return /Android/i.test(ua) || mobile ? "android" : null;
+  }
+
+  function recentlyDismissed() {
+    try {
+      const at = Number(window.localStorage.getItem(INSTALL_DISMISS_KEY));
+      return at > 0 && Date.now() - at < INSTALL_DISMISS_DAYS * 86400000;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function showInstallBanner(mode) {
+    const banner = document.getElementById("install-banner");
+    if (!banner) return;
+    banner.querySelectorAll("[data-install-hint]").forEach((hint) => {
+      hint.hidden = hint.dataset.installHint !== mode;
+    });
+    banner.querySelector('[data-install-action="install"]').hidden = mode !== "prompt";
+    banner.hidden = false;
+    document.body.classList.add("has-install-banner");
+  }
+
+  function hideInstallBanner(remember) {
+    const banner = document.getElementById("install-banner");
+    if (banner) banner.hidden = true;
+    document.body.classList.remove("has-install-banner");
+    if (remember) {
+      try { window.localStorage.setItem(INSTALL_DISMISS_KEY, String(Date.now())); } catch (error) { /* private mode */ }
+    }
+  }
+
+  // Chromium fires this when the app is installable; keep it to prompt later.
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredInstall = event;
+    if (mobilePlatform() && !isInstalled() && !recentlyDismissed()) showInstallBanner("prompt");
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredInstall = null;
+    hideInstallBanner(false);
+  });
+
+  document.addEventListener("click", (event) => {
+    const action = event.target.closest("[data-install-action]");
+    if (!action) return;
+    if (action.dataset.installAction === "dismiss") {
+      hideInstallBanner(true);
+      return;
+    }
+    if (!deferredInstall) return;
+    const prompt = deferredInstall;
+    deferredInstall = null;
+    prompt.prompt();
+    prompt.userChoice.then((choice) => hideInstallBanner(choice.outcome !== "accepted"));
+  });
+
+  function offerInstall() {
+    const platform = mobilePlatform();
+    if (!platform || isInstalled() || recentlyDismissed()) return;
+    if (platform === "ios") {
+      showInstallBanner("ios"); // iOS has no install prompt: explain the Share menu.
+      return;
+    }
+    // Android: wait for Chromium's prompt; otherwise (e.g. Firefox) explain the menu.
+    window.setTimeout(() => {
+      if (!deferredInstall && !isInstalled()) showInstallBanner("android");
+    }, INSTALL_PROMPT_WAIT_MS);
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", offerInstall);
+  else offerInstall();
+
   // Re-select the highlighted face after HTMX swaps the workspace.
   document.addEventListener("htmx:afterSwap", () => {
     const selected = document.querySelector(".face-box.selected");

@@ -8,6 +8,9 @@ PASSWORD_CHANGE_ALLOWED = {
     "login",
     "healthz",
     "set_language",
+    "pwa_manifest",
+    "pwa_service_worker",
+    "pwa_offline",
 }
 
 
