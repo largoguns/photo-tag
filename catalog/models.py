@@ -166,6 +166,8 @@ class Face(models.Model):
     person = models.ForeignKey(
         Person, null=True, blank=True, on_delete=models.SET_NULL, related_name="faces"
     )
+    # SFace feature vector (128 float32, L2-normalized); computed by the worker.
+    embedding = models.BinaryField(null=True, blank=True, editable=False)
 
     class Meta:
         ordering = ["photo", "x", "id"]

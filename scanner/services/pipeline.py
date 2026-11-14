@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from catalog.models import Face, Photo, Scan
 from catalog.services.voting import refresh_photo_status
-from scanner.services import cropping, faces, images
+from scanner.services import cropping, embeddings, faces, images
 
 logger = logging.getLogger("scanner")
 
@@ -118,6 +118,15 @@ def _create_faces(photo, detected):
     )
 
 
+def _embed_photos(pairs):
+    """Compute missing face embeddings with the crops still in memory (after commit)."""
+    for image, photo in pairs:
+        missing = photo.faces.filter(
+            embedding__isnull=True, status__in=[Face.Status.ACTIVE, Face.Status.PROPOSED]
+        )
+        embeddings.embed_faces(image, list(missing))
+
+
 def process_file(path):
     """Process one scan from the inbox. Returns the new Scan, or None if already known."""
     path = Path(path)
@@ -137,6 +146,7 @@ def process_file(path):
     processed, reasons = analyse(decode_image(data))
     names = _write_files(sha, processed)
     target = _unique_destination(Path(settings.SCANS_PROCESSED_DIR), path.name, sha)
+    created = []
     try:
         with transaction.atomic():
             scan = Scan.objects.create(
@@ -156,11 +166,13 @@ def process_file(path):
                     crop_rect=item.crop.rect,
                 )
                 _create_faces(photo, item.faces)
+                created.append((item.crop.image, photo))
     except Exception:
         for name in names:
             images.delete_photo_files(name)
         raise
     shutil.move(str(path), target)
+    _embed_photos(created)
     logger.info(
         "event=scan_processed file=%s sha=%s photos=%d faces=%d needs_review=%s seconds=%.1f",
         path.name,
@@ -263,7 +275,8 @@ def _refresh_faces(photo, old_size, detected):
         face.y = min(round(face.y * sy), photo.height - 1)
         face.w = max(1, min(round(face.w * sx), photo.width - face.x))
         face.h = max(1, min(round(face.h * sy), photo.height - face.y))
-        face.save(update_fields=["x", "y", "w", "h"])
+        face.embedding = None  # the crop changed: recompute
+        face.save(update_fields=["x", "y", "w", "h", "embedding"])
         kept.append((face.x, face.y, face.w, face.h))
     fresh = [
         f for f in detected if all(_iou((f.x, f.y, f.w, f.h), k) < FACE_DUPLICATE_IOU for k in kept)
@@ -281,6 +294,7 @@ def reprocess(scan):
     for old in old_photos:
         images.delete_photo_files(old.file_name)
     names = _write_files(scan.sha256, processed)
+    refreshed = []
 
     with transaction.atomic():
         for old in unmatched:
@@ -303,6 +317,7 @@ def reprocess(scan):
                     crop_rect=item.crop.rect,
                 )
                 _create_faces(photo, item.faces)
+                refreshed.append((item.crop.image, photo))
                 continue
             old_size = (old.width, old.height)
             old.file_name, old.index, old.width, old.height = name, index, width, height
@@ -312,6 +327,7 @@ def reprocess(scan):
             old.save()
             _refresh_faces(old, old_size, item.faces)
             refresh_photo_status(old)
+            refreshed.append((item.crop.image, old))
 
         scan.needs_review = bool(reasons)
         scan.review_reasons = reasons
@@ -319,6 +335,7 @@ def reprocess(scan):
         scan.processed_at = now
         scan.save()
 
+    _embed_photos(refreshed)
     logger.info(
         "event=scan_reprocessed sha=%s photos=%d kept=%d removed=%d needs_review=%s",
         scan.sha256[:12],

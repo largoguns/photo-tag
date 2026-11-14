@@ -10,6 +10,7 @@ from django.db import close_old_connections
 
 from exporter.services import backup, export
 from scanner.management.commands.process_scans import watch_inbox
+from scanner.services import embeddings
 
 logger = logging.getLogger("worker")
 
@@ -48,6 +49,13 @@ def build_scheduler():
             id="periodic_export",
             **common,
         )
+    scheduler.add_job(
+        job(embeddings.compute_missing),
+        "interval",
+        seconds=settings.EMBEDDING_POLL_SECONDS,
+        id="face_embeddings",
+        **common,
+    )
     scheduler.add_job(
         job(backup.backup_database),
         "cron",

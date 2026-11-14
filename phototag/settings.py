@@ -180,6 +180,14 @@ YUNET_MODEL_PATH = Path(
 )
 THUMBNAIL_SIZES = (400, 1600)
 
+# Identity suggestions (SFace). Suggestions only: identities are always voted.
+SFACE_MODEL_PATH = Path(
+    env("SFACE_MODEL_PATH", str(BASE_DIR / "models" / "face_recognition_sface_2021dec.onnx"))
+)
+FACE_MATCH_THRESHOLD = float(env("FACE_MATCH_THRESHOLD", "0.363"))
+FACE_MATCH_STRONG = float(env("FACE_MATCH_STRONG", "0.5"))
+EMBEDDING_POLL_SECONDS = int(env("EMBEDDING_POLL_SECONDS", "60"))
+
 # Accounts
 SUPERADMIN_USERNAME = env("SUPERADMIN_USERNAME", "admin")
 SUPERADMIN_PASSWORD = env("SUPERADMIN_PASSWORD")
