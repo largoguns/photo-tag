@@ -75,6 +75,8 @@ def service_worker(request):
             "cache_version": hashlib.sha256("\n".join(shell).encode()).hexdigest()[:12],
             "offline_url": "/offline/",
             "static_prefix": settings.STATIC_URL,
+            "icon_url": static("img/icons/icon-192.png"),
+            "badge_url": static("img/icons/badge-96.png"),
         },
         content_type="application/javascript",
     )

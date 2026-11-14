@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     "catalog",
     "scanner",
     "exporter",
+    "notifications",
 ]
 
 MIDDLEWARE = [
@@ -211,6 +212,14 @@ EXIFTOOL_PATH = env("EXIFTOOL_PATH", "exiftool")
 # Periodic automatic export every N hours (0 disables it; the admin button always works).
 EXPORT_INTERVAL_HOURS = int(env("EXPORT_INTERVAL_HOURS", "0"))
 EXPORT_REQUEST_POLL_SECONDS = int(env("EXPORT_REQUEST_POLL_SECONDS", "15"))
+
+# Push notifications (Web Push / VAPID). Without keys the feature is disabled.
+VAPID_PUBLIC_KEY = env("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = env("VAPID_PRIVATE_KEY", "")
+VAPID_SUBJECT = env("VAPID_SUBJECT", "mailto:admin@example.com")
+NOTIFY_POLL_MINUTES = int(env("NOTIFY_POLL_MINUTES", "10"))
+NOTIFY_MIN_INTERVAL_MINUTES = int(env("NOTIFY_MIN_INTERVAL_MINUTES", "60"))
+NOTIFY_QUIET_HOURS = env("NOTIFY_QUIET_HOURS", "22-9")
 
 # Backups
 BACKUP_RETENTION_DAYS = int(env("BACKUP_RETENTION_DAYS", "14"))

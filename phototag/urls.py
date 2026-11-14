@@ -12,5 +12,6 @@ urlpatterns = [
     path("i18n/setlang/", login_not_required(set_language), name="set_language"),
     path("accounts/", include("accounts.urls")),
     path("admin/export/", include("exporter.urls")),
+    path("notifications/", include("notifications.urls")),
     path("", include("catalog.urls")),
 ]

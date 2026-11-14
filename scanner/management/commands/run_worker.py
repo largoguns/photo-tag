@@ -9,6 +9,7 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 
 from exporter.services import backup, export
+from notifications.services import digest
 from scanner.management.commands.process_scans import watch_inbox
 from scanner.services import embeddings
 
@@ -54,6 +55,13 @@ def build_scheduler():
         "interval",
         seconds=settings.EMBEDDING_POLL_SECONDS,
         id="face_embeddings",
+        **common,
+    )
+    scheduler.add_job(
+        job(digest.send_digests),
+        "interval",
+        minutes=settings.NOTIFY_POLL_MINUTES,
+        id="push_digests",
         **common,
     )
     scheduler.add_job(
