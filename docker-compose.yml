@@ -12,6 +12,9 @@ x-app: &app
     DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY is required}
     DATABASE_URL: postgres://phototag:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@db:5432/phototag
     TZ: ${TZ:-Europe/Madrid}
+    VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
+    VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
+    VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
   depends_on:
     db:
       condition: service_healthy
@@ -56,6 +59,9 @@ services:
       FACE_SCORE_THRESHOLD: ${FACE_SCORE_THRESHOLD:-0.7}
       EMBEDDING_POLL_SECONDS: ${EMBEDDING_POLL_SECONDS:-60}
       EXPORT_INTERVAL_HOURS: ${EXPORT_INTERVAL_HOURS:-0}
+      NOTIFY_POLL_MINUTES: ${NOTIFY_POLL_MINUTES:-10}
+      NOTIFY_MIN_INTERVAL_MINUTES: ${NOTIFY_MIN_INTERVAL_MINUTES:-60}
+      NOTIFY_QUIET_HOURS: ${NOTIFY_QUIET_HOURS:-22-9}
     volumes:
       - ${HOST_SCANS_DIR:?HOST_SCANS_DIR is required}:/data/scans
       - ${HOST_PHOTOS_DIR}:/data/photos
@@ -66,7 +72,8 @@ services:
         condition: service_healthy
       web:
         condition: service_healthy  # web applies the migrations
-    networks: [internal]
+    # egress: outbound only, to deliver push notifications (no published ports).
+    networks: [internal, egress]
 
   db:
     image: postgres:16-alpine
@@ -103,6 +110,8 @@ networks:
     internal: true
   # web <-> cloudflared; cloudflared needs outbound internet for the tunnel.
   edge: {}
+  # Outbound internet for the worker (Web Push services). Nothing else joins it.
+  egress: {}
 
 volumes:
   pgdata:
