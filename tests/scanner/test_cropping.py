@@ -66,7 +66,7 @@ def test_anomalous_aspect_ratio_needs_review():
     result = split_scan(synthetic_scan([((620, 500), (900, 180), 0), ((620, 1200), (500, 400), 0)]))
 
     assert result.needs_review
-    assert any("aspecto" in reason for reason in result.review_reasons)
+    assert {"code": "aspect_ratio"} in result.review_reasons
 
 
 def test_normalize_rect_folds_angle():

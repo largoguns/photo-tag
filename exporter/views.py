@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.permissions import admin_required
@@ -25,8 +26,8 @@ def export_start(request):
     if ExportRequest.objects.filter(
         status__in=[ExportRequest.Status.PENDING, ExportRequest.Status.RUNNING]
     ).exists():
-        messages.info(request, "Ya hay una exportación en cola.")
+        messages.info(request, _("Ya hay una exportación en cola."))
     else:
         request_export(request.user)
-        messages.success(request, "Exportación solicitada. El worker la ejecutará en breve.")
+        messages.success(request, _("Exportación solicitada. El worker la ejecutará en breve."))
     return redirect("export_home")

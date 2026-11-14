@@ -119,8 +119,6 @@ def run_pending_requests():
         status=ExportRequest.Status.FAILED if failed else ExportRequest.Status.DONE,
         finished_at=timezone.now(),
         exported_count=exported,
-        error=f"{failed} fotos no se pudieron exportar; revisa los logs del worker."
-        if failed
-        else "",
+        failed_count=failed,
     )
     return exported

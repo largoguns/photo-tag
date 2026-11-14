@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import Face, Person, Photo, Proposal
@@ -10,11 +11,11 @@ from catalog.models import Face, Person, Photo, Proposal
 def merge_persons(admin, source, target):
     """Merge `source` into `target`: faces, proposals and user link move to the target."""
     if source.pk == target.pk:
-        raise ValidationError("No se puede fusionar una persona consigo misma.")
+        raise ValidationError(_("No se puede fusionar una persona consigo misma."))
     source = Person.objects.select_for_update().get(pk=source.pk)
     target = Person.objects.select_for_update().get(pk=target.pk)
     if source.merged_into_id or target.merged_into_id:
-        raise ValidationError("Solo se pueden fusionar personas activas.")
+        raise ValidationError(_("Solo se pueden fusionar personas activas."))
 
     photo_ids = set(Face.objects.filter(person=source).values_list("photo_id", flat=True))
     Face.objects.filter(person=source).update(person=target)

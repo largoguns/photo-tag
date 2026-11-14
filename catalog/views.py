@@ -8,6 +8,7 @@ from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from PIL import Image
 
@@ -172,7 +173,7 @@ def next_uncataloged(request):
     after = request.GET.get("after")
     photo = presenters.next_uncataloged(int(after) if after and after.isdigit() else None)
     if photo is None:
-        messages.success(request, "¡No quedan fotos sin catalogar!")
+        messages.success(request, _("¡No quedan fotos sin catalogar!"))
         return redirect("home")
     return redirect("photo_detail", pk=photo.pk)
 
@@ -271,7 +272,7 @@ def propose_date(request, pk):
         if precision == Photo.DatePrecision.EXACT:
             parts = (request.POST.get("date") or "").split("-")
             if len(parts) != 3:
-                raise ValidationError("Indica la fecha completa.")
+                raise ValidationError(_("Indica la fecha completa."))
             value.update(year=parts[0], month=parts[1], day=parts[2])
         voting.create_proposal(request.user, photo, Proposal.Kind.DATE, value=value)
 

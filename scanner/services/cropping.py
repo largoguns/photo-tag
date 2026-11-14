@@ -118,14 +118,14 @@ def split_scan(image, min_area_ratio=0.03, inset=4):
 
     result = CropResult()
     if not MIN_PHOTOS <= len(rects) <= MAX_PHOTOS:
-        result.review_reasons.append(f"Se han detectado {len(rects)} fotos")
+        result.review_reasons.append({"code": "photo_count", "count": len(rects)})
 
     if any(_aspect_ratio(rect) > MAX_ASPECT_RATIO for rect in rects):
-        result.review_reasons.append("Relación de aspecto anómala")
+        result.review_reasons.append({"code": "aspect_ratio"})
 
     for i, a in enumerate(rects):
         if any(_overlaps(a, b) for b in rects[i + 1 :]):
-            result.review_reasons.append("Recortes solapados")
+            result.review_reasons.append({"code": "overlap"})
             break
 
     for rect in rects:

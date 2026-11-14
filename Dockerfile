@@ -48,6 +48,9 @@ CMD ["web"]
 # ---- test: runtime + dev tools (docker build --target test .) ------------------
 FROM runtime AS test
 USER root
+# gettext: makemessages/compilemessages for the translation catalogs (locale/).
+RUN apt-get update && apt-get install -y --no-install-recommends gettext \
+    && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir "pytest>=8.3" "pytest-django>=4.9" "ruff>=0.7"
 USER phototag
 ENTRYPOINT []

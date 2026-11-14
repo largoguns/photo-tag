@@ -8,6 +8,7 @@ import datetime
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import CatalogSettings, EventType, Face, Person, Photo, Proposal, Vote
@@ -25,7 +26,7 @@ def resolve_person(name, user):
     """Return an existing active person by name, or a new provisional one."""
     name = " ".join(name.split())
     if not name:
-        raise ValidationError("El nombre no puede estar vacío.")
+        raise ValidationError(_("El nombre no puede estar vacío."))
     person = Person.objects.active().filter(display_name__iexact=name).order_by("id").first()
     if person:
         return person
@@ -37,9 +38,9 @@ def normalize_date(precision, year, month=None, day=None):
     try:
         year = int(year)
     except (TypeError, ValueError) as exc:
-        raise ValidationError("Año no válido.") from exc
+        raise ValidationError(_("Año no válido.")) from exc
     if not 1800 <= year <= timezone.now().year:
-        raise ValidationError("Año fuera de rango.")
+        raise ValidationError(_("Año fuera de rango."))
     if precision == Photo.DatePrecision.DECADE:
         return {"precision": precision, "year": year // 10 * 10}
     if precision == Photo.DatePrecision.YEAR:
@@ -48,9 +49,9 @@ def normalize_date(precision, year, month=None, day=None):
         try:
             datetime.date(year, int(month), int(day))
         except (TypeError, ValueError) as exc:
-            raise ValidationError("Fecha no válida.") from exc
+            raise ValidationError(_("Fecha no válida.")) from exc
         return {"precision": precision, "year": year, "month": int(month), "day": int(day)}
-    raise ValidationError("Precisión de fecha no válida.")
+    raise ValidationError(_("Precisión de fecha no válida."))
 
 
 def _same_field(proposal):
@@ -99,19 +100,19 @@ def create_proposal(
         face = Face.objects.select_related("person").get(pk=face.pk)
     if kind in (Kind.FACE_IDENTITY, Kind.REMOVE_FACE):
         if face is None or face.photo_id != photo.pk or not face.is_visible:
-            raise ValidationError("Cara no válida.")
+            raise ValidationError(_("Cara no válida."))
         if kind == Kind.FACE_IDENTITY:
             if person is None:
                 person = resolve_person(person_name or "", user)
             person = person.resolved()
             if face.person_id == person.pk:
-                raise ValidationError("Esa persona ya está aceptada para esta cara.")
+                raise ValidationError(_("Esa persona ya está aceptada para esta cara."))
     elif kind == Kind.EVENT:
         if event_type is None:
-            raise ValidationError("Falta el tipo de evento.")
+            raise ValidationError(_("Falta el tipo de evento."))
         value = {"description": " ".join(value.get("description", "").split())[:255]}
         if photo.event_type_id == event_type.pk and photo.event_description == value["description"]:
-            raise ValidationError("Ese evento ya está aceptado.")
+            raise ValidationError(_("Ese evento ya está aceptado."))
     elif kind == Kind.DATE:
         value = normalize_date(
             value.get("precision"), value.get("year"), value.get("month"), value.get("day")
@@ -120,7 +121,7 @@ def create_proposal(
         face = _create_proposed_face(user, photo, value)
         value = {"x": face.x, "y": face.y, "w": face.w, "h": face.h}
     else:
-        raise ValidationError("Tipo de propuesta desconocido.")
+        raise ValidationError(_("Tipo de propuesta desconocido."))
 
     duplicate = _find_duplicate(photo, kind, face, person, event_type, value)
     if duplicate:
@@ -151,11 +152,11 @@ def _create_proposed_face(user, photo, box):
     try:
         x, y, w, h = (int(round(float(box[k]))) for k in ("x", "y", "w", "h"))
     except (KeyError, TypeError, ValueError) as exc:
-        raise ValidationError("Recuadro no válido.") from exc
+        raise ValidationError(_("Recuadro no válido.")) from exc
     x, y = max(0, x), max(0, y)
     w, h = min(w, photo.width - x), min(h, photo.height - y)
     if w < 8 or h < 8:
-        raise ValidationError("El recuadro es demasiado pequeño.")
+        raise ValidationError(_("El recuadro es demasiado pequeño."))
     return Face.objects.create(
         photo=photo,
         x=x,
@@ -176,10 +177,10 @@ def _create_proposed_face(user, photo, box):
 @transaction.atomic
 def cast_vote(user, proposal, value):
     if value not in (Vote.UP, Vote.DOWN):
-        raise ValidationError("Voto no válido.")
+        raise ValidationError(_("Voto no válido."))
     proposal = Proposal.objects.select_for_update().get(pk=proposal.pk)
     if not proposal.is_open:
-        raise ValidationError("La propuesta ya está cerrada.")
+        raise ValidationError(_("La propuesta ya está cerrada."))
     Vote.objects.update_or_create(proposal=proposal, user=user, defaults={"value": value})
     audit.log(user, "vote.cast", proposal, value=value)
     evaluate(proposal)
@@ -223,7 +224,7 @@ def admin_decide(admin, proposal, accept):
         raise PermissionDenied
     proposal = Proposal.objects.select_for_update().get(pk=proposal.pk)
     if not proposal.is_open:
-        raise ValidationError("La propuesta ya está cerrada.")
+        raise ValidationError(_("La propuesta ya está cerrada."))
     proposal.decided_by = admin
     if accept:
         _accept(proposal)

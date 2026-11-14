@@ -3,6 +3,7 @@
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.models import AuditLog
@@ -32,7 +33,9 @@ def event_types(request):
     if request.method == "POST" and form.is_valid():
         event_type = form.save()
         audit.log(request.user, "event_type.create", event_type, name=event_type.name)
-        messages.success(request, f"Tipo de evento «{event_type.name}» creado.")
+        messages.success(
+            request, _("Tipo de evento «%(name)s» creado.") % {"name": event_type.name}
+        )
         return redirect("admin_event_types")
     return render(
         request,
@@ -48,7 +51,7 @@ def event_type_edit(request, pk):
     if request.method == "POST" and form.is_valid():
         form.save()
         audit.log(request.user, "event_type.update", event_type, **form.cleaned_data)
-        messages.success(request, "Tipo de evento actualizado.")
+        messages.success(request, _("Tipo de evento actualizado."))
         return redirect("admin_event_types")
     return render(
         request, "catalog/admin/event_type_form.html", {"form": form, "event_type": event_type}
@@ -62,7 +65,7 @@ def thresholds(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         audit.log(request.user, "settings.thresholds", conf, **form.cleaned_data)
-        messages.success(request, "Umbrales actualizados.")
+        messages.success(request, _("Umbrales actualizados."))
         return redirect("admin_home")
     return render(request, "catalog/admin/thresholds.html", {"form": form})
 
@@ -80,7 +83,9 @@ def review_mark_ok(request, pk):
     scan.reviewed = True
     scan.save(update_fields=["reviewed"])
     audit.log(request.user, "scan.reviewed", scan)
-    messages.success(request, f"Escaneo «{scan.file_name}» marcado como revisado.")
+    messages.success(
+        request, _("Escaneo «%(name)s» marcado como revisado.") % {"name": scan.file_name}
+    )
     return redirect("admin_review_queue")
 
 
@@ -105,6 +110,9 @@ def merge(request):
         except ValidationError as exc:
             form.add_error(None, " ".join(exc.messages))
         else:
-            messages.success(request, f"Personas fusionadas en «{target.display_name}».")
+            messages.success(
+                request,
+                _("Personas fusionadas en «%(name)s».") % {"name": target.display_name},
+            )
             return redirect("person_detail", pk=target.pk)
     return render(request, "catalog/admin/merge.html", {"form": form})

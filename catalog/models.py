@@ -1,21 +1,42 @@
+import datetime
+
 from django.conf import settings
 from django.db import models
-from django.utils import timezone
+from django.utils import formats, timezone
+from django.utils.translation import get_language, gettext
+from django.utils.translation import gettext_lazy as _
 
 
 class Scan(models.Model):
     sha256 = models.CharField(max_length=64, unique=True)
-    file_name = models.CharField("fichero", max_length=255)
-    processed_at = models.DateTimeField("procesado", default=timezone.now)
-    needs_review = models.BooleanField("requiere revisión", default=False, db_index=True)
+    file_name = models.CharField(_("fichero"), max_length=255)
+    processed_at = models.DateTimeField(_("procesado"), default=timezone.now)
+    needs_review = models.BooleanField(_("requiere revisión"), default=False, db_index=True)
+    # Codes such as {"code": "photo_count", "count": 7}; translated when displayed.
     review_reasons = models.JSONField(default=list, blank=True)
-    reviewed = models.BooleanField("revisado", default=False)
+    reviewed = models.BooleanField(_("revisado"), default=False)
 
     class Meta:
         ordering = ["-processed_at", "-id"]
 
     def __str__(self):
         return self.file_name
+
+    def review_reason_labels(self):
+        return [review_reason_label(reason) for reason in self.review_reasons]
+
+
+def review_reason_label(reason):
+    if not isinstance(reason, dict):
+        return str(reason)  # free text stored by older versions
+    code = reason.get("code")
+    if code == "photo_count":
+        return gettext("Se han detectado %(count)s fotos") % {"count": reason.get("count")}
+    if code == "aspect_ratio":
+        return gettext("Relación de aspecto anómala")
+    if code == "overlap":
+        return gettext("Recortes solapados")
+    return str(code)
 
 
 class PhotoQuerySet(models.QuerySet):
@@ -25,27 +46,27 @@ class PhotoQuerySet(models.QuerySet):
 
 class Photo(models.Model):
     class Status(models.TextChoices):
-        PENDING = "pending", "Pendiente"
-        IN_PROGRESS = "in_progress", "En curso"
-        CATALOGED = "cataloged", "Catalogada"
+        PENDING = "pending", _("Pendiente")
+        IN_PROGRESS = "in_progress", _("En curso")
+        CATALOGED = "cataloged", _("Catalogada")
 
     class DatePrecision(models.TextChoices):
-        EXACT = "exact", "Fecha exacta"
-        YEAR = "year", "Año"
-        DECADE = "decade", "Década"
+        EXACT = "exact", _("Fecha exacta")
+        YEAR = "year", _("Año")
+        DECADE = "decade", _("Década")
 
     scan = models.ForeignKey(Scan, on_delete=models.CASCADE, related_name="photos")
-    file_name = models.CharField("fichero", max_length=255)
-    index = models.PositiveSmallIntegerField("índice")
+    file_name = models.CharField(_("fichero"), max_length=255)
+    index = models.PositiveSmallIntegerField(_("índice"))
     width = models.PositiveIntegerField()
     height = models.PositiveIntegerField()
-    angle = models.FloatField("ángulo", default=0)
+    angle = models.FloatField(_("ángulo"), default=0)
     # Rotated rectangle in scan pixels, used to match photos when a scan is reprocessed.
     crop_rect = models.JSONField(default=dict, blank=True)
     status = models.CharField(
         max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True
     )
-    discarded = models.BooleanField("recorte descartado", default=False, db_index=True)
+    discarded = models.BooleanField(_("recorte descartado"), default=False, db_index=True)
 
     # Accepted cataloging values (set only by the voting service).
     event_type = models.ForeignKey(
@@ -57,7 +78,7 @@ class Photo(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     catalog_changed_at = models.DateTimeField(null=True, blank=True)
-    exported_at = models.DateTimeField("exportada en", null=True, blank=True)
+    exported_at = models.DateTimeField(_("exportada en"), null=True, blank=True)
     export_path = models.CharField(max_length=255, blank=True)
 
     objects = PhotoQuerySet.as_manager()
@@ -69,7 +90,7 @@ class Photo(models.Model):
         ]
 
     def __str__(self):
-        return f"Foto {self.pk}"
+        return gettext("Foto %(id)s") % {"id": self.pk}
 
     @property
     def decade(self):
@@ -79,10 +100,10 @@ class Photo(models.Model):
         if not self.date_value:
             return ""
         if self.date_precision == self.DatePrecision.DECADE:
-            return f"Década de {self.decade}"
+            return gettext("Década de %(decade)s") % {"decade": self.decade}
         if self.date_precision == self.DatePrecision.YEAR:
             return str(self.date_value.year)
-        return self.date_value.strftime("%d/%m/%Y")
+        return formats.date_format(self.date_value, "SHORT_DATE_FORMAT")
 
     def thumb_width(self, size):
         return min(size, self.width)
@@ -94,8 +115,8 @@ class PersonQuerySet(models.QuerySet):
 
 
 class Person(models.Model):
-    display_name = models.CharField("nombre a mostrar", max_length=150, db_index=True)
-    notes = models.TextField("notas", blank=True)
+    display_name = models.CharField(_("nombre a mostrar"), max_length=150, db_index=True)
+    notes = models.TextField(_("notas"), blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -137,14 +158,14 @@ class Person(models.Model):
 
 class Face(models.Model):
     class Source(models.TextChoices):
-        AUTO = "auto", "Automática"
-        MANUAL = "manual", "Manual"
+        AUTO = "auto", _("Automática")
+        MANUAL = "manual", _("Manual")
 
     class Status(models.TextChoices):
-        ACTIVE = "active", "Activa"
-        PROPOSED = "proposed", "Propuesta"  # drawn manually, add_face proposal still open
-        REMOVED = "removed", "Falso positivo"
-        REJECTED = "rejected", "Rechazada"
+        ACTIVE = "active", _("Activa")
+        PROPOSED = "proposed", _("Propuesta")  # drawn manually, add_face proposal still open
+        REMOVED = "removed", _("Falso positivo")
+        REJECTED = "rejected", _("Rechazada")
 
     photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="faces")
     x = models.PositiveIntegerField()
@@ -173,7 +194,7 @@ class Face(models.Model):
         ordering = ["photo", "x", "id"]
 
     def __str__(self):
-        return f"Cara {self.pk} de {self.photo}"
+        return gettext("Cara %(id)s de %(photo)s") % {"id": self.pk, "photo": self.photo}
 
     @property
     def is_visible(self):
@@ -196,9 +217,11 @@ class EventTypeQuerySet(models.QuerySet):
 
 
 class EventType(models.Model):
-    name = models.CharField("nombre", max_length=100, unique=True)
-    active = models.BooleanField("activo", default=True)
-    order = models.PositiveSmallIntegerField("orden", default=0)
+    name = models.CharField(_("nombre"), max_length=100, unique=True)
+    # Optional English name for the interface; XMP export always uses `name`.
+    name_en = models.CharField(_("nombre en inglés"), max_length=100, blank=True)
+    active = models.BooleanField(_("activo"), default=True)
+    order = models.PositiveSmallIntegerField(_("orden"), default=0)
 
     objects = EventTypeQuerySet.as_manager()
 
@@ -206,22 +229,28 @@ class EventType(models.Model):
         ordering = ["order", "name"]
 
     def __str__(self):
+        return self.localized_name
+
+    @property
+    def localized_name(self):
+        if self.name_en and (get_language() or "").startswith("en"):
+            return self.name_en
         return self.name
 
 
 class Proposal(models.Model):
     class Kind(models.TextChoices):
-        FACE_IDENTITY = "face_identity", "Identidad de cara"
-        EVENT = "event", "Evento"
-        DATE = "date", "Fecha"
-        ADD_FACE = "add_face", "Nueva cara"
-        REMOVE_FACE = "remove_face", "Falso positivo"
+        FACE_IDENTITY = "face_identity", _("Identidad de cara")
+        EVENT = "event", _("Evento")
+        DATE = "date", _("Fecha")
+        ADD_FACE = "add_face", _("Nueva cara")
+        REMOVE_FACE = "remove_face", _("Falso positivo")
 
     class Status(models.TextChoices):
-        OPEN = "open", "Abierta"
-        ACCEPTED = "accepted", "Aceptada"
-        REJECTED = "rejected", "Rechazada"
-        SUPERSEDED = "superseded", "Sustituida"
+        OPEN = "open", _("Abierta")
+        ACCEPTED = "accepted", _("Aceptada")
+        REJECTED = "rejected", _("Rechazada")
+        SUPERSEDED = "superseded", _("Sustituida")
 
     photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="proposals")
     face = models.ForeignKey(
@@ -250,7 +279,7 @@ class Proposal(models.Model):
         blank=True,
         on_delete=models.SET_NULL,
         related_name="forced_decisions",
-        help_text="Administrador que forzó la decisión, si la hubo.",
+        help_text=_("Administrador que forzó la decisión, si la hubo."),
     )
 
     class Meta:
@@ -264,37 +293,38 @@ class Proposal(models.Model):
         return self.status == self.Status.OPEN
 
     def label(self):
-        """Human readable value, in Spanish."""
+        """Human readable value in the active language."""
         if self.kind == self.Kind.FACE_IDENTITY:
-            return self.person.display_name if self.person else "(persona eliminada)"
+            return self.person.display_name if self.person else gettext("(persona eliminada)")
         if self.kind == self.Kind.EVENT:
-            name = self.event_type.name if self.event_type else "?"
+            name = str(self.event_type) if self.event_type else "?"
             description = self.value.get("description")
             return f"{name} — {description}" if description else name
         if self.kind == self.Kind.DATE:
             return date_label(self.value)
         if self.kind == self.Kind.ADD_FACE:
-            return "Añadir esta cara"
+            return gettext("Añadir esta cara")
         if self.kind == self.Kind.REMOVE_FACE:
-            return "No es una cara"
+            return gettext("No es una cara")
         return ""
 
 
 def date_label(value):
     precision = value.get("precision")
     if precision == Photo.DatePrecision.DECADE:
-        return f"Década de {value.get('year')}"
+        return gettext("Década de %(decade)s") % {"decade": value.get("year")}
     if precision == Photo.DatePrecision.YEAR:
         return str(value.get("year"))
     if precision == Photo.DatePrecision.EXACT:
-        return f"{value.get('day'):02d}/{value.get('month'):02d}/{value.get('year')}"
+        day = datetime.date(value["year"], value["month"], value["day"])
+        return formats.date_format(day, "SHORT_DATE_FORMAT")
     return ""
 
 
 class Vote(models.Model):
     UP = 1
     DOWN = -1
-    VALUE_CHOICES = [(UP, "A favor"), (DOWN, "En contra")]
+    VALUE_CHOICES = [(UP, _("A favor")), (DOWN, _("En contra"))]
 
     proposal = models.ForeignKey(Proposal, on_delete=models.CASCADE, related_name="votes")
     user = models.ForeignKey(
@@ -309,20 +339,20 @@ class Vote(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.user} {'+1' if self.value > 0 else '-1'} en {self.proposal_id}"
+        return f"{self.user} {'+1' if self.value > 0 else '-1'} #{self.proposal_id}"
 
 
 class CatalogSettings(models.Model):
     """Singleton with thresholds editable from the administration screen."""
 
-    vote_min_approvals = models.PositiveSmallIntegerField("votos mínimos", default=2)
-    vote_approval_ratio = models.FloatField("proporción mínima a favor", default=0.66)
+    vote_min_approvals = models.PositiveSmallIntegerField(_("votos mínimos"), default=2)
+    vote_approval_ratio = models.FloatField(_("proporción mínima a favor"), default=0.66)
 
     class Meta:
-        verbose_name = "ajustes"
+        verbose_name = _("ajustes")
 
     def __str__(self):
-        return "Ajustes del catálogo"
+        return gettext("Ajustes del catálogo")
 
     @classmethod
     def load(cls):

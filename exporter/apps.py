@@ -1,7 +1,8 @@
 from django.apps import AppConfig
+from django.utils.translation import gettext_lazy as _
 
 
 class ExporterConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
     name = "exporter"
-    verbose_name = "Exportación"
+    verbose_name = _("Exportación")

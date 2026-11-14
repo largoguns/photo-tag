@@ -1,0 +1,1351 @@
+# English translation of PhotoTag. Source strings (msgid) are in Spanish.
+msgid ""
+msgstr ""
+"Project-Id-Version: PhotoTag\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-11-14 22:18+0100\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: accounts/apps.py:8 templates/accounts/user_list.html:2
+#: templates/accounts/user_list.html:5 templates/base.html:31
+#: templates/catalog/admin/home.html:11
+msgid "Usuarios"
+msgstr "Users"
+
+#: accounts/forms.py:20
+msgid "La nueva contraseña no puede ser la contraseña genérica."
+msgstr "The new password cannot be the generic password."
+
+#: accounts/forms.py:33
+msgid "Nombre de usuario"
+msgstr "Username"
+
+#: accounts/forms.py:36
+msgid "Solo letras, números y los caracteres @ . + - _"
+msgstr "Only letters, numbers and the characters @ . + - _"
+
+#: accounts/forms.py:38 accounts/forms.py:55
+msgid "Nombre a mostrar"
+msgstr "Display name"
+
+#: accounts/forms.py:39 accounts/forms.py:56
+msgid "Rol"
+msgstr "Role"
+
+#: accounts/forms.py:41
+msgid "Contraseña inicial"
+msgstr "Initial password"
+
+#: accounts/forms.py:44
+msgid "Déjala vacía para usar la contraseña genérica."
+msgstr "Leave it empty to use the generic password."
+
+#: accounts/forms.py:50
+msgid "Ya existe un usuario con ese nombre."
+msgstr "A user with that name already exists."
+
+#: accounts/forms.py:58
+msgid "Persona vinculada"
+msgstr "Linked person"
+
+#: accounts/forms.py:61
+msgid "— Ninguna —"
+msgstr "— None —"
+
+#: accounts/forms.py:62
+msgid "«Este usuario soy yo en las fotos»."
+msgstr "“This user is me in the photos”."
+
+#: accounts/models.py:11
+msgid "Administrador"
+msgstr "Administrator"
+
+#: accounts/models.py:12
+msgid "Colaborador"
+msgstr "Contributor"
+
+#: accounts/models.py:16
+msgid "Automático (según el sistema)"
+msgstr "Automatic (follow the system)"
+
+#: accounts/models.py:17
+msgid "Claro"
+msgstr "Light"
+
+#: accounts/models.py:18
+msgid "Oscuro"
+msgstr "Dark"
+
+#: accounts/models.py:22 catalog/models.py:118
+msgid "nombre a mostrar"
+msgstr "display name"
+
+#: accounts/models.py:24
+msgid "rol"
+msgstr "role"
+
+#: accounts/models.py:26
+msgid "debe cambiar la contraseña"
+msgstr "must change password"
+
+#: accounts/models.py:27
+msgid "tema"
+msgstr "theme"
+
+#: accounts/models.py:72 accounts/services/users.py:31
+msgid "Debe existir al menos un superadmin activo."
+msgstr "There must be at least one active superadmin."
+
+#: accounts/views.py:28 accounts/views.py:50
+msgid "Contraseña actualizada."
+msgstr "Password updated."
+
+#: accounts/views.py:41
+msgid "Perfil actualizado."
+msgstr "Profile updated."
+
+#: accounts/views.py:85
+#, python-format
+msgid "Usuario «%(username)s» creado."
+msgstr "User “%(username)s” created."
+
+#: accounts/views.py:110
+msgid "Usuario actualizado."
+msgstr "User updated."
+
+#: accounts/views.py:127
+#, python-format
+msgid "Usuario «%(username)s» reactivado."
+msgstr "User “%(username)s” reactivated."
+
+#: accounts/views.py:129
+#, python-format
+msgid "Usuario «%(username)s» desactivado."
+msgstr "User “%(username)s” deactivated."
+
+#: accounts/views.py:146
+#, python-format
+msgid "Contraseña de «%(username)s» restablecida a la contraseña genérica."
+msgstr "Password of “%(username)s” reset to the generic password."
+
+#: catalog/admin_views.py:37
+#, python-format
+msgid "Tipo de evento «%(name)s» creado."
+msgstr "Event type “%(name)s” created."
+
+#: catalog/admin_views.py:54
+msgid "Tipo de evento actualizado."
+msgstr "Event type updated."
+
+#: catalog/admin_views.py:68
+msgid "Umbrales actualizados."
+msgstr "Thresholds updated."
+
+#: catalog/admin_views.py:87
+#, python-format
+msgid "Escaneo «%(name)s» marcado como revisado."
+msgstr "Scan “%(name)s” marked as reviewed."
+
+#: catalog/admin_views.py:115
+#, python-format
+msgid "Personas fusionadas en «%(name)s»."
+msgstr "People merged into “%(name)s”."
+
+#: catalog/apps.py:8
+msgid "Catálogo"
+msgstr "Catalog"
+
+#: catalog/forms.py:19
+msgid "Votos a favor necesarios para aceptar (o en contra para rechazar)."
+msgstr "Votes in favour needed to accept (or against to reject)."
+
+#: catalog/forms.py:21
+msgid "Proporción mínima de votos a favor, entre 0 y 1."
+msgstr "Minimum share of votes in favour, between 0 and 1."
+
+#: catalog/forms.py:27
+msgid "Debe ser al menos 1."
+msgstr "Must be at least 1."
+
+#: catalog/forms.py:33
+msgid "Debe estar entre 0 y 1."
+msgstr "Must be between 0 and 1."
+
+#: catalog/forms.py:39
+msgid "Persona a fusionar (desaparece)"
+msgstr "Person to merge (will disappear)"
+
+#: catalog/forms.py:42
+msgid "Fusionar en (se conserva)"
+msgstr "Merge into (is kept)"
+
+#: catalog/forms.py:54
+msgid "Elige dos personas distintas."
+msgstr "Choose two different people."
+
+#: catalog/models.py:12 catalog/models.py:59
+msgid "fichero"
+msgstr "file"
+
+#: catalog/models.py:13
+msgid "procesado"
+msgstr "processed"
+
+#: catalog/models.py:14
+msgid "requiere revisión"
+msgstr "needs review"
+
+#: catalog/models.py:17
+msgid "revisado"
+msgstr "reviewed"
+
+#: catalog/models.py:34
+#, python-format
+msgid "Se han detectado %(count)s fotos"
+msgstr "%(count)s photos were detected"
+
+#: catalog/models.py:36
+msgid "Relación de aspecto anómala"
+msgstr "Unusual aspect ratio"
+
+#: catalog/models.py:38
+msgid "Recortes solapados"
+msgstr "Overlapping crops"
+
+#: catalog/models.py:49 exporter/models.py:12
+msgid "Pendiente"
+msgstr "Pending"
+
+#: catalog/models.py:50 exporter/models.py:13
+msgid "En curso"
+msgstr "In progress"
+
+#: catalog/models.py:51
+msgid "Catalogada"
+msgstr "Cataloged"
+
+#: catalog/models.py:54 templates/catalog/_photo_workspace.html:149
+msgid "Fecha exacta"
+msgstr "Exact date"
+
+#: catalog/models.py:55 templates/catalog/_photo_workspace.html:153
+msgid "Año"
+msgstr "Year"
+
+#: catalog/models.py:56 templates/catalog/gallery.html:30
+msgid "Década"
+msgstr "Decade"
+
+#: catalog/models.py:60
+msgid "índice"
+msgstr "index"
+
+#: catalog/models.py:63
+msgid "ángulo"
+msgstr "angle"
+
+#: catalog/models.py:69
+msgid "recorte descartado"
+msgstr "discarded crop"
+
+#: catalog/models.py:81
+msgid "exportada en"
+msgstr "exported at"
+
+#: catalog/models.py:93 templates/catalog/_photo_card.html:7
+#: templates/catalog/_photo_workspace.html:13
+#: templates/catalog/_photo_workspace.html:47 templates/catalog/home.html:21
+#: templates/catalog/my_activity.html:15 templates/catalog/photo.html:2
+#, python-format
+msgid "Foto %(id)s"
+msgstr "Photo %(id)s"
+
+#: catalog/models.py:103 catalog/models.py:315
+#, python-format
+msgid "Década de %(decade)s"
+msgstr "%(decade)ss"
+
+#: catalog/models.py:119
+msgid "notas"
+msgstr "notes"
+
+#: catalog/models.py:161
+msgid "Automática"
+msgstr "Automatic"
+
+#: catalog/models.py:162
+msgid "Manual"
+msgstr "Manual"
+
+#: catalog/models.py:165
+msgid "Activa"
+msgstr "Active"
+
+#: catalog/models.py:166
+msgid "Propuesta"
+msgstr "Proposed"
+
+#: catalog/models.py:167 catalog/models.py:247
+msgid "Falso positivo"
+msgstr "False positive"
+
+#: catalog/models.py:168 catalog/models.py:252
+msgid "Rechazada"
+msgstr "Rejected"
+
+#: catalog/models.py:197
+#, python-format
+msgid "Cara %(id)s de %(photo)s"
+msgstr "Face %(id)s of %(photo)s"
+
+#: catalog/models.py:220
+msgid "nombre"
+msgstr "name"
+
+#: catalog/models.py:222
+msgid "nombre en inglés"
+msgstr "English name"
+
+#: catalog/models.py:223
+msgid "activo"
+msgstr "active"
+
+#: catalog/models.py:224
+msgid "orden"
+msgstr "order"
+
+#: catalog/models.py:243
+msgid "Identidad de cara"
+msgstr "Face identity"
+
+#: catalog/models.py:244 templates/catalog/_photo_workspace.html:110
+#: templates/catalog/gallery.html:23
+msgid "Evento"
+msgstr "Event"
+
+#: catalog/models.py:245 templates/catalog/_photo_workspace.html:136
+#: templates/catalog/_photo_workspace.html:157
+msgid "Fecha"
+msgstr "Date"
+
+#: catalog/models.py:246
+msgid "Nueva cara"
+msgstr "New face"
+
+#: catalog/models.py:250
+msgid "Abierta"
+msgstr "Open"
+
+#: catalog/models.py:251
+msgid "Aceptada"
+msgstr "Accepted"
+
+#: catalog/models.py:253
+msgid "Sustituida"
+msgstr "Superseded"
+
+#: catalog/models.py:282
+msgid "Administrador que forzó la decisión, si la hubo."
+msgstr "Administrator who forced the decision, if any."
+
+#: catalog/models.py:298
+msgid "(persona eliminada)"
+msgstr "(deleted person)"
+
+#: catalog/models.py:306
+msgid "Añadir esta cara"
+msgstr "Add this face"
+
+#: catalog/models.py:308 templates/catalog/_photo_workspace.html:100
+msgid "No es una cara"
+msgstr "Not a face"
+
+#: catalog/models.py:327
+msgid "A favor"
+msgstr "In favour"
+
+#: catalog/models.py:327
+msgid "En contra"
+msgstr "Against"
+
+#: catalog/models.py:348
+msgid "votos mínimos"
+msgstr "minimum votes"
+
+#: catalog/models.py:349
+msgid "proporción mínima a favor"
+msgstr "minimum share in favour"
+
+#: catalog/models.py:352
+msgid "ajustes"
+msgstr "settings"
+
+#: catalog/models.py:355
+msgid "Ajustes del catálogo"
+msgstr "Catalog settings"
+
+#: catalog/services/persons.py:14
+msgid "No se puede fusionar una persona consigo misma."
+msgstr "A person cannot be merged with themselves."
+
+#: catalog/services/persons.py:18
+msgid "Solo se pueden fusionar personas activas."
+msgstr "Only active people can be merged."
+
+#: catalog/services/similarity.py:28
+msgid "muy probable"
+msgstr "very likely"
+
+#: catalog/services/similarity.py:28
+msgid "posible"
+msgstr "possible"
+
+#: catalog/services/voting.py:29
+msgid "El nombre no puede estar vacío."
+msgstr "The name cannot be empty."
+
+#: catalog/services/voting.py:41
+msgid "Año no válido."
+msgstr "Invalid year."
+
+#: catalog/services/voting.py:43
+msgid "Año fuera de rango."
+msgstr "Year out of range."
+
+#: catalog/services/voting.py:52
+msgid "Fecha no válida."
+msgstr "Invalid date."
+
+#: catalog/services/voting.py:54
+msgid "Precisión de fecha no válida."
+msgstr "Invalid date precision."
+
+#: catalog/services/voting.py:103
+msgid "Cara no válida."
+msgstr "Invalid face."
+
+#: catalog/services/voting.py:109
+msgid "Esa persona ya está aceptada para esta cara."
+msgstr "That person is already accepted for this face."
+
+#: catalog/services/voting.py:112
+msgid "Falta el tipo de evento."
+msgstr "The event type is missing."
+
+#: catalog/services/voting.py:115
+msgid "Ese evento ya está aceptado."
+msgstr "That event is already accepted."
+
+#: catalog/services/voting.py:124
+msgid "Tipo de propuesta desconocido."
+msgstr "Unknown proposal type."
+
+#: catalog/services/voting.py:155
+msgid "Recuadro no válido."
+msgstr "Invalid box."
+
+#: catalog/services/voting.py:159
+msgid "El recuadro es demasiado pequeño."
+msgstr "The box is too small."
+
+#: catalog/services/voting.py:180
+msgid "Voto no válido."
+msgstr "Invalid vote."
+
+#: catalog/services/voting.py:183 catalog/services/voting.py:227
+msgid "La propuesta ya está cerrada."
+msgstr "The proposal is already closed."
+
+#: catalog/views.py:176
+msgid "¡No quedan fotos sin catalogar!"
+msgstr "No uncataloged photos left!"
+
+#: catalog/views.py:275
+msgid "Indica la fecha completa."
+msgstr "Enter the full date."
+
+#: exporter/apps.py:8 templates/exporter/export.html:2
+msgid "Exportación"
+msgstr "Export"
+
+#: exporter/models.py:14
+msgid "Completada"
+msgstr "Completed"
+
+#: exporter/models.py:15
+msgid "Fallida"
+msgstr "Failed"
+
+#: exporter/models.py:34
+#, python-format
+msgid "Exportación %(id)s (%(status)s)"
+msgstr "Export %(id)s (%(status)s)"
+
+#: exporter/views.py:29
+msgid "Ya hay una exportación en cola."
+msgstr "An export is already queued."
+
+#: exporter/views.py:32
+msgid "Exportación solicitada. El worker la ejecutará en breve."
+msgstr "Export requested. The worker will run it shortly."
+
+#: scanner/apps.py:8
+msgid "Escáner"
+msgstr "Scanner"
+
+#: templates/403.html:2 templates/403.html:4
+msgid "Acceso denegado"
+msgstr "Access denied"
+
+#: templates/403.html:5
+msgid "No tienes permiso para ver esta página."
+msgstr "You do not have permission to see this page."
+
+#: templates/403.html:6 templates/404.html:6
+msgid "Volver al inicio"
+msgstr "Back to home"
+
+#: templates/404.html:2 templates/404.html:4
+msgid "No encontrado"
+msgstr "Not found"
+
+#: templates/404.html:5
+msgid "La página que buscas no existe."
+msgstr "The page you are looking for does not exist."
+
+#: templates/_language_switch.html:2 templates/accounts/profile.html:16
+msgid "Idioma"
+msgstr "Language"
+
+#: templates/_pagination.html:2
+msgid "Paginación"
+msgstr "Pagination"
+
+#: templates/_pagination.html:3 templates/catalog/_photo_workspace.html:36
+msgid "Anterior"
+msgstr "Previous"
+
+#: templates/_pagination.html:4
+#, python-format
+msgid "Página %(number)s de %(total)s"
+msgstr "Page %(number)s of %(total)s"
+
+#: templates/_pagination.html:5 templates/catalog/_photo_workspace.html:39
+msgid "Siguiente"
+msgstr "Next"
+
+#: templates/accounts/lockout.html:2
+msgid "Acceso bloqueado"
+msgstr "Access locked"
+
+#: templates/accounts/lockout.html:6
+msgid "Acceso bloqueado temporalmente"
+msgstr "Access temporarily locked"
+
+#: templates/accounts/lockout.html:7
+msgid "Demasiados intentos fallidos. Vuelve a intentarlo dentro de 30 minutos."
+msgstr "Too many failed attempts. Try again in 30 minutes."
+
+#: templates/accounts/login.html:2 templates/accounts/login.html:8
+msgid "Iniciar sesión"
+msgstr "Sign in"
+
+#: templates/accounts/login.html:15
+msgid "Usuario"
+msgstr "Username"
+
+#: templates/accounts/login.html:19
+msgid "Contraseña"
+msgstr "Password"
+
+#: templates/accounts/login.html:23
+msgid "Entrar"
+msgstr "Sign in"
+
+#: templates/accounts/password_change_forced.html:2
+#: templates/accounts/profile.html:23 templates/accounts/profile.html:25
+msgid "Cambiar contraseña"
+msgstr "Change password"
+
+#: templates/accounts/password_change_forced.html:7
+msgid "Elige tu contraseña"
+msgstr "Choose your password"
+
+#: templates/accounts/password_change_forced.html:8
+msgid ""
+"Antes de continuar debes sustituir la contraseña inicial por una propia de "
+"al menos 10 caracteres."
+msgstr ""
+"Before you continue, replace the initial password with your own of at least "
+"10 characters."
+
+#: templates/accounts/password_change_forced.html:10
+msgid "Guardar y continuar"
+msgstr "Save and continue"
+
+#: templates/accounts/password_change_forced.html:15 templates/base.html:35
+msgid "Cerrar sesión"
+msgstr "Sign out"
+
+#: templates/accounts/profile.html:2 templates/accounts/profile.html:4
+#: templates/base.html:29
+msgid "Mi perfil"
+msgstr "My profile"
+
+#: templates/accounts/profile.html:9
+msgid "Datos y apariencia"
+msgstr "Details and appearance"
+
+#: templates/accounts/profile.html:10
+#, python-format
+msgid "Usuario: <strong>%(username)s</strong> · Rol: %(role)s"
+msgstr "Username: <strong>%(username)s</strong> · Role: %(role)s"
+
+#: templates/accounts/profile.html:11
+#, python-format
+msgid "Apareces en las fotos como <a href=\"%(person_url)s\">%(person)s</a>."
+msgstr "You appear in the photos as <a href=\"%(person_url)s\">%(person)s</a>."
+
+#: templates/accounts/profile.html:13 templates/accounts/user_form.html:11
+#: templates/catalog/admin/event_type_form.html:10
+#: templates/catalog/admin/thresholds.html:11
+msgid "Guardar"
+msgstr "Save"
+
+#: templates/accounts/profile.html:17
+msgid ""
+"Por defecto se usa el idioma del navegador. La elección se guarda en este "
+"dispositivo."
+msgstr ""
+"By default the browser language is used. Your choice is saved on this device."
+
+#: templates/accounts/user_form.html:2 templates/accounts/user_form.html:7
+#: templates/accounts/user_list.html:6
+msgid "Nuevo usuario"
+msgstr "New user"
+
+#: templates/accounts/user_form.html:2
+msgid "Editar usuario"
+msgstr "Edit user"
+
+#: templates/accounts/user_form.html:7
+#, python-format
+msgid "Editar «%(username)s»"
+msgstr "Edit “%(username)s”"
+
+#: templates/accounts/user_form.html:8
+msgid "El usuario deberá cambiar la contraseña en su primer acceso."
+msgstr ""
+"The user will have to change the password when signing in for the first time."
+
+#: templates/accounts/user_form.html:12 templates/base.html:55
+#: templates/catalog/_photo_workspace.html:31
+#: templates/catalog/admin/event_type_form.html:11
+#: templates/catalog/admin/merge.html:14
+#: templates/catalog/admin/thresholds.html:12
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: templates/accounts/user_list.html:9
+msgid "Buscar usuarios"
+msgstr "Search users"
+
+#: templates/accounts/user_list.html:10
+msgid "Buscar por usuario o nombre"
+msgstr "Search by username or name"
+
+#: templates/accounts/user_list.html:11 templates/catalog/persons.html:8
+msgid "Buscar"
+msgstr "Search"
+
+#: templates/accounts/user_list.html:20
+msgid "Activo"
+msgstr "Active"
+
+#: templates/accounts/user_list.html:20
+#: templates/catalog/admin/event_types.html:10
+msgid "Inactivo"
+msgstr "Inactive"
+
+#: templates/accounts/user_list.html:21
+msgid "Contraseña genérica"
+msgstr "Generic password"
+
+#: templates/accounts/user_list.html:22
+msgid "Último acceso:"
+msgstr "Last sign-in:"
+
+#: templates/accounts/user_list.html:22
+msgid "nunca"
+msgstr "never"
+
+#: templates/accounts/user_list.html:26
+#: templates/catalog/admin/event_types.html:11
+msgid "Editar"
+msgstr "Edit"
+
+#: templates/accounts/user_list.html:28
+#, python-format
+msgid ""
+"¿Restablecer la contraseña de %(username)s a la genérica? Tendrá que "
+"cambiarla en su próximo acceso."
+msgstr ""
+"Reset the password of %(username)s to the generic one? They will have to "
+"change it next time they sign in."
+
+#: templates/accounts/user_list.html:29
+msgid "Restablecer"
+msgstr "Reset"
+
+#: templates/accounts/user_list.html:30
+msgid "Restablecer contraseña"
+msgstr "Reset password"
+
+#: templates/accounts/user_list.html:33
+#, python-format
+msgid ""
+"¿Desactivar a %(username)s? No podrá iniciar sesión, pero se conservan sus "
+"propuestas y votos."
+msgstr ""
+"Deactivate %(username)s? They will not be able to sign in, but their "
+"proposals and votes are kept."
+
+#: templates/accounts/user_list.html:33 templates/accounts/user_list.html:34
+msgid "Desactivar"
+msgstr "Deactivate"
+
+#: templates/accounts/user_list.html:34
+msgid "Reactivar"
+msgstr "Reactivate"
+
+#: templates/accounts/user_list.html:39
+msgid "No hay usuarios que coincidan."
+msgstr "No matching users."
+
+#: templates/base.html:15
+msgid "Saltar al contenido"
+msgstr "Skip to content"
+
+#: templates/base.html:17
+msgid "Navegación principal"
+msgstr "Main navigation"
+
+#: templates/base.html:21 templates/catalog/home.html:2
+msgid "Inicio"
+msgstr "Home"
+
+#: templates/base.html:22 templates/catalog/gallery.html:2
+#: templates/catalog/gallery.html:4
+msgid "Galería"
+msgstr "Gallery"
+
+#: templates/base.html:23 templates/catalog/persons.html:2
+#: templates/catalog/persons.html:4
+msgid "Personas"
+msgstr "People"
+
+#: templates/base.html:24
+msgid "Actividad"
+msgstr "Activity"
+
+#: templates/base.html:27
+msgid "Más"
+msgstr "More"
+
+#: templates/base.html:30 templates/catalog/admin/event_types.html:4
+#: templates/catalog/admin/home.html:2 templates/catalog/admin/home.html:4
+#: templates/catalog/admin/review_queue.html:4 templates/exporter/export.html:4
+msgid "Administración"
+msgstr "Administration"
+
+#: templates/base.html:52
+msgid "¿Confirmar?"
+msgstr "Confirm?"
+
+#: templates/base.html:56
+msgid "Confirmar"
+msgstr "Confirm"
+
+#: templates/catalog/_gallery_page.html:1
+msgid "No hay fotos con estos filtros."
+msgstr "No photos match these filters."
+
+#: templates/catalog/_gallery_page.html:4
+msgid "Cargar más"
+msgstr "Load more"
+
+#: templates/catalog/_photo_workspace.html:3
+msgid "Foto"
+msgstr "Photo"
+
+#: templates/catalog/_photo_workspace.html:18
+#, python-format
+msgid "Cara %(number)s"
+msgstr "Face %(number)s"
+
+#: templates/catalog/_photo_workspace.html:28
+msgid "¿Proponer este recuadro como una cara nueva?"
+msgstr "Propose this box as a new face?"
+
+#: templates/catalog/_photo_workspace.html:30
+msgid "Proponer cara"
+msgstr "Propose face"
+
+#: templates/catalog/_photo_workspace.html:36
+msgid "Foto anterior"
+msgstr "Previous photo"
+
+#: templates/catalog/_photo_workspace.html:37
+msgid "Dibujar cara"
+msgstr "Draw face"
+
+#: templates/catalog/_photo_workspace.html:38
+msgid "Sin catalogar"
+msgstr "Uncataloged"
+
+#: templates/catalog/_photo_workspace.html:39
+msgid "Foto siguiente"
+msgstr "Next photo"
+
+#: templates/catalog/_photo_workspace.html:41
+msgid "Arrastra sobre la foto para dibujar el recuadro de la cara."
+msgstr "Drag over the photo to draw the face box."
+
+#: templates/catalog/_photo_workspace.html:44
+msgid "Catalogación"
+msgstr "Cataloging"
+
+#: templates/catalog/_photo_workspace.html:47
+#, python-format
+msgid "%(counter)s cara"
+msgid_plural "%(counter)s caras"
+msgstr[0] "%(counter)s face"
+msgstr[1] "%(counter)s faces"
+
+#: templates/catalog/_photo_workspace.html:55
+msgid "Cara propuesta"
+msgstr "Proposed face"
+
+#: templates/catalog/_photo_workspace.html:55
+msgid "Sin identificar"
+msgstr "Unidentified"
+
+#: templates/catalog/_photo_workspace.html:61
+msgid "Persona aceptada:"
+msgstr "Accepted person:"
+
+#: templates/catalog/_photo_workspace.html:67
+msgid "Propuestas de nombre"
+msgstr "Name proposals"
+
+#: templates/catalog/_photo_workspace.html:72
+msgid "Sugerencias automáticas"
+msgstr "Automatic suggestions"
+
+#: templates/catalog/_photo_workspace.html:79
+#, python-format
+msgid "¿Es %(person)s?"
+msgstr "Is it %(person)s?"
+
+#: templates/catalog/_photo_workspace.html:83
+msgid ""
+"Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
+msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
+
+#: templates/catalog/_photo_workspace.html:89
+msgid "Proponer otro nombre"
+msgstr "Propose another name"
+
+#: templates/catalog/_photo_workspace.html:89
+msgid "¿Quién es?"
+msgstr "Who is it?"
+
+#: templates/catalog/_photo_workspace.html:91
+msgid "Nombre y apellidos"
+msgstr "Full name"
+
+#: templates/catalog/_photo_workspace.html:92
+#: templates/catalog/_photo_workspace.html:98
+msgid "Proponer"
+msgstr "Propose"
+
+#: templates/catalog/_photo_workspace.html:97
+#, python-format
+msgid ""
+"¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
+"cualquier otra propuesta."
+msgstr ""
+"Propose that box %(number)s is not a face? It will be voted like any other "
+"proposal."
+
+#: templates/catalog/_photo_workspace.html:106
+msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
+msgstr "No faces were detected. Use “Draw face” if one is missing."
+
+#: templates/catalog/_photo_workspace.html:115
+msgid "Aceptado:"
+msgstr "Accepted:"
+
+#: templates/catalog/_photo_workspace.html:120
+msgid "Tipo de evento"
+msgstr "Event type"
+
+#: templates/catalog/_photo_workspace.html:122
+msgid "— Elige —"
+msgstr "— Choose —"
+
+#: templates/catalog/_photo_workspace.html:127
+msgid "Descripción (opcional)"
+msgstr "Description (optional)"
+
+#: templates/catalog/_photo_workspace.html:128
+msgid "Boda de Luis y Ana"
+msgstr "Luis and Ana's wedding"
+
+#: templates/catalog/_photo_workspace.html:130
+msgid "Proponer evento"
+msgstr "Propose event"
+
+#: templates/catalog/_photo_workspace.html:141
+msgid "Aceptada:"
+msgstr "Accepted:"
+
+#: templates/catalog/_photo_workspace.html:146
+msgid "Precisión"
+msgstr "Precision"
+
+#: templates/catalog/_photo_workspace.html:160
+msgid "Proponer fecha"
+msgstr "Propose date"
+
+#: templates/catalog/_proposal.html:5
+#, python-format
+msgid "propuesta por %(author)s"
+msgstr "proposed by %(author)s"
+
+#: templates/catalog/_proposal.html:11
+#, python-format
+msgid "A favor de %(label)s (%(votes)s)"
+msgstr "In favour of %(label)s (%(votes)s)"
+
+#: templates/catalog/_proposal.html:16
+#, python-format
+msgid "En contra de %(label)s (%(votes)s)"
+msgstr "Against %(label)s (%(votes)s)"
+
+#: templates/catalog/_proposal.html:22
+#, python-format
+msgid "¿Aceptar directamente «%(label)s» sin esperar a más votos?"
+msgstr "Accept “%(label)s” directly without waiting for more votes?"
+
+#: templates/catalog/_proposal.html:23
+msgid "Aceptar"
+msgstr "Accept"
+
+#: templates/catalog/_proposal.html:26
+msgid "Aceptar (admin)"
+msgstr "Accept (admin)"
+
+#: templates/catalog/_proposal.html:29
+#, python-format
+msgid "¿Rechazar directamente «%(label)s»?"
+msgstr "Reject “%(label)s” directly?"
+
+#: templates/catalog/_proposal.html:30
+msgid "Rechazar"
+msgstr "Reject"
+
+#: templates/catalog/_proposal.html:33
+msgid "Rechazar (admin)"
+msgstr "Reject (admin)"
+
+#: templates/catalog/admin/event_type_form.html:2
+msgid "Editar tipo de evento"
+msgstr "Edit event type"
+
+#: templates/catalog/admin/event_type_form.html:7
+#, python-format
+msgid "Editar «%(name)s»"
+msgstr "Edit “%(name)s”"
+
+#: templates/catalog/admin/event_types.html:2
+#: templates/catalog/admin/event_types.html:5
+#: templates/catalog/admin/home.html:7
+msgid "Tipos de evento"
+msgstr "Event types"
+
+#: templates/catalog/admin/event_types.html:10
+#, python-format
+msgid "Orden %(order)s"
+msgstr "Order %(order)s"
+
+#: templates/catalog/admin/event_types.html:17
+msgid "Nuevo tipo"
+msgstr "New type"
+
+#: templates/catalog/admin/event_types.html:19
+msgid "Añadir"
+msgstr "Add"
+
+#: templates/catalog/admin/home.html:6
+#: templates/catalog/admin/review_queue.html:2
+#: templates/catalog/admin/review_queue.html:5
+msgid "Cola de revisión"
+msgstr "Review queue"
+
+#: templates/catalog/admin/home.html:6
+#, python-format
+msgid "%(counter)s escaneo pendiente"
+msgid_plural "%(counter)s escaneos pendientes"
+msgstr[0] "%(counter)s pending scan"
+msgstr[1] "%(counter)s pending scans"
+
+#: templates/catalog/admin/home.html:7
+msgid "Catálogo editable"
+msgstr "Editable catalog"
+
+#: templates/catalog/admin/home.html:8
+#: templates/catalog/admin/thresholds.html:2
+#: templates/catalog/admin/thresholds.html:7
+msgid "Umbrales de votación"
+msgstr "Voting thresholds"
+
+#: templates/catalog/admin/home.html:8
+#, python-format
+msgid "%(votes)s votos · %(ratio)s"
+msgstr "%(votes)s votes · %(ratio)s"
+
+#: templates/catalog/admin/home.html:9 templates/catalog/admin/merge.html:2
+#: templates/catalog/admin/merge.html:9
+msgid "Fusionar personas"
+msgstr "Merge people"
+
+#: templates/catalog/admin/home.html:9
+msgid "Unificar duplicados"
+msgstr "Combine duplicates"
+
+#: templates/catalog/admin/home.html:10 templates/exporter/export.html:5
+msgid "Exportación a Immich"
+msgstr "Export to Immich"
+
+#: templates/catalog/admin/home.html:10
+msgid "XMP con caras y eventos"
+msgstr "XMP with faces and events"
+
+#: templates/catalog/admin/home.html:11
+msgid "Altas, roles y contraseñas"
+msgstr "Accounts, roles and passwords"
+
+#: templates/catalog/admin/home.html:14
+msgid "Actividad reciente"
+msgstr "Recent activity"
+
+#: templates/catalog/admin/home.html:17
+msgid "sistema"
+msgstr "system"
+
+#: templates/catalog/admin/home.html:18
+msgid "Sin actividad."
+msgstr "No activity."
+
+#: templates/catalog/admin/merge.html:6
+msgid ""
+"¿Fusionar estas personas? Las caras y propuestas de la primera pasarán a la "
+"segunda. No se puede deshacer desde la web."
+msgstr ""
+"Merge these people? The faces and proposals of the first one will move to "
+"the second. This cannot be undone from the web."
+
+#: templates/catalog/admin/merge.html:7 templates/catalog/admin/merge.html:13
+msgid "Fusionar"
+msgstr "Merge"
+
+#: templates/catalog/admin/merge.html:10
+msgid ""
+"Las caras y propuestas de la primera persona pasan a la segunda. La acción "
+"queda registrada."
+msgstr ""
+"The faces and proposals of the first person move to the second. The action "
+"is logged."
+
+#: templates/catalog/admin/review_queue.html:6
+msgid ""
+"Para corregir un recorte, reprocesa el escaneo con <code>process_scans --"
+"force &lt;fichero&gt;</code>."
+msgstr ""
+"To fix a crop, reprocess the scan with <code>process_scans --force "
+"&lt;file&gt;</code>."
+
+#: templates/catalog/admin/review_queue.html:11
+msgid "Marcar como correcto"
+msgstr "Mark as correct"
+
+#: templates/catalog/admin/review_queue.html:13
+#, python-format
+msgid "Procesado el %(date)s · hash %(hash)s"
+msgstr "Processed on %(date)s · hash %(hash)s"
+
+#: templates/catalog/admin/review_queue.html:18
+#, python-format
+msgid "Recorte %(index)s"
+msgstr "Crop %(index)s"
+
+#: templates/catalog/admin/review_queue.html:20
+msgid ""
+"¿Descartar este recorte? Dejará de aparecer en la galería y no se exportará. "
+"Se puede restaurar después."
+msgstr ""
+"Discard this crop? It will no longer appear in the gallery and will not be "
+"exported. It can be restored later."
+
+#: templates/catalog/admin/review_queue.html:20
+#: templates/catalog/admin/review_queue.html:21
+msgid "Descartar"
+msgstr "Discard"
+
+#: templates/catalog/admin/review_queue.html:21
+msgid "Restaurar"
+msgstr "Restore"
+
+#: templates/catalog/admin/review_queue.html:24
+msgid "No se detectó ninguna foto."
+msgstr "No photo was detected."
+
+#: templates/catalog/admin/review_queue.html:28
+msgid "No hay escaneos pendientes de revisión."
+msgstr "No scans waiting for review."
+
+#: templates/catalog/admin/thresholds.html:8
+msgid ""
+"Una propuesta se acepta con al menos N votos a favor y una proporción a "
+"favor mínima. Se rechaza con N votos en contra que superen a los votos a "
+"favor."
+msgstr ""
+"A proposal is accepted with at least N votes in favour and a minimum share "
+"in favour. It is rejected with N votes against that outnumber the votes in "
+"favour."
+
+#: templates/catalog/gallery.html:6
+msgid "Filtros"
+msgstr "Filters"
+
+#: templates/catalog/gallery.html:9
+msgid "Estado"
+msgstr "Status"
+
+#: templates/catalog/gallery.html:11 templates/catalog/gallery.html:25
+msgid "Todos"
+msgstr "All"
+
+#: templates/catalog/gallery.html:16
+msgid "Persona"
+msgstr "Person"
+
+#: templates/catalog/gallery.html:18 templates/catalog/gallery.html:32
+#: templates/catalog/my_activity.html:6
+msgid "Todas"
+msgstr "All"
+
+#: templates/catalog/gallery.html:36
+msgid "Pendientes de mi voto"
+msgstr "Waiting for my vote"
+
+#: templates/catalog/gallery.html:38
+msgid "Filtrar"
+msgstr "Filter"
+
+#: templates/catalog/gallery.html:39
+msgid "Limpiar"
+msgstr "Clear"
+
+#: templates/catalog/gallery.html:43 templates/catalog/person_detail.html:10
+#: templates/catalog/persons.html:20
+#, python-format
+msgid "%(counter)s foto"
+msgid_plural "%(counter)s fotos"
+msgstr[0] "%(counter)s photo"
+msgstr[1] "%(counter)s photos"
+
+#: templates/catalog/home.html:4
+#, python-format
+msgid "Hola, %(name)s"
+msgstr "Hello, %(name)s"
+
+#: templates/catalog/home.html:6
+msgid "Progreso"
+msgstr "Progress"
+
+#: templates/catalog/home.html:7
+#, python-format
+msgid ""
+"<strong>%(cataloged)s</strong> de <strong>%(total)s</strong> fotos "
+"catalogadas (%(percent)s %%)"
+msgstr ""
+"<strong>%(cataloged)s</strong> of <strong>%(total)s</strong> photos "
+"cataloged (%(percent)s%%)"
+
+#: templates/catalog/home.html:8
+msgid "Fotos catalogadas"
+msgstr "Cataloged photos"
+
+#: templates/catalog/home.html:9
+msgid "Siguiente foto sin catalogar"
+msgstr "Next uncataloged photo"
+
+#: templates/catalog/home.html:14
+#, python-format
+msgid "Pendientes de mi voto (%(pending_count)s)"
+msgstr "Waiting for my vote (%(pending_count)s)"
+
+#: templates/catalog/home.html:15
+msgid "Ver todas"
+msgstr "See all"
+
+#: templates/catalog/home.html:25
+#, python-format
+msgid "por %(author)s"
+msgstr "by %(author)s"
+
+#: templates/catalog/home.html:27
+msgid "Votar"
+msgstr "Vote"
+
+#: templates/catalog/home.html:30
+msgid "No tienes propuestas pendientes de votar."
+msgstr "You have no proposals waiting for your vote."
+
+#: templates/catalog/my_activity.html:2 templates/catalog/my_activity.html:4
+msgid "Mi actividad"
+msgstr "My activity"
+
+#: templates/catalog/my_activity.html:5
+msgid "Filtrar por estado"
+msgstr "Filter by status"
+
+#: templates/catalog/my_activity.html:21
+#, python-format
+msgid "decidida por %(admin)s"
+msgstr "decided by %(admin)s"
+
+#: templates/catalog/my_activity.html:26
+msgid "Aún no has hecho propuestas."
+msgstr "You have not made any proposals yet."
+
+#: templates/catalog/person_detail.html:6
+msgid "Fusionar con otra persona"
+msgstr "Merge with another person"
+
+#: templates/catalog/person_detail.html:8
+#, python-format
+msgid "Usuario vinculado: %(linked)s"
+msgstr "Linked user: %(linked)s"
+
+#: templates/catalog/person_detail.html:10
+msgid "Ver en la galería"
+msgstr "See in gallery"
+
+#: templates/catalog/person_detail.html:13
+msgid "Puede que aparezca en"
+msgstr "May appear in"
+
+#: templates/catalog/person_detail.html:14
+#, python-format
+msgid ""
+"Caras sin identificar que se parecen a %(person)s. Confirmar crea una "
+"propuesta que el resto vota."
+msgstr ""
+"Unidentified faces that look like %(person)s. Confirming creates a proposal "
+"for everyone else to vote on."
+
+#: templates/catalog/person_detail.html:19
+#, python-format
+msgid "Cara sin identificar en la foto %(id)s"
+msgstr "Unidentified face in photo %(id)s"
+
+#: templates/catalog/person_detail.html:25
+#, python-format
+msgid "Es %(person)s"
+msgstr "It's %(person)s"
+
+#: templates/catalog/person_detail.html:31
+msgid "Fotos"
+msgstr "Photos"
+
+#: templates/catalog/person_detail.html:34
+msgid "Sin fotos."
+msgstr "No photos."
+
+#: templates/catalog/persons.html:6
+msgid "Buscar personas"
+msgstr "Search people"
+
+#: templates/catalog/persons.html:7
+msgid "Buscar por nombre"
+msgstr "Search by name"
+
+#: templates/catalog/persons.html:24
+msgid "Todavía no hay personas identificadas."
+msgstr "No people have been identified yet."
+
+#: templates/exporter/export.html:7
+#, python-format
+msgid ""
+"<strong>%(counter)s</strong> foto catalogada con cambios pendientes de "
+"exportar."
+msgid_plural ""
+"<strong>%(counter)s</strong> fotos catalogadas con cambios pendientes de "
+"exportar."
+msgstr[0] ""
+"<strong>%(counter)s</strong> cataloged photo with changes waiting to be "
+"exported."
+msgstr[1] ""
+"<strong>%(counter)s</strong> cataloged photos with changes waiting to be "
+"exported."
+
+#: templates/exporter/export.html:9
+msgid "Exportar ahora"
+msgstr "Export now"
+
+#: templates/exporter/export.html:11
+msgid ""
+"El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. "
+"Después, reescanea la biblioteca externa en Immich."
+msgstr ""
+"The worker writes the photos and their XMP files to <code>/data/export</"
+"code>. Then rescan the external library in Immich."
+
+#: templates/exporter/export.html:13
+msgid "Exportaciones recientes"
+msgstr "Recent exports"
+
+#: templates/exporter/export.html:20
+#, python-format
+msgid "por %(user)s"
+msgstr "by %(user)s"
+
+#: templates/exporter/export.html:20
+msgid "por el sistema"
+msgstr "by the system"
+
+#: templates/exporter/export.html:21
+#, python-format
+msgid "%(counter)s exportada"
+msgid_plural "%(counter)s exportadas"
+msgstr[0] "%(counter)s exported"
+msgstr[1] "%(counter)s exported"
+
+#: templates/exporter/export.html:22
+#, python-format
+msgid "%(counter)s foto no se pudo exportar; revisa los logs del worker."
+msgid_plural ""
+"%(counter)s fotos no se pudieron exportar; revisa los logs del worker."
+msgstr[0] "%(counter)s photo could not be exported; check the worker logs."
+msgstr[1] "%(counter)s photos could not be exported; check the worker logs."
+
+#: templates/exporter/export.html:27
+msgid "Todavía no se ha exportado nada."
+msgstr "Nothing has been exported yet."

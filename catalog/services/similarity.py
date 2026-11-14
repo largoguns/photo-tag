@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 import numpy as np
 from django.conf import settings
+from django.utils.translation import gettext as _
 
 from catalog.models import Face, Person, Proposal
 
@@ -24,7 +25,7 @@ class Suggestion:
 
     @property
     def label(self):
-        return "muy probable" if self.strong else "posible"
+        return _("muy probable") if self.strong else _("posible")
 
 
 @dataclass
