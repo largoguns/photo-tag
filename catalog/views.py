@@ -7,13 +7,14 @@ from django.db.models import Count, Q
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from PIL import Image
 
 from accounts.permissions import admin_required
 from catalog import presenters
 from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
-from catalog.services import voting
+from catalog.services import similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
 GALLERY_PAGE_SIZE = 24
@@ -120,7 +121,15 @@ def person_detail(request, pk):
         .order_by("pk")
     )
     page = Paginator(photos, GALLERY_PAGE_SIZE).get_page(request.GET.get("page"))
-    return render(request, "catalog/person_detail.html", {"person": person, "page": page})
+    return render(
+        request,
+        "catalog/person_detail.html",
+        {
+            "person": person,
+            "page": page,
+            "candidates": similarity.candidate_faces_for_person(person),
+        },
+    )
 
 
 def my_activity(request):
@@ -171,6 +180,11 @@ def next_uncataloged(request):
 def _after_action(request, photo, error=None):
     if error:
         messages.error(request, error)
+    next_url = request.POST.get("next")
+    if next_url and url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return redirect(next_url)
     if request.htmx_partial:
         return _render_photo(request, Photo.objects.get(pk=photo.pk))
     url = reverse("photo_detail", args=[photo.pk])
@@ -189,12 +203,20 @@ def _run(request, photo, action):
 @require_POST
 def propose_identity(request, face_pk):
     face = get_object_or_404(Face, pk=face_pk)
-    name = request.POST.get("name", "")
+    person_id = request.POST.get("person_id", "")
+    person = (
+        get_object_or_404(Person.objects.active(), pk=person_id) if person_id.isdigit() else None
+    )
     return _run(
         request,
         face.photo,
         lambda: voting.create_proposal(
-            request.user, face.photo, Proposal.Kind.FACE_IDENTITY, face=face, person_name=name
+            request.user,
+            face.photo,
+            Proposal.Kind.FACE_IDENTITY,
+            face=face,
+            person=person,
+            person_name=request.POST.get("name", ""),
         ),
     )
 

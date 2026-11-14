@@ -3,6 +3,7 @@
 from django.db.models import Count, OuterRef, Q, Subquery
 
 from catalog.models import Face, Photo, Proposal, Vote
+from catalog.services.similarity import IdentityIndex
 
 
 def with_tally(proposals, user):
@@ -26,6 +27,7 @@ def photo_context(photo, user, selected_face=None):
         .select_related("person")
         .order_by("x", "id")
     )
+    index = IdentityIndex() if any(not f.person_id for f in faces) else None
     by_face = {}
     for proposal in open_proposals:
         if proposal.face_id:
@@ -40,6 +42,7 @@ def photo_context(photo, user, selected_face=None):
         face.other_proposals = [
             p for p in face.open_proposals if p.kind != Proposal.Kind.FACE_IDENTITY
         ]
+        face.suggestions = index.suggestions_for_face(face) if index else []
     return {
         "photo": photo,
         "faces": faces,

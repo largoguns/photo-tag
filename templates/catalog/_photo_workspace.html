@@ -67,6 +67,22 @@
         <h3 class="small-title">Propuestas de nombre</h3>
         <ul class="proposals">{% for proposal in face.identity_proposals %}{% include "catalog/_proposal.html" %}{% endfor %}</ul>
         {% endif %}
+        {% if face.suggestions %}
+        <div class="suggestions stack">
+          <h3 class="small-title">Sugerencias automáticas</h3>
+          <div class="suggestion-list">
+            {% for suggestion in face.suggestions %}
+            <form method="post" action="{% url 'propose_identity' face.pk %}" hx-post="{% url 'propose_identity' face.pk %}">
+              {% csrf_token %}
+              <input type="hidden" name="person_id" value="{{ suggestion.person.pk }}">
+              <input type="hidden" name="selected_face" value="{{ face.pk }}">
+              <button type="submit" class="button suggestion{% if suggestion.strong %} strong{% endif %}">¿Es {{ suggestion.person }}? <span class="muted">· {{ suggestion.label }}</span></button>
+            </form>
+            {% endfor %}
+          </div>
+          <p class="hint muted">Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos.</p>
+        </div>
+        {% endif %}
         <form method="post" class="inline-form" action="{% url 'propose_identity' face.pk %}" hx-post="{% url 'propose_identity' face.pk %}">
           {% csrf_token %}
           <input type="hidden" name="selected_face" value="{{ face.pk }}">

@@ -8,6 +8,28 @@
 {% if person.user %}<p class="muted">Usuario vinculado: {{ person.user }}</p>{% endif %}
 {% if person.notes %}<p>{{ person.notes|linebreaksbr }}</p>{% endif %}
 <p class="muted">{{ page.paginator.count }} foto{{ page.paginator.count|pluralize }} · <a href="{% url 'gallery' %}?person={{ person.pk }}">Ver en la galería</a></p>
+{% if candidates %}
+<section class="stack candidates" aria-labelledby="candidates-title">
+  <h2 id="candidates-title">Puede que aparezca en</h2>
+  <p class="muted">Caras sin identificar que se parecen a {{ person }}. Confirmar crea una propuesta que el resto vota.</p>
+  <ul class="candidate-grid">
+    {% for candidate in candidates %}
+    <li class="candidate-card">
+      <a href="{% url 'photo_detail' candidate.face.photo_id %}?face={{ candidate.face.pk }}">
+        <img src="{% url 'face_image' candidate.face.pk %}" alt="Cara sin identificar en la foto {{ candidate.face.photo_id }}" loading="lazy" width="120" height="120">
+      </a>
+      <form method="post" action="{% url 'propose_identity' candidate.face.pk %}">
+        {% csrf_token %}
+        <input type="hidden" name="person_id" value="{{ person.pk }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="button small">Es {{ person }}</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+<h2>Fotos</h2>
+{% endif %}
 <ul class="photo-grid">
   {% for photo in page %}{% include "catalog/_photo_card.html" %}{% empty %}<li class="empty">Sin fotos.</li>{% endfor %}
 </ul>
