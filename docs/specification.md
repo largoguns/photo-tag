@@ -1,7 +1,7 @@
 # PhotoTag — Especificación técnica
 
 > Documento de especificación para implementación por un agente de IA.
-> Idioma de la interfaz: español. Idioma del código, identificadores, commits y comentarios: inglés.
+> Idioma de la interfaz: español (principal) e inglés (ver 5.2). Idioma del código, identificadores, commits y comentarios: inglés.
 > Este documento define **qué** construir. La forma de trabajar (comandos, convenciones y commits) está en `AGENTS.md`.
 > Repositorio: `phototag` (GitHub, privado).
 
@@ -151,7 +151,10 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 - Navegación: barra inferior en móvil, barra superior o lateral en escritorio.
 - Imágenes con `srcset` usando las miniaturas de 400 y 1600 px para no descargar originales en móvil.
 - Gestos opcionales en móvil: deslizar a izquierda/derecha para pasar de foto.
-- Accesibilidad básica: contraste suficiente, etiquetas en formularios, navegación por teclado en escritorio.
+- Accesibilidad básica: contraste suficiente (AA en ambos temas), etiquetas en formularios, navegación por teclado en escritorio.
+- **Tema claro y oscuro**: por defecto sigue la preferencia del sistema (`prefers-color-scheme`); cada usuario puede forzar «Claro» u «Oscuro» en «Mi perfil» (campo `theme` del usuario). Los recuadros de cara sobre la foto mantienen sus colores en ambos temas.
+- **Idiomas**: español (principal) e inglés con la internacionalización de Django. El idioma se detecta del navegador (`Accept-Language`) y se puede cambiar con un selector Español/English (menú «Más», «Mi perfil» y pantalla de login) que se guarda en una cookie del dispositivo. Los textos fuente están en español y se traducen en `locale/en`. Los tipos de evento tienen un nombre en inglés opcional (`EventType.name_en`); los metadatos exportados (sección 6) siempre se escriben en español.
+- **Confirmaciones**: las acciones destructivas o con efecto directo (decisiones de administrador, «No es una cara», restablecer contraseña, desactivar usuario, descartar recorte, fusionar personas) piden confirmación con un diálogo modal propio de la aplicación (`<dialog>`), nunca con el diálogo nativo del navegador. En móvil se muestra como hoja inferior.
 
 ### 5.3 Modelo de datos
 
@@ -202,7 +205,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
 5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla.
 6. **Mi actividad**: mis propuestas y su estado.
-7. **Mi perfil**: cambiar contraseña y nombre a mostrar.
+7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema e idioma.
 8. **Administración**: tipos de evento, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
 9. **Gestión de usuarios** (solo superadmin, ver 4.4).
 

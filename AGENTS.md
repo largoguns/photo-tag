@@ -24,7 +24,8 @@ Una tarea no está terminada hasta que los tests pasan y `ruff` no da errores.
 
 ## Convenciones de código
 
-- Código, identificadores, comentarios y commits en **inglés**; textos de la interfaz en **español**.
+- Código, identificadores, comentarios y commits en **inglés**; textos de la interfaz en **español**, siempre marcados para traducción (`{% translate %}`, `{% blocktranslate %}`, `gettext`/`gettext_lazy`).
+- Todo texto nuevo de la interfaz se traduce al inglés en `locale/en/LC_MESSAGES/django.po` y se recompila el `.mo` (ambos se commitean; ver README). `tests/test_ui.py` falla si queda alguna entrada sin traducir.
 - La lógica de negocio (votación, recorte, exportación) va en módulos de servicio testeables, no en las vistas.
 - Cada funcionalidad nueva incluye sus tests.
 - Toda pantalla nueva cumple los requisitos de responsive de la sección 5.2 de la especificación.

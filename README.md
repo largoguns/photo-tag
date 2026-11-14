@@ -138,6 +138,21 @@ docker compose exec -T db pg_restore -U phototag -d phototag --clean --if-exists
 
 Los escaneos dudosos (menos de 1 o más de 6 fotos, relación de aspecto mayor de 4:1 o recortes solapados) aparecen en *Administración → Cola de revisión*, donde se pueden marcar como correctos o descartar recortes erróneos.
 
+## Traducciones
+
+La interfaz está en español (textos fuente) e inglés. Tras añadir o cambiar textos, regenera el catálogo con gettext dentro de la imagen de test (no hace falta instalarlo en local), traduce las entradas nuevas de `locale/en/LC_MESSAGES/django.po` y recompila:
+
+```bash
+docker build --target test -t phototag:test .
+docker run --rm -v "$PWD":/app -w /app -e DJANGO_DEBUG=1 phototag:test \
+  python manage.py makemessages -l en --no-obsolete --ignore=.venv --ignore=tests
+# … traducir las entradas nuevas del .po …
+docker run --rm -v "$PWD":/app -w /app/locale/en/LC_MESSAGES phototag:test \
+  msgfmt --check -o django.mo django.po
+```
+
+Commitea el `.po` y el `.mo`.
+
 ## Seguridad
 
 - Todas las páginas e imágenes exigen sesión; las imágenes se sirven por una vista de Django, nunca como estáticos.
