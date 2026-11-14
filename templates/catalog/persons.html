@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Personas{% endblock %}
+{% block content %}
+<h1>Personas</h1>
+<form method="get" class="search" role="search">
+  <label for="q" class="visually-hidden">Buscar personas</label>
+  <input type="search" id="q" name="q" value="{{ query }}" placeholder="Buscar por nombre">
+  <button type="submit" class="button">Buscar</button>
+</form>
+<ul class="person-grid">
+  {% for person in page %}
+  <li>
+    <a class="person-card" href="{% url 'person_detail' person.pk %}">
+      {% if person.avatar %}
+      <img src="{% url 'face_image' person.avatar.pk %}" alt="" loading="lazy" width="96" height="96">
+      {% else %}
+      <span class="avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>
+      {% endif %}
+      <span class="person-name">{{ person }}</span>
+      <span class="muted">{{ person.photo_count }} foto{{ person.photo_count|pluralize }}</span>
+    </a>
+  </li>
+  {% empty %}
+  <li class="empty">Todavía no hay personas identificadas.</li>
+  {% endfor %}
+</ul>
+{% include "_pagination.html" %}
+{% endblock %}

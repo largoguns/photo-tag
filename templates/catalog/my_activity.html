@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Mi actividad{% endblock %}
+{% block content %}
+<h1>Mi actividad</h1>
+<nav class="chips" aria-label="Filtrar por estado">
+  <a class="chip" href="{% url 'my_activity' %}" {% if not status %}aria-current="true"{% endif %}>Todas</a>
+  {% for value, label in statuses %}
+  <a class="chip" href="?status={{ value }}" {% if status == value %}aria-current="true"{% endif %}>{{ label }}</a>
+  {% endfor %}
+</nav>
+<ul class="list">
+  {% for proposal in page %}
+  <li class="list-item">
+    <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">
+      <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="Foto {{ proposal.photo_id }}" loading="lazy" width="80" height="60">
+    </a>
+    <div class="list-main">
+      <strong>{{ proposal.get_kind_display }}</strong>: {{ proposal.label }}
+      <div class="meta">
+        <span class="badge proposal-{{ proposal.status }}">{{ proposal.get_status_display }}</span>
+        <span class="muted">{{ proposal.created_at|date:"d/m/Y H:i" }} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}{% if proposal.decided_by %} · decidida por {{ proposal.decided_by }}{% endif %}</span>
+      </div>
+    </div>
+  </li>
+  {% empty %}
+  <li class="empty">Aún no has hecho propuestas.</li>
+  {% endfor %}
+</ul>
+{% include "_pagination.html" %}
+{% endblock %}

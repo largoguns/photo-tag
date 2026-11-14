@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Editar tipo de evento{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<form method="post" class="card stack">
+  {% csrf_token %}
+  <h1>Editar «{{ event_type }}»</h1>
+  {{ form.as_div }}
+  <div class="actions">
+    <button type="submit" class="button primary">Guardar</button>
+    <a class="button" href="{% url 'admin_event_types' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

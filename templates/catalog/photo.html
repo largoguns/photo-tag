@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Foto {{ photo.pk }}{% endblock %}
+{% block main_class %}container wide{% endblock %}
+{% block content %}
+{% include "catalog/_photo_workspace.html" %}
+<datalist id="person-names">
+  {% for name in person_names %}<option value="{{ name }}">{% endfor %}
+</datalist>
+{% endblock %}

@@ -1,0 +1,37 @@
+from django.urls import path
+
+from catalog import admin_views, views
+
+urlpatterns = [
+    path("", views.home, name="home"),
+    path("gallery/", views.gallery, name="gallery"),
+    path("photos/next/", views.next_uncataloged, name="next_uncataloged"),
+    path("photos/<int:pk>/", views.photo_detail, name="photo_detail"),
+    path("photos/<int:pk>/image/<str:size>/", views.photo_image, name="photo_image"),
+    path("photos/<int:pk>/propose/event/", views.propose_event, name="propose_event"),
+    path("photos/<int:pk>/propose/date/", views.propose_date, name="propose_date"),
+    path("photos/<int:pk>/propose/face/", views.propose_add_face, name="propose_add_face"),
+    path("faces/<int:face_pk>/propose/identity/", views.propose_identity, name="propose_identity"),
+    path(
+        "faces/<int:face_pk>/propose/remove/", views.propose_remove_face, name="propose_remove_face"
+    ),
+    path("faces/<int:pk>/image/", views.face_image, name="face_image"),
+    path("proposals/<int:pk>/vote/", views.vote, name="vote"),
+    path("proposals/<int:pk>/decide/", views.decide, name="decide"),
+    path("persons/", views.persons, name="persons"),
+    path("persons/<int:pk>/", views.person_detail, name="person_detail"),
+    path("activity/", views.my_activity, name="my_activity"),
+    # Administration
+    path("admin/", admin_views.admin_home, name="admin_home"),
+    path("admin/event-types/", admin_views.event_types, name="admin_event_types"),
+    path("admin/event-types/<int:pk>/", admin_views.event_type_edit, name="admin_event_type_edit"),
+    path("admin/thresholds/", admin_views.thresholds, name="admin_thresholds"),
+    path("admin/review/", admin_views.review_queue, name="admin_review_queue"),
+    path("admin/review/<int:pk>/ok/", admin_views.review_mark_ok, name="admin_review_ok"),
+    path(
+        "admin/photos/<int:pk>/discard/",
+        admin_views.photo_toggle_discard,
+        name="admin_photo_toggle_discard",
+    ),
+    path("admin/merge/", admin_views.merge, name="admin_merge"),
+]

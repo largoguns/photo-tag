@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Umbrales de votación{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<form method="post" class="card stack">
+  {% csrf_token %}
+  <h1>Umbrales de votación</h1>
+  <p class="muted">Una propuesta se acepta con al menos N votos a favor y una proporción a favor mínima. Se rechaza con N votos en contra que superen a los votos a favor.</p>
+  {{ form.as_div }}
+  <div class="actions">
+    <button type="submit" class="button primary">Guardar</button>
+    <a class="button" href="{% url 'admin_home' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

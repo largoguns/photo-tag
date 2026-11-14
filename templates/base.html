@@ -1,0 +1,48 @@
+{% load static %}<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light">
+  <title>{% block title %}PhotoTag{% endblock %} · PhotoTag</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  <script src="{% static 'js/app.js' %}" defer></script>
+  {% block head %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' class="{% if user.is_authenticated and not user.must_change_password %}has-nav{% endif %}">
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+  {% if user.is_authenticated and not user.must_change_password %}
+  <nav class="app-nav" aria-label="Navegación principal">
+    <a class="brand" href="{% url 'home' %}">PhotoTag</a>
+    {% with name=request.resolver_match.url_name %}
+    <ul class="nav-items">
+      <li><a href="{% url 'home' %}" {% if name == 'home' %}aria-current="page"{% endif %}><span class="nav-icon" aria-hidden="true">⌂</span><span>Inicio</span></a></li>
+      <li><a href="{% url 'gallery' %}" {% if name == 'gallery' or name == 'photo_detail' %}aria-current="page"{% endif %}><span class="nav-icon" aria-hidden="true">▦</span><span>Galería</span></a></li>
+      <li><a href="{% url 'persons' %}" {% if name == 'persons' or name == 'person_detail' %}aria-current="page"{% endif %}><span class="nav-icon" aria-hidden="true">☺</span><span>Personas</span></a></li>
+      <li><a href="{% url 'my_activity' %}" {% if name == 'my_activity' %}aria-current="page"{% endif %}><span class="nav-icon" aria-hidden="true">✎</span><span>Actividad</span></a></li>
+      <li class="nav-more">
+        <details>
+          <summary><span class="nav-icon" aria-hidden="true">☰</span><span>Más</span></summary>
+          <ul class="nav-menu">
+            <li><a href="{% url 'profile' %}">Mi perfil</a></li>
+            {% if user.is_catalog_admin %}<li><a href="{% url 'admin_home' %}">Administración</a></li>{% endif %}
+            {% if user.is_superadmin %}<li><a href="{% url 'user_list' %}">Usuarios</a></li>{% endif %}
+            <li>
+              <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+                <button type="submit" class="link-button">Cerrar sesión</button>
+              </form>
+            </li>
+          </ul>
+        </details>
+      </li>
+    </ul>
+    {% endwith %}
+  </nav>
+  {% endif %}
+  <main id="main" class="{% block main_class %}container{% endblock %}">
+    {% include "_messages.html" %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

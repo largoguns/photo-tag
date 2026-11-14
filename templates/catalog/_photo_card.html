@@ -1,0 +1,11 @@
+{% load catalog_tags %}
+<li class="photo-card">
+  <a href="{% url 'photo_detail' photo.pk %}">
+    <img src="{% url 'photo_image' photo.pk 400 %}"
+         srcset="{% url 'photo_image' photo.pk 400 %} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %} {{ photo|thumb_width:1600 }}w"
+         sizes="(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 50vw"
+         alt="Foto {{ photo.pk }}{% if photo.event_type %} — {{ photo.event_type }}{% endif %}" loading="lazy"
+         width="{{ photo.width }}" height="{{ photo.height }}">
+    <span class="badge status-{{ photo.status }}">{{ photo.get_status_display }}</span>
+  </a>
+</li>

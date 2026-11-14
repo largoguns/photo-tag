@@ -1,0 +1,32 @@
+<li class="proposal{% if proposal.my_vote == 1 %} voted-up{% elif proposal.my_vote == -1 %} voted-down{% endif %}">
+  <div class="proposal-body">
+    <span class="proposal-label">{{ proposal.label }}</span>
+    <span class="meta muted">propuesta por {{ proposal.author }}</span>
+  </div>
+  <div class="vote-buttons">
+    <form method="post" action="{% url 'vote' proposal.pk %}" hx-post="{% url 'vote' proposal.pk %}">
+      {% csrf_token %}<input type="hidden" name="value" value="up">
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      <button type="submit" class="vote up" aria-pressed="{% if proposal.my_vote == 1 %}true{% else %}false{% endif %}" aria-label="A favor de {{ proposal.label }} ({{ proposal.ups }})">👍 <span>{{ proposal.ups }}</span></button>
+    </form>
+    <form method="post" action="{% url 'vote' proposal.pk %}" hx-post="{% url 'vote' proposal.pk %}">
+      {% csrf_token %}<input type="hidden" name="value" value="down">
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      <button type="submit" class="vote down" aria-pressed="{% if proposal.my_vote == -1 %}true{% else %}false{% endif %}" aria-label="En contra de {{ proposal.label }} ({{ proposal.downs }})">👎 <span>{{ proposal.downs }}</span></button>
+    </form>
+  </div>
+  {% if user.is_catalog_admin %}
+  <div class="admin-decide">
+    <form method="post" action="{% url 'decide' proposal.pk %}" hx-post="{% url 'decide' proposal.pk %}" hx-confirm="¿Aceptar directamente esta propuesta?">
+      {% csrf_token %}<input type="hidden" name="decision" value="accept">
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      <button type="submit" class="button small">Aceptar (admin)</button>
+    </form>
+    <form method="post" action="{% url 'decide' proposal.pk %}" hx-post="{% url 'decide' proposal.pk %}" hx-confirm="¿Rechazar directamente esta propuesta?">
+      {% csrf_token %}<input type="hidden" name="decision" value="reject">
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      <button type="submit" class="button small danger">Rechazar (admin)</button>
+    </form>
+  </div>
+  {% endif %}
+</li>

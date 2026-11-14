@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Fusionar personas{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<form method="post" class="card stack">
+  {% csrf_token %}
+  <h1>Fusionar personas</h1>
+  <p class="muted">Las caras y propuestas de la primera persona pasan a la segunda. La acción queda registrada.</p>
+  {{ form.as_div }}
+  <div class="actions">
+    <button type="submit" class="button primary">Fusionar</button>
+    <a class="button" href="{% url 'admin_home' %}">Cancelar</a>
+  </div>
+</form>
+{% endblock %}

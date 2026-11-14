@@ -1,0 +1,148 @@
+{% load catalog_tags %}
+<div id="photo-workspace" class="photo-layout" hx-target="#photo-workspace" hx-swap="outerHTML">
+  <section class="photo-stage" aria-label="Foto">
+    {% if request.htmx_partial %}{% include "_messages.html" %}{% endif %}
+    <div class="photo-frame" id="photo-frame"
+         style="aspect-ratio: {{ photo.width }} / {{ photo.height }}"
+         data-width="{{ photo.width }}" data-height="{{ photo.height }}"
+         {% if prev_photo %}data-prev-url="{% url 'photo_detail' prev_photo.pk %}"{% endif %}
+         {% if next_photo %}data-next-url="{% url 'photo_detail' next_photo.pk %}"{% endif %}>
+      <img src="{% url 'photo_image' photo.pk 1600 %}"
+           srcset="{% url 'photo_image' photo.pk 400 %} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %} {{ photo|thumb_width:1600 }}w"
+           sizes="(min-width: 1024px) 62vw, 100vw"
+           alt="Foto {{ photo.pk }}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
+      {% for face in faces %}
+      <button type="button" class="face-box status-{{ face.status }}{% if face.person %} known{% endif %}{% if selected_face == face.pk|stringformat:'s' %} selected{% endif %}"
+              data-face="{{ face.pk }}"
+              style="left: {{ face.box.left|css_num }}%; top: {{ face.box.top|css_num }}%; width: {{ face.box.width|css_num }}%; height: {{ face.box.height|css_num }}%;"
+              aria-label="Cara {{ face.number }}{% if face.person %}: {{ face.person }}{% endif %}">
+        <span class="face-num">{{ face.number }}</span>
+      </button>
+      {% endfor %}
+      <div class="draw-rect" hidden></div>
+    </div>
+
+    <form id="add-face-form" class="draw-form card" method="post" action="{% url 'propose_add_face' photo.pk %}" hx-post="{% url 'propose_add_face' photo.pk %}" hidden>
+      {% csrf_token %}
+      <input type="hidden" name="x"><input type="hidden" name="y"><input type="hidden" name="w"><input type="hidden" name="h">
+      <p>¿Proponer este recuadro como una cara nueva?</p>
+      <div class="actions">
+        <button type="submit" class="button primary">Proponer cara</button>
+        <button type="button" class="button" data-action="cancel-draw">Cancelar</button>
+      </div>
+    </form>
+
+    <div class="photo-toolbar">
+      {% if prev_photo %}<a class="button" href="{% url 'photo_detail' prev_photo.pk %}" rel="prev" aria-label="Foto anterior">←<span class="hide-sm"> Anterior</span></a>{% else %}<span class="button disabled" aria-hidden="true">←</span>{% endif %}
+      <button type="button" class="button" data-action="draw-face" aria-pressed="false">✚ Dibujar cara</button>
+      <a class="button primary" href="{% url 'next_uncataloged' %}?after={{ photo.pk }}">Sin catalogar →</a>
+      {% if next_photo %}<a class="button" href="{% url 'photo_detail' next_photo.pk %}" rel="next" aria-label="Foto siguiente"><span class="hide-sm">Siguiente </span>→</a>{% else %}<span class="button disabled" aria-hidden="true">→</span>{% endif %}
+    </div>
+    <p class="draw-hint muted" hidden>Arrastra sobre la foto para dibujar el recuadro de la cara.</p>
+  </section>
+
+  <aside class="photo-panels" aria-label="Catalogación">
+    <div class="photo-status">
+      <span class="badge status-{{ photo.status }}">{{ photo.get_status_display }}</span>
+      <span class="muted">Foto {{ photo.pk }} · {{ faces|length }} cara{{ faces|length|pluralize }}</span>
+    </div>
+
+    {% for face in faces %}
+    <details class="panel face-panel" id="face-panel-{{ face.pk }}" data-face="{{ face.pk }}" {% if selected_face == face.pk|stringformat:'s' %}open{% endif %}>
+      <summary>
+        <span class="face-num">{{ face.number }}</span>
+        <span class="panel-title">
+          {% if face.person %}{{ face.person }}{% elif face.status == 'proposed' %}Cara propuesta{% else %}Sin identificar{% endif %}
+        </span>
+        {% if face.open_proposals %}<span class="badge">{{ face.open_proposals|length }}</span>{% endif %}
+      </summary>
+      <div class="panel-body stack">
+        {% if face.person %}
+        <p>Persona aceptada: <a href="{% url 'person_detail' face.person.pk %}">{{ face.person }}</a></p>
+        {% endif %}
+        {% if face.other_proposals %}
+        <ul class="proposals">{% for proposal in face.other_proposals %}{% include "catalog/_proposal.html" %}{% endfor %}</ul>
+        {% endif %}
+        {% if face.identity_proposals %}
+        <h3 class="small-title">Propuestas de nombre</h3>
+        <ul class="proposals">{% for proposal in face.identity_proposals %}{% include "catalog/_proposal.html" %}{% endfor %}</ul>
+        {% endif %}
+        <form method="post" class="inline-form" action="{% url 'propose_identity' face.pk %}" hx-post="{% url 'propose_identity' face.pk %}">
+          {% csrf_token %}
+          <input type="hidden" name="selected_face" value="{{ face.pk }}">
+          <label for="name-{{ face.pk }}">{% if face.person or face.identity_proposals %}Proponer otro nombre{% else %}¿Quién es?{% endif %}</label>
+          <div class="input-row">
+            <input type="text" id="name-{{ face.pk }}" name="name" list="person-names" autocomplete="off" required placeholder="Nombre y apellidos">
+            <button type="submit" class="button primary">Proponer</button>
+          </div>
+        </form>
+        {% if face.status == 'active' %}
+        <form method="post" action="{% url 'propose_remove_face' face.pk %}" hx-post="{% url 'propose_remove_face' face.pk %}" hx-confirm="¿Proponer que esto no es una cara?">
+          {% csrf_token %}<input type="hidden" name="selected_face" value="{{ face.pk }}">
+          <button type="submit" class="button small">No es una cara</button>
+        </form>
+        {% endif %}
+      </div>
+    </details>
+    {% empty %}
+    <p class="muted panel">No se han detectado caras. Usa «Dibujar cara» si falta alguna.</p>
+    {% endfor %}
+
+    <details class="panel" id="event-panel" open>
+      <summary><span class="panel-title">Evento</span>
+        {% if photo.event_type %}<span class="muted">· {{ photo.event_type }}</span>{% endif %}
+        {% if event_proposals %}<span class="badge">{{ event_proposals|length }}</span>{% endif %}
+      </summary>
+      <div class="panel-body stack">
+        {% if photo.event_type %}<p>Aceptado: <strong>{{ photo.event_type }}</strong>{% if photo.event_description %} — {{ photo.event_description }}{% endif %}</p>{% endif %}
+        {% if event_proposals %}<ul class="proposals">{% for proposal in event_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        <form method="post" class="stack" action="{% url 'propose_event' photo.pk %}" hx-post="{% url 'propose_event' photo.pk %}">
+          {% csrf_token %}
+          <div class="field">
+            <label for="event-type">Tipo de evento</label>
+            <select id="event-type" name="event_type" required>
+              <option value="">— Elige —</option>
+              {% for event in event_types %}<option value="{{ event.pk }}">{{ event }}</option>{% endfor %}
+            </select>
+          </div>
+          <div class="field">
+            <label for="event-description">Descripción (opcional)</label>
+            <input type="text" id="event-description" name="description" maxlength="255" placeholder="Boda de Luis y Ana">
+          </div>
+          <button type="submit" class="button primary">Proponer evento</button>
+        </form>
+      </div>
+    </details>
+
+    <details class="panel" id="date-panel" open>
+      <summary><span class="panel-title">Fecha</span>
+        {% if photo.date_value %}<span class="muted">· {{ photo.date_label }}</span>{% endif %}
+        {% if date_proposals %}<span class="badge">{{ date_proposals|length }}</span>{% endif %}
+      </summary>
+      <div class="panel-body stack">
+        {% if photo.date_value %}<p>Aceptada: <strong>{{ photo.date_label }}</strong></p>{% endif %}
+        {% if date_proposals %}<ul class="proposals">{% for proposal in date_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        <form method="post" class="stack date-form" action="{% url 'propose_date' photo.pk %}" hx-post="{% url 'propose_date' photo.pk %}">
+          {% csrf_token %}
+          <div class="field">
+            <label for="date-precision">Precisión</label>
+            <select id="date-precision" name="precision" data-date-precision>
+              <option value="year">Año</option>
+              <option value="decade">Década</option>
+              <option value="exact">Fecha exacta</option>
+            </select>
+          </div>
+          <div class="field" data-date-field="year">
+            <label for="date-year">Año</label>
+            <input type="number" id="date-year" name="year" min="1800" max="2100" inputmode="numeric" placeholder="1985">
+          </div>
+          <div class="field" data-date-field="exact" hidden>
+            <label for="date-exact">Fecha</label>
+            <input type="date" id="date-exact" name="date">
+          </div>
+          <button type="submit" class="button primary">Proponer fecha</button>
+        </form>
+      </div>
+    </details>
+  </aside>
+</div>

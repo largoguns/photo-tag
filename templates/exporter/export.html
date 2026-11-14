@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Exportación{% endblock %}
+{% block content %}
+<p><a href="{% url 'admin_home' %}">← Administración</a></p>
+<h1>Exportación a Immich</h1>
+<section class="card stack">
+  <p><strong>{{ pending_photos }}</strong> foto{{ pending_photos|pluralize }} catalogada{{ pending_photos|pluralize }} con cambios pendientes de exportar.</p>
+  <form method="post" action="{% url 'export_start' %}">
+    {% csrf_token %}<button type="submit" class="button primary">Exportar ahora</button>
+  </form>
+  <p class="muted">El worker escribe las fotos y sus ficheros XMP en <code>/data/export</code>. Después, reescanea la biblioteca externa en Immich.</p>
+</section>
+<h2>Exportaciones recientes</h2>
+<ul class="list">
+  {% for req in requests %}
+  <li class="list-item">
+    <div class="list-main">
+      <strong>{{ req.requested_at|date:"d/m/Y H:i" }}</strong> <span class="badge">{{ req.get_status_display }}</span>
+      <div class="meta muted">por {{ req.requested_by|default:"sistema" }}{% if req.finished_at %} · {{ req.exported_count }} exportada{{ req.exported_count|pluralize }}{% endif %}{% if req.error %} · {{ req.error }}{% endif %}</div>
+    </div>
+  </li>
+  {% empty %}<li class="empty">Todavía no se ha exportado nada.</li>{% endfor %}
+</ul>
+{% endblock %}
