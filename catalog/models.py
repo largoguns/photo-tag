@@ -44,6 +44,10 @@ def review_reason_label(reason):
         return gettext("Relación de aspecto anómala")
     if code == "overlap":
         return gettext("Recortes solapados")
+    if code == "orientation":
+        return gettext("Orientación dudosa: comprueba si alguna foto está girada")
+    if code == "duplicate":
+        return gettext("Posible duplicado de la foto %(photo)s") % {"photo": reason.get("photo")}
     return str(code)
 
 
@@ -75,6 +79,19 @@ class Photo(models.Model):
         max_length=20, choices=Status.choices, default=Status.PENDING, db_index=True
     )
     discarded = models.BooleanField(_("recorte descartado"), default=False, db_index=True)
+    # Clockwise degrees (0/90/180/270) already applied to the file, and still to apply.
+    rotation = models.PositiveSmallIntegerField(_("giro aplicado"), default=0)
+    pending_rotation = models.PositiveSmallIntegerField(_("giro pendiente"), default=0)
+    # Perceptual hash (dHash, 64 bits as hex) to spot re-scans and recompressed copies.
+    phash = models.CharField(max_length=16, blank=True, db_index=True)
+    duplicate_of = models.ForeignKey(
+        "self",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="possible_duplicates",
+        verbose_name=_("posible duplicado de"),
+    )
 
     # Accepted cataloging values (set only by the voting service).
     event_type = models.ForeignKey(
@@ -221,13 +238,23 @@ class Face(models.Model):
 
 class EventTypeQuerySet(models.QuerySet):
     def enabled(self):
-        return self.filter(active=True)
+        return self.filter(active=True, is_provisional=False)
 
 
 class EventType(models.Model):
     name = models.CharField(_("nombre"), max_length=100, unique=True)
     # Optional English name for the interface; XMP export always uses `name`.
     name_en = models.CharField(_("nombre en inglés"), max_length=100, blank=True)
+    # Created by a user's "Other…" proposal; permanent once that proposal is accepted.
+    is_provisional = models.BooleanField(_("pendiente de votación"), default=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_event_types",
+        verbose_name=_("propuesto por"),
+    )
     active = models.BooleanField(_("activo"), default=True)
     order = models.PositiveSmallIntegerField(_("orden"), default=0)
 
@@ -305,7 +332,7 @@ class Proposal(models.Model):
         if self.kind == self.Kind.FACE_IDENTITY:
             return self.person.display_name if self.person else gettext("(persona eliminada)")
         if self.kind == self.Kind.EVENT:
-            name = str(self.event_type) if self.event_type else "?"
+            name = str(self.event_type) if self.event_type else self.value.get("event_name", "?")
             description = self.value.get("description")
             return f"{name} — {description}" if description else name
         if self.kind == self.Kind.DATE:

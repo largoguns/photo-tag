@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import CatalogSettings, EventType, Face, Person, Photo, Proposal, Vote
-from catalog.services.names import name_key, normalize_name
+from catalog.services.names import name_key, normalize_label, normalize_name
 
 Kind = Proposal.Kind
 Status = Proposal.Status
@@ -34,6 +34,18 @@ def resolve_person(name, user):
         if name_key(person.display_name) == key:
             return Person.objects.get(pk=person.pk)
     return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
+
+
+def resolve_event_type(name, user):
+    """Existing event type by name (any language, ignoring accents) or a new provisional one."""
+    label = normalize_label(name)[:100]
+    if not label:
+        raise ValidationError(_("Escribe qué evento es."))
+    key = name_key(label)
+    for event_type in EventType.objects.order_by("-active", "id"):
+        if key in (name_key(event_type.name), name_key(event_type.name_en)):
+            return event_type
+    return EventType.objects.create(name=label, created_by=user, is_provisional=True, order=900)
 
 
 def normalize_date(precision, year, month=None, day=None):
@@ -90,7 +102,16 @@ def _find_duplicate(photo, kind, face, person, event_type, value):
 
 @transaction.atomic
 def create_proposal(
-    user, photo, kind, *, face=None, person=None, person_name=None, event_type=None, value=None
+    user,
+    photo,
+    kind,
+    *,
+    face=None,
+    person=None,
+    person_name=None,
+    event_type=None,
+    event_name=None,
+    value=None,
 ):
     """Create a proposal (counting as the author's +1) and evaluate it.
 
@@ -111,9 +132,15 @@ def create_proposal(
             if face.person_id == person.pk:
                 raise ValidationError(_("Esa persona ya está aceptada para esta cara."))
     elif kind == Kind.EVENT:
+        if event_name and event_name.strip():
+            event_type = resolve_event_type(event_name, user)
         if event_type is None:
             raise ValidationError(_("Falta el tipo de evento."))
-        value = {"description": " ".join(value.get("description", "").split())[:255]}
+        value = {
+            "description": " ".join(value.get("description", "").split())[:255],
+            # Kept so the proposal still reads well if a provisional type is removed.
+            "event_name": event_type.name,
+        }
         if photo.event_type_id == event_type.pk and photo.event_description == value["description"]:
             raise ValidationError(_("Ese evento ya está aceptado."))
     elif kind == Kind.DATE:
@@ -262,6 +289,9 @@ def _accept(proposal):
     elif proposal.kind == Kind.EVENT:
         photo.event_type = proposal.event_type
         photo.event_description = proposal.value.get("description", "")
+        if proposal.event_type.is_provisional:
+            proposal.event_type.is_provisional = False
+            proposal.event_type.save(update_fields=["is_provisional"])
     elif proposal.kind == Kind.DATE:
         value = proposal.value
         photo.date_precision = value["precision"]
@@ -286,6 +316,7 @@ def _accept(proposal):
     for other in others:
         _close(other, Status.SUPERSEDED)
         _cleanup_provisional_person(other.person)
+        _cleanup_provisional_event_type(other.event_type)
 
     _mark_changed(photo)
 
@@ -299,6 +330,7 @@ def _reject(proposal):
             status=Status.SUPERSEDED, decided_at=timezone.now()
         )
     _cleanup_provisional_person(proposal.person)
+    _cleanup_provisional_event_type(proposal.event_type)
     photo = Photo.objects.select_for_update().get(pk=proposal.photo_id)
     refresh_photo_status(photo)
 
@@ -316,6 +348,21 @@ def _cleanup_provisional_person(person):
     )
     if not in_use:
         person.delete()
+
+
+def _cleanup_provisional_event_type(event_type):
+    """Delete a user-proposed event type whose proposals did not succeed."""
+    if event_type is None or not event_type.is_provisional:
+        return
+    event_type.refresh_from_db()
+    in_use = (
+        event_type.photos.exists()
+        or event_type.proposals.filter(status__in=[Status.OPEN, Status.ACCEPTED]).exists()
+    )
+    if not in_use:
+        # Closed proposals keep the name in value["event_name"].
+        event_type.proposals.update(event_type=None)
+        event_type.delete()
 
 
 def _mark_changed(photo):

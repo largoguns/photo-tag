@@ -40,7 +40,7 @@ def event_types(request):
     return render(
         request,
         "catalog/admin/event_types.html",
-        {"form": form, "event_types": EventType.objects.all()},
+        {"form": form, "event_types": EventType.objects.select_related("created_by")},
     )
 
 
@@ -72,7 +72,9 @@ def thresholds(request):
 
 @admin_required
 def review_queue(request):
-    scans = Scan.objects.filter(needs_review=True, reviewed=False).prefetch_related("photos")
+    scans = Scan.objects.filter(needs_review=True, reviewed=False).prefetch_related(
+        "photos__duplicate_of"
+    )
     return render(request, "catalog/admin/review_queue.html", {"scans": scans})
 
 
@@ -96,6 +98,16 @@ def photo_toggle_discard(request, pk):
     photo.discarded = not photo.discarded
     photo.save(update_fields=["discarded"])
     audit.log(request.user, "photo.discard" if photo.discarded else "photo.restore", photo)
+    return redirect("admin_review_queue")
+
+
+@admin_required
+@require_POST
+def photo_not_duplicate(request, pk):
+    photo = get_object_or_404(Photo, pk=pk)
+    original = photo.duplicate_of_id
+    Photo.objects.filter(pk=pk).update(duplicate_of=None)
+    audit.log(request.user, "photo.not_duplicate", photo, original=original)
     return redirect("admin_review_queue")
 
 

@@ -37,3 +37,17 @@ def name_key(name):
     """Comparison key: no accents, case-folded, single spaces ('Adrián' == 'adrian')."""
     decomposed = unicodedata.normalize("NFKD", " ".join(str(name).split()))
     return "".join(c for c in decomposed if not unicodedata.combining(c)).casefold()
+
+
+def normalize_label(text):
+    """Sentence case for labels such as event types: 'fin de CURSO' → 'Fin de CURSO'.
+
+    Only the first letter is forced to upper case; text typed ALL IN CAPS is lowered first.
+    """
+    text = " ".join(str(text).split())
+    if not text:
+        return ""
+    letters = [c for c in text if c.isalpha()]
+    if letters and all(c.isupper() for c in letters):
+        text = text.lower()
+    return text[0].upper() + text[1:]

@@ -7,7 +7,7 @@
   <ul class="list">
     {% for event in event_types %}
     <li class="list-item{% if not event.active %} inactive{% endif %}">
-      <div class="list-main"><strong>{{ event.name }}</strong>{% if event.name_en %} <span class="muted" lang="en">/ {{ event.name_en }}</span>{% endif %} {% if not event.active %}<span class="badge off">{% translate "Inactivo" %}</span>{% endif %}<div class="meta muted">{% blocktranslate with order=event.order %}Orden {{ order }}{% endblocktranslate %}</div></div>
+      <div class="list-main"><strong>{{ event.name }}</strong>{% if event.name_en %} <span class="muted" lang="en">/ {{ event.name_en }}</span>{% endif %} {% if not event.active %}<span class="badge off">{% translate "Inactivo" %}</span>{% endif %}{% if event.is_provisional %} <span class="badge warn">{% translate "Pendiente de votación" %}</span>{% endif %}{% if event.created_by %} <span class="badge">{% blocktranslate with user=event.created_by %}Propuesto por {{ user }}{% endblocktranslate %}</span>{% endif %}<div class="meta muted">{% blocktranslate with order=event.order %}Orden {{ order }}{% endblocktranslate %}</div></div>
       <a class="button small" href="{% url 'admin_event_type_edit' event.pk %}">{% translate "Editar" %}</a>
     </li>
     {% endfor %}
