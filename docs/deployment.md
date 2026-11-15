@@ -285,6 +285,14 @@ y después, en Portainer, **Stacks → phototag → Stop** y **Start** (o *Updat
 
 Las variables de entorno se cambian en la misma pantalla del stack (**Environment variables**) y se aplican con **Update the stack**.
 
+**Al estrenar la gamificación** (niveles y ranking), ejecuta una vez en la consola del contenedor `worker` el cálculo de puntos de lo que la familia ya ha hecho:
+
+```bash
+python manage.py rebuild_scores
+```
+
+Recalcula todo desde el historial y no envía avisos. Se puede repetir sin riesgo: siempre da el mismo resultado.
+
 ---
 
 ## 9. Copias de seguridad

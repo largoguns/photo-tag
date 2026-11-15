@@ -195,6 +195,8 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
 | `Vote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
+| `ScoreEvent` | usuario, motivo, puntos, objeto (tipo e id), fecha. Único por (usuario, motivo, objeto) |
+| `Achievement` | usuario, código del logro, fecha. Único por (usuario, código) |
 
 Coordenadas de las caras en píxeles de la foto recortada (esquina superior izquierda + ancho y alto).
 
@@ -273,6 +275,34 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 - **Escaneos terminados** (preferencia «Mis escaneos terminados», activada por defecto): quien pulsa «Escanear» recibe un aviso **inmediato**, sin agrupar ni horas de silencio, cuando el escaneo ya está procesado («4 fotos listas del escaneo de las 13:10», que abre la primera foto), si era un duplicado o si falló (con el motivo, abre la pantalla de escaneo). No se muestra si la pantalla de escaneo está a la vista, porque ya enseña el resultado.
 - Las suscripciones caducadas (respuesta 404/410 del servicio push) se eliminan. Sin claves VAPID configuradas la función queda desactivada.
 - Envío con `pywebpush`. Las claves se generan con `python manage.py generate_vapid_keys`.
+
+### 5.10 Gamificación (app `gamification`)
+
+Para animar a la familia a subir, proponer y votar. **Solo participan los colaboradores**; el superadmin (y el rol administrador, que se deprecará) no puntúan.
+
+- **Puntos por resultados**, nunca por clics (tabla `ScoreEvent`, única por usuario, motivo y objeto: nada puntúa dos veces):
+
+| Motivo | Puntos |
+|---|---|
+| Foto subida y procesada (no si es posible duplicado; se retira si se descarta o se borra) | 5 |
+| Identidad aceptada (10 si venía de una sugerencia automática) | 20 |
+| Fecha o evento aceptados | 10 |
+| Cara nueva aceptada | 15 |
+| Falso positivo aceptado | 5 |
+| Primera identidad aceptada de una persona en todo el álbum | +15 |
+| Voto que coincide con el resultado (tope de 20 puntos de votos al día) | 2 |
+
+  No cuenta el +1 automático del autor. Rechazar no resta, pero baja el **acierto** (aceptadas / cerradas). Si una propuesta aceptada la sustituye después otra, sus puntos se retiran; al borrar una foto se retiran los de la foto, sus propuestas y sus votos. Un fallo al puntuar nunca interrumpe la votación ni el procesado.
+- **Niveles**: Curioso (0), Aprendiz de archivero (50), Archivero (150), Detective de familia (400), Cronista (900), Memoria de la familia (1800) y Guardián del álbum (3500).
+- **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta) y Racha (7 días seguidos proponiendo o votando).
+- **Avisos**: push inmediato al subir de nivel o conseguir un logro (preferencia «Mis niveles y logros»).
+- **Ranking** (`/ranking/`, visible para todos): esta semana, este mes y total, con podio de los tres primeros. El detalle de puntos de cada colaborador solo lo ve el superadmin (pestaña «Puntos» de la auditoría).
+- **Inicio**: tarjeta «Tu nivel» con el progreso y, para todos, la meta colectiva con mensajes al 25, 50, 75 y 100 % del álbum catalogado. **Mi perfil**: «Tu progreso» con nivel, acierto y logros.
+- `python manage.py rebuild_scores` recalcula todo desde el historial, sin avisos (al estrenar la función).
+
+### 5.11 Identificarse como persona
+
+Un usuario puede decir «esta persona del álbum soy yo» con el botón **«Soy yo»** de la ficha de la persona (inmediato, queda en la auditoría; el superadmin puede deshacerlo desde la ficha del usuario). Una persona ya vinculada a otro usuario no se puede elegir. Vinculado, en «Mi perfil → Tú en el álbum» elige cualquiera de sus caras como **foto de perfil** (`User.avatar_face`), que solo cambia su avatar (menú, ranking, auditoría), no la foto principal de la persona. Si esa cara deja de ser suya, se usa la foto principal de la persona.
 
 ## 6. Exportación a Immich (app `exporter`)
 
