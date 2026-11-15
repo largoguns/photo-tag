@@ -62,6 +62,7 @@ Para cada escaneo:
 3. Operaciones morfológicas (cierre) para rellenar huecos dentro de cada foto.
 4. Detectar contornos externos (`cv2.findContours`) y descartar los de área menor que `MIN_PHOTO_AREA_RATIO` (por defecto, 3 % del A4).
 5. Para cada contorno válido, obtener el rectángulo mínimo rotado (`cv2.minAreaRect`) y aplicar transformación de perspectiva para obtener la foto recta.
+5b. **Fotos pegadas**: si un rectángulo es demasiado alargado para ser una sola copia (proporción mayor de 1,7), se busca en su zona central una línea recta que lo cruce (un borde continuo de al menos el 40 % del ancho y 4 veces más largo que los típicos de la imagen). Si existe, se parte por ella; en copias con marco se corta en el centro, entre los bordes interiores de ambos marcos. Se repite hasta dos niveles y el escaneo va a revisión («fotos pegadas separadas automáticamente»).
 6. Recortar un margen interior configurable (`CROP_INSET_PX`, por defecto 4 px) para eliminar restos del fondo.
 6b. **Orientación**: para detectar fotos colocadas de lado o boca abajo, se prueban las cuatro orientaciones (0°, 90°, 180° y 270°) con YuNet sobre una copia reducida. La foto se gira si una orientación distinta de 0° suma una confianza en caras ≥ `ORIENTATION_MIN_SCORE` (0.8) y supera a la siguiente en un factor ≥ `ORIENTATION_MARGIN` (1.5). Si gana sin margen suficiente, no se gira y el escaneo va a revisión. Las fotos sin caras no se tocan. El giro aplicado se guarda en `Photo.rotation`.
 6c. **Posibles duplicados**: se calcula un hash perceptual (dHash de 64 bits, ignorando imágenes sin detalle) y se compara, en las cuatro orientaciones, con el de las fotos existentes. Con una distancia de Hamming ≤ `DUPLICATE_MAX_DISTANCE` (6), la foto se marca como posible duplicado de la más antigua (`Photo.duplicate_of`) y el escaneo va a revisión. El comando `python manage.py find_duplicates` lo aplica a las fotos ya procesadas.
@@ -76,6 +77,7 @@ Marcar el `Scan` con `needs_review = True` cuando:
 - Se detecten menos de 1 o más de 6 fotos.
 - Algún contorno tenga una relación de aspecto anómala (mayor de 4:1).
 - Dos rectángulos se solapen.
+- Se hayan separado fotos pegadas (5b).
 - La orientación de alguna foto sea dudosa (6b).
 - Alguna foto sea un posible duplicado (6c). En la cola se ven las dos fotos juntas y se puede descartar la copia o marcar «No es duplicado».
 
@@ -106,6 +108,8 @@ Cuando el recorte automático no acierta (bordes de anchura variable, esquinas r
 - **Editor**: muestra la foto recta y girada como se ve, sobre el **escaneo original** que la rodea, con un recuadro de 4 bordes y 4 esquinas arrastrables (también hacia fuera, para recuperar lo que se cortó) y un deslizador **Enderezar** de ±10° (pasos de 0,1°). Al enderezar, el recuadro se reduce lo justo para no salirse del escaneo. No se permite un recuadro fuera del escaneo ni menor de 64 px.
 - **Vista previa del escaneo**: el `worker` guarda una copia reducida (2000 px de lado mayor) en `/data/photos/previews/<sha256>.jpg` al procesar, y genera las que falten de escaneos antiguos en una tarea periódica. Se sirve solo a administradores con sesión, nunca como estático público. En las subidas de una sola foto el escaneo es la propia foto: solo se puede recortar hacia dentro.
 - **Aplicación**: la web solo registra el recorte pedido (`Photo.pending_crop`, en píxeles del escaneo); el `worker` lo aplica en unos segundos desde el original: rehace la foto y sus miniaturas, traslada las caras con intervención humana (persona, dibujadas o con propuestas), vuelve a detectar las automáticas, recalcula huellas y phash y marca la foto para reexportar. Mientras tanto, la vista de foto muestra «Aplicando el recorte…».
+- **Modo Perspectiva** (fotos de una copia en papel hechas con el móvil): se muestra la imagen original entera, girada como la foto, con 4 esquinas libres que se llevan a las de la copia; una lupa ampliada ayuda a afinar al arrastrar. Al guardar, la foto se aplana con una transformación de perspectiva (`Photo.crop_quad`). El cuadrilátero debe ser convexo, estar dentro de la imagen y tener lados de al menos 64 px. Una foto con recorte en perspectiva solo se edita en este modo.
+- **Detección de esquinas**: en las subidas de una sola foto el modo Perspectiva arranca con las esquinas de la copia detectadas automáticamente (bordes y contornos de 4 vértices con OpenCV sobre la vista previa), y el botón «Detectar esquinas» lo repite en cualquier foto. Es solo una sugerencia: nunca se recorta nada sin que un administrador lo guarde.
 - El recorte queda marcado como manual (`Photo.crop_manual`) y **se respeta al reprocesar** el escaneo con `--force`.
 - Queda en la auditoría (`photo.crop`).
 
@@ -182,7 +186,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 |---|---|
 | `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable), ancho y alto del original |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
-| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable) |
+| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, cuadrilátero de perspectiva (nullable), recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable) |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
 | `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
