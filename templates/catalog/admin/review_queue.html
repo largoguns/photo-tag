@@ -15,11 +15,11 @@
   <ul class="photo-grid">
     {% for photo in scan.photos.all %}
     <li class="photo-card{% if photo.discarded %} discarded{% endif %}">
-      <img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }}" alt="{% blocktranslate with index=photo.index %}Recorte {{ index }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
+      <img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.image_version }}" alt="{% blocktranslate with index=photo.index %}Recorte {{ index }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
       {% if photo.duplicate_of %}
       <div class="duplicate-pair">
         <span class="muted">{% icon "content_copy" %} {% blocktranslate with id=photo.duplicate_of_id %}Posible duplicado de la foto {{ id }}{% endblocktranslate %}</span>
-        <a href="{% url 'photo_detail' photo.duplicate_of_id %}"><img src="{% url 'photo_image' photo.duplicate_of_id 400 %}?v={{ photo.duplicate_of.rotation }}" alt="{% blocktranslate with id=photo.duplicate_of_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy"></a>
+        <a href="{% url 'photo_detail' photo.duplicate_of_id %}"><img src="{% url 'photo_image' photo.duplicate_of_id 400 %}?v={{ photo.duplicate_of.image_version }}" alt="{% blocktranslate with id=photo.duplicate_of_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy"></a>
         <form method="post" action="{% url 'admin_photo_not_duplicate' photo.pk %}">
           {% csrf_token %}<button type="submit" class="button small">{% translate "No es duplicado" %}</button>
         </form>

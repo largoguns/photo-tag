@@ -21,7 +21,7 @@
       {% elif result_photos %}
       <ul class="photo-grid">
         {% for photo in result_photos %}
-        <li class="photo-card"><a href="{% url 'photo_detail' photo.pk %}"><img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}"></a></li>
+        <li class="photo-card"><a href="{% url 'photo_detail' photo.pk %}"><img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.image_version }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}"></a></li>
         {% endfor %}
       </ul>
       {% elif job.upload %}

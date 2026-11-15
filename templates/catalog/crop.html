@@ -1,0 +1,45 @@
+{% extends "base.html" %}{% load i18n l10n catalog_tags %}
+{% block title %}{% translate "Recortar foto" %}{% endblock %}
+{% block content %}
+{% translate "Recortar foto" as page_title %}{% translate "Volver a la foto" as back_label %}{% url 'photo_detail' photo.pk as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+{% if error %}<p class="message message-error" role="alert">{{ error }}</p>{% endif %}
+{% if photo.pending_crop %}<p class="message" role="status">{% icon "crop" %} {% translate "Hay un recorte pendiente de aplicar. Si guardas otro, lo sustituye." %}</p>{% endif %}
+
+{% if not ready %}
+<section class="card stack">
+  <p>{% translate "Se está preparando la vista del escaneo original para poder recortar. Vuelve a intentarlo en un minuto." %}</p>
+  <div class="actions"><a class="button" href="{{ request.path }}">{% translate "Reintentar" %}</a></div>
+</section>
+{% else %}
+<div class="crop-editor" data-crop-editor>
+  <p class="muted crop-hint">{% translate "Arrastra los bordes o las esquinas del recuadro. Puedes ampliarlo para recuperar lo que se cortó." %}</p>
+  <div class="crop-stage">
+    <canvas class="crop-canvas" data-crop-canvas role="img" aria-label="{% translate 'Recorte sobre el escaneo original' %}"></canvas>
+    <img data-crop-preview src="{% url 'scan_preview' photo.scan_id %}" alt="" hidden>
+  </div>
+  <form method="post" class="crop-controls stack">
+    {% csrf_token %}
+    <input type="hidden" name="x0" data-crop-field="x0">
+    <input type="hidden" name="y0" data-crop-field="y0">
+    <input type="hidden" name="x1" data-crop-field="x1">
+    <input type="hidden" name="y1" data-crop-field="y1">
+    <input type="hidden" name="angle" data-crop-field="angle">
+    <div class="crop-angle">
+      <label for="crop-angle">{% translate "Enderezar" %}</label>
+      <button type="button" class="button text icon-only" data-crop-step="-0.1" aria-label="{% translate 'Girar 0,1° a la izquierda' %}">−</button>
+      <input type="range" id="crop-angle" data-crop-angle min="-{{ crop.maxAngle|unlocalize }}" max="{{ crop.maxAngle|unlocalize }}" step="0.1" value="0">
+      <button type="button" class="button text icon-only" data-crop-step="0.1" aria-label="{% translate 'Girar 0,1° a la derecha' %}">+</button>
+      <output for="crop-angle" data-crop-angle-value>0,0°</output>
+    </div>
+    <p class="message message-warning" data-crop-outside hidden>{% translate "El recuadro se sale del escaneo: ajústalo antes de guardar." %}</p>
+    <div class="actions crop-actions">
+      <button type="button" class="button" data-crop-reset>{% icon "restart_alt" %}{% translate "Restablecer" %}</button>
+      <a class="button text" href="{{ back_url }}">{% translate "Cancelar" %}</a>
+      <button type="submit" class="button primary" data-crop-save>{% icon "check" %}{% translate "Guardar recorte" %}</button>
+    </div>
+  </form>
+</div>
+{{ crop|json_script:"crop-data" }}
+{% endif %}
+{% endblock %}

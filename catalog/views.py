@@ -16,7 +16,7 @@ from PIL import Image
 from accounts.permissions import admin_required
 from accounts.services import audit
 from catalog import presenters
-from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
+from catalog.models import EventType, Face, Person, Photo, Proposal, Scan, Vote
 from catalog.services import avatars, names, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
@@ -409,6 +409,64 @@ def rotate_photo(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
     request_rotation(request.user, photo)
     return _after_action(request, photo)
+
+
+@admin_required
+def crop_photo(request, pk):
+    """Editor to move the edges of a photo over its scan and straighten it."""
+    from scanner.services import recrop
+
+    photo = get_object_or_404(Photo.objects.select_related("scan"), pk=pk)
+    error = None
+    if request.method == "POST":
+        try:
+            box = [float(request.POST[k]) for k in ("x0", "y0", "x1", "y1")]
+            angle = float(request.POST["angle"])
+            recrop.request_crop(request.user, photo, box, angle)
+        except (KeyError, ValueError):
+            error = _("No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño.")
+        else:
+            messages.success(request, _("Recorte guardado. Se aplica en unos segundos."))
+            return redirect("photo_detail", pk=photo.pk)
+    rect = photo.crop_rect
+    return render(
+        request,
+        "catalog/crop.html",
+        {
+            "photo": photo,
+            "ready": recrop.editor_ready(photo),
+            "error": error,
+            "crop": {
+                "cx": rect.get("cx"),
+                "cy": rect.get("cy"),
+                "w": rect.get("w"),
+                "h": rect.get("h"),
+                "angle": rect.get("angle", 0),
+                "inset": recrop.inset(photo) if rect.get("w") else 0,
+                "rotation": photo.rotation,
+                "width": photo.width,
+                "height": photo.height,
+                "scanWidth": photo.scan.width,
+                "scanHeight": photo.scan.height,
+                "maxAngle": recrop.MAX_STRAIGHTEN,
+                "minSide": recrop.MIN_SIDE,
+            },
+        },
+        status=400 if error else 200,
+    )
+
+
+@admin_required
+def scan_preview(request, pk):
+    from scanner.services.images import preview_path
+
+    scan = get_object_or_404(Scan, pk=pk)
+    path = preview_path(scan.sha256)
+    if not path.exists():
+        raise Http404
+    response = FileResponse(path.open("rb"), content_type="image/jpeg")
+    response["Cache-Control"] = IMAGE_CACHE
+    return response
 
 
 @require_POST

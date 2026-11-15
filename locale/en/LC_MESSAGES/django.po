@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 13:43+0100\n"
+"POT-Creation-Date: 2026-11-15 15:16+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -80,7 +80,7 @@ msgstr "Light"
 msgid "Oscuro"
 msgstr "Dark"
 
-#: accounts/models.py:22 catalog/models.py:143
+#: accounts/models.py:22 catalog/models.py:152
 msgid "nombre a mostrar"
 msgstr "display name"
 
@@ -191,7 +191,7 @@ msgstr "Merge into (is kept)"
 msgid "Elige dos personas distintas."
 msgstr "Choose two different people."
 
-#: catalog/models.py:12 catalog/models.py:71
+#: catalog/models.py:12 catalog/models.py:74
 msgid "fichero"
 msgstr "file"
 
@@ -207,90 +207,94 @@ msgstr "needs review"
 msgid "revisado"
 msgstr "reviewed"
 
-#: catalog/models.py:24
+#: catalog/models.py:27
 msgid "subido por"
 msgstr "uploaded by"
 
-#: catalog/models.py:42
+#: catalog/models.py:45
 #, python-format
 msgid "Se han detectado %(count)s fotos"
 msgstr "%(count)s photos were detected"
 
-#: catalog/models.py:44
+#: catalog/models.py:47
 msgid "Relación de aspecto anómala"
 msgstr "Unusual aspect ratio"
 
-#: catalog/models.py:46
+#: catalog/models.py:49
 msgid "Recortes solapados"
 msgstr "Overlapping crops"
 
-#: catalog/models.py:48
+#: catalog/models.py:51
 msgid "Orientación dudosa: comprueba si alguna foto está girada"
 msgstr "Uncertain orientation: check whether any photo is rotated"
 
-#: catalog/models.py:50
+#: catalog/models.py:53
 #, python-format
 msgid "Posible duplicado de la foto %(photo)s"
 msgstr "Possible duplicate of photo %(photo)s"
 
-#: catalog/models.py:61 exporter/models.py:12
+#: catalog/models.py:64 exporter/models.py:12
 msgid "Pendiente"
 msgstr "Pending"
 
-#: catalog/models.py:62 exporter/models.py:13
+#: catalog/models.py:65 exporter/models.py:13
 msgid "En curso"
 msgstr "In progress"
 
-#: catalog/models.py:63 templates/catalog/_justified_item.html:13
+#: catalog/models.py:66 templates/catalog/_justified_item.html:13
 msgid "Catalogada"
 msgstr "Cataloged"
 
-#: catalog/models.py:66 templates/catalog/_photo_workspace.html:208
+#: catalog/models.py:69 templates/catalog/_photo_workspace.html:214
 msgid "Fecha exacta"
 msgstr "Exact date"
 
-#: catalog/models.py:67 templates/catalog/_photo_workspace.html:212
+#: catalog/models.py:70 templates/catalog/_photo_workspace.html:218
 msgid "Año"
 msgstr "Year"
 
-#: catalog/models.py:68 templates/catalog/gallery.html:17
+#: catalog/models.py:71 templates/catalog/gallery.html:17
 #: templates/catalog/gallery.html:32
 msgid "Década"
 msgstr "Decade"
 
-#: catalog/models.py:72
+#: catalog/models.py:75
 msgid "índice"
 msgstr "index"
 
-#: catalog/models.py:75
+#: catalog/models.py:78
 msgid "ángulo"
 msgstr "angle"
 
-#: catalog/models.py:81
+#: catalog/models.py:84
 msgid "recorte descartado"
 msgstr "discarded crop"
 
-#: catalog/models.py:83
+#: catalog/models.py:86
 msgid "giro aplicado"
 msgstr "applied rotation"
 
-#: catalog/models.py:84
+#: catalog/models.py:87
 msgid "giro pendiente"
 msgstr "pending rotation"
 
-#: catalog/models.py:93
+#: catalog/models.py:91
+msgid "recorte manual"
+msgstr "manual crop"
+
+#: catalog/models.py:102
 msgid "posible duplicado de"
 msgstr "possible duplicate of"
 
-#: catalog/models.py:106
+#: catalog/models.py:115
 msgid "exportada en"
 msgstr "exported at"
 
-#: catalog/models.py:118 templates/catalog/_justified_item.html:7
+#: catalog/models.py:127 templates/catalog/_justified_item.html:7
 #: templates/catalog/_photo_card.html:7
-#: templates/catalog/_photo_workspace.html:25
-#: templates/catalog/_photo_workspace.html:40
-#: templates/catalog/_photo_workspace.html:86
+#: templates/catalog/_photo_workspace.html:30
+#: templates/catalog/_photo_workspace.html:45
+#: templates/catalog/_photo_workspace.html:91
 #: templates/catalog/admin/review_queue.html:22 templates/catalog/home.html:21
 #: templates/catalog/my_activity.html:19 templates/catalog/photo.html:2
 #: templates/scanner/_scan_panel.html:24
@@ -298,159 +302,159 @@ msgstr "exported at"
 msgid "Foto %(id)s"
 msgstr "Photo %(id)s"
 
-#: catalog/models.py:128 catalog/models.py:354 catalog/presenters.py:78
+#: catalog/models.py:137 catalog/models.py:363 catalog/presenters.py:78
 #, python-format
 msgid "Década de %(decade)s"
 msgstr "%(decade)ss"
 
-#: catalog/models.py:144
+#: catalog/models.py:153
 msgid "notas"
 msgstr "notes"
 
-#: catalog/models.py:190
+#: catalog/models.py:199
 msgid "Automática"
 msgstr "Automatic"
 
-#: catalog/models.py:191
+#: catalog/models.py:200
 msgid "Manual"
 msgstr "Manual"
 
-#: catalog/models.py:194
+#: catalog/models.py:203
 msgid "Activa"
 msgstr "Active"
 
-#: catalog/models.py:195
+#: catalog/models.py:204
 msgid "Propuesta"
 msgstr "Proposed"
 
-#: catalog/models.py:196 catalog/models.py:286
+#: catalog/models.py:205 catalog/models.py:295
 msgid "Falso positivo"
 msgstr "False positive"
 
-#: catalog/models.py:197 catalog/models.py:291
+#: catalog/models.py:206 catalog/models.py:300
 msgid "Rechazada"
 msgstr "Rejected"
 
-#: catalog/models.py:226
+#: catalog/models.py:235
 #, python-format
 msgid "Cara %(id)s de %(photo)s"
 msgstr "Face %(id)s of %(photo)s"
 
-#: catalog/models.py:249
+#: catalog/models.py:258
 msgid "nombre"
 msgstr "name"
 
-#: catalog/models.py:251
+#: catalog/models.py:260
 msgid "nombre en inglés"
 msgstr "English name"
 
-#: catalog/models.py:253
+#: catalog/models.py:262
 msgid "pendiente de votación"
 msgstr "awaiting vote"
 
-#: catalog/models.py:260
+#: catalog/models.py:269
 msgid "propuesto por"
 msgstr "proposed by"
 
-#: catalog/models.py:262
+#: catalog/models.py:271
 msgid "activo"
 msgstr "active"
 
-#: catalog/models.py:263
+#: catalog/models.py:272
 msgid "orden"
 msgstr "order"
 
-#: catalog/models.py:282
+#: catalog/models.py:291
 msgid "Identidad de cara"
 msgstr "Face identity"
 
-#: catalog/models.py:283 templates/catalog/_photo_workspace.html:163
+#: catalog/models.py:292 templates/catalog/_photo_workspace.html:169
 #: templates/catalog/gallery.html:14 templates/catalog/gallery.html:32
 msgid "Evento"
 msgstr "Event"
 
-#: catalog/models.py:284 templates/catalog/_photo_workspace.html:195
-#: templates/catalog/_photo_workspace.html:216
+#: catalog/models.py:293 templates/catalog/_photo_workspace.html:201
+#: templates/catalog/_photo_workspace.html:222
 msgid "Fecha"
 msgstr "Date"
 
-#: catalog/models.py:285
+#: catalog/models.py:294
 msgid "Nueva cara"
 msgstr "New face"
 
-#: catalog/models.py:289
+#: catalog/models.py:298
 msgid "Abierta"
 msgstr "Open"
 
-#: catalog/models.py:290
+#: catalog/models.py:299
 msgid "Aceptada"
 msgstr "Accepted"
 
-#: catalog/models.py:292
+#: catalog/models.py:301
 msgid "Sustituida"
 msgstr "Superseded"
 
-#: catalog/models.py:321
+#: catalog/models.py:330
 msgid "Administrador que forzó la decisión, si la hubo."
 msgstr "Administrator who forced the decision, if any."
 
-#: catalog/models.py:337
+#: catalog/models.py:346
 msgid "(persona eliminada)"
 msgstr "(deleted person)"
 
-#: catalog/models.py:345
+#: catalog/models.py:354
 msgid "Añadir esta cara"
 msgstr "Add this face"
 
-#: catalog/models.py:347 templates/catalog/_photo_workspace.html:153
+#: catalog/models.py:356 templates/catalog/_photo_workspace.html:159
 msgid "No es una cara"
 msgstr "Not a face"
 
-#: catalog/models.py:366
+#: catalog/models.py:375
 msgid "A favor"
 msgstr "In favour"
 
-#: catalog/models.py:366
+#: catalog/models.py:375
 msgid "En contra"
 msgstr "Against"
 
-#: catalog/models.py:387
+#: catalog/models.py:396
 msgid "votos mínimos"
 msgstr "minimum votes"
 
-#: catalog/models.py:388
+#: catalog/models.py:397
 msgid "proporción mínima a favor"
 msgstr "minimum share in favour"
 
-#: catalog/models.py:391
+#: catalog/models.py:400
 msgid "ajustes"
 msgstr "settings"
 
-#: catalog/models.py:394
+#: catalog/models.py:403
 msgid "Ajustes del catálogo"
 msgstr "Catalog settings"
 
-#: catalog/models.py:412
+#: catalog/models.py:421
 msgid "Escaneo con varias fotos"
 msgstr "Scan with several photos"
 
-#: catalog/models.py:413
+#: catalog/models.py:422
 msgid "Foto suelta"
 msgstr "Single photo"
 
-#: catalog/models.py:416 scanner/models.py:13
+#: catalog/models.py:425 scanner/models.py:13
 msgid "En cola"
 msgstr "Queued"
 
-#: catalog/models.py:417
+#: catalog/models.py:426
 msgid "Procesada"
 msgstr "Processed"
 
-#: catalog/models.py:418
+#: catalog/models.py:427
 msgid "Ya estaba subida"
 msgstr "Already uploaded"
 
-#: catalog/models.py:419
+#: catalog/models.py:428
 msgid "Error al procesar"
 msgstr "Processing failed"
 
@@ -553,6 +557,15 @@ msgstr "No uncataloged photos left!"
 #: catalog/views.py:369
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
+
+#: catalog/views.py:427
+msgid ""
+"No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
+msgstr "That crop is not possible: the box goes outside the scan or is too small."
+
+#: catalog/views.py:429
+msgid "Recorte guardado. Se aplica en unos segundos."
+msgstr "Crop saved. It will be applied in a few seconds."
 
 #: exporter/apps.py:8 templates/exporter/export.html:2
 msgid "Exportación"
@@ -689,7 +702,7 @@ msgstr "Error"
 msgid "resolución"
 msgstr "resolution"
 
-#: scanner/services/scanning.py:68
+#: scanner/services/scanning.py:72
 msgid ""
 "El software de escaneo del servidor no admite una opción. Revisa los logs "
 "del worker."
@@ -697,34 +710,34 @@ msgstr ""
 "The server scanning software does not support an option. Check the worker "
 "logs."
 
-#: scanner/services/scanning.py:72
+#: scanner/services/scanning.py:76
 msgid ""
 "No se encuentra el escáner: revisa SCANNER_URL y que la impresora esté en la "
 "red."
 msgstr ""
 "Scanner not found: check SCANNER_URL and that the printer is on the network."
 
-#: scanner/services/scanning.py:75
+#: scanner/services/scanning.py:79
 msgid "El escáner está ocupado. Espera a que termine y vuelve a intentarlo."
 msgstr "The scanner is busy. Wait for it to finish and try again."
 
-#: scanner/services/scanning.py:77
+#: scanner/services/scanning.py:81
 msgid "Revisa el escáner: la tapa, el papel o el cristal."
 msgstr "Check the scanner: the lid, the paper or the glass."
 
-#: scanner/services/scanning.py:78
+#: scanner/services/scanning.py:82
 msgid "La impresora no responde: ¿está encendida y conectada a la WiFi?"
 msgstr "The printer is not responding: is it on and connected to the WiFi?"
 
-#: scanner/services/scanning.py:127
+#: scanner/services/scanning.py:143
 msgid "El escaneo ha tardado demasiado. ¿Sigue encendida la impresora?"
 msgstr "The scan took too long. Is the printer still on?"
 
-#: scanner/services/scanning.py:130
+#: scanner/services/scanning.py:146
 msgid "Este servidor no tiene instalado el software de escaneo."
 msgstr "This server does not have the scanning software installed."
 
-#: scanner/services/scanning.py:186
+#: scanner/services/scanning.py:202
 msgid "Error inesperado al escanear."
 msgstr "Unexpected error while scanning."
 
@@ -900,10 +913,10 @@ msgstr ""
 "The user will have to change the password when signing in for the first time."
 
 #: templates/accounts/user_form.html:13 templates/base.html:119
-#: templates/catalog/_photo_workspace.html:69
+#: templates/catalog/_photo_workspace.html:74
 #: templates/catalog/admin/event_type_form.html:12
 #: templates/catalog/admin/merge.html:15
-#: templates/catalog/admin/thresholds.html:13
+#: templates/catalog/admin/thresholds.html:13 templates/catalog/crop.html:38
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -964,7 +977,7 @@ msgstr ""
 "Reset the password of %(username)s to the generic one? They will have to "
 "change it next time they sign in."
 
-#: templates/accounts/user_list.html:30
+#: templates/accounts/user_list.html:30 templates/catalog/crop.html:37
 msgid "Restablecer"
 msgstr "Reset"
 
@@ -1096,7 +1109,7 @@ msgid "Confirmar"
 msgstr "Confirm"
 
 #: templates/catalog/_filter_sheet.html:6
-#: templates/catalog/_photo_workspace.html:53
+#: templates/catalog/_photo_workspace.html:58
 #: templates/catalog/person_detail.html:53
 msgid "Cerrar"
 msgstr "Close"
@@ -1121,148 +1134,156 @@ msgstr "Photo"
 msgid "Aplicando el giro…"
 msgstr "Rotating…"
 
-#: templates/catalog/_photo_workspace.html:12
+#: templates/catalog/_photo_workspace.html:10
+msgid "Aplicando el recorte…"
+msgstr "Applying the crop…"
+
+#: templates/catalog/_photo_workspace.html:17
 #, python-format
 msgid "Posible duplicado de la <a href=\"%(original_url)s\">foto %(id)s</a>."
 msgstr "Possible duplicate of <a href=\"%(original_url)s\">photo %(id)s</a>."
 
-#: templates/catalog/_photo_workspace.html:19
+#: templates/catalog/_photo_workspace.html:24
 msgid "Toca la foto para verla a pantalla completa"
 msgstr "Tap the photo to see it full screen"
 
-#: templates/catalog/_photo_workspace.html:30
-#: templates/catalog/_photo_workspace.html:45
+#: templates/catalog/_photo_workspace.html:35
+#: templates/catalog/_photo_workspace.html:50
 #, python-format
 msgid "Cara %(number)s"
 msgstr "Face %(number)s"
 
-#: templates/catalog/_photo_workspace.html:37
+#: templates/catalog/_photo_workspace.html:42
 msgid "Foto a pantalla completa"
 msgstr "Full-screen photo"
 
-#: templates/catalog/_photo_workspace.html:55
+#: templates/catalog/_photo_workspace.html:60
 msgid "Mostrar caras"
 msgstr "Show faces"
 
-#: templates/catalog/_photo_workspace.html:58
+#: templates/catalog/_photo_workspace.html:63
 msgid "Acercar"
 msgstr "Zoom in"
 
-#: templates/catalog/_photo_workspace.html:59
+#: templates/catalog/_photo_workspace.html:64
 msgid "Alejar"
 msgstr "Zoom out"
 
-#: templates/catalog/_photo_workspace.html:66
+#: templates/catalog/_photo_workspace.html:71
 msgid "¿Proponer este recuadro como una cara nueva?"
 msgstr "Propose this box as a new face?"
 
-#: templates/catalog/_photo_workspace.html:68
+#: templates/catalog/_photo_workspace.html:73
 msgid "Proponer cara"
 msgstr "Propose face"
 
-#: templates/catalog/_photo_workspace.html:74
+#: templates/catalog/_photo_workspace.html:79
 msgid "Foto anterior"
 msgstr "Previous photo"
 
-#: templates/catalog/_photo_workspace.html:75
+#: templates/catalog/_photo_workspace.html:80
 msgid "Dibujar cara"
 msgstr "Draw face"
 
-#: templates/catalog/_photo_workspace.html:76
+#: templates/catalog/_photo_workspace.html:81
 msgid "Pantalla completa"
 msgstr "Full screen"
 
-#: templates/catalog/_photo_workspace.html:76
+#: templates/catalog/_photo_workspace.html:81
 msgid "Ampliar"
 msgstr "Enlarge"
 
-#: templates/catalog/_photo_workspace.html:77
+#: templates/catalog/_photo_workspace.html:82
 msgid "Siguiente sin catalogar"
 msgstr "Next uncataloged"
 
-#: templates/catalog/_photo_workspace.html:77
+#: templates/catalog/_photo_workspace.html:82
 msgid "Sin catalogar"
 msgstr "Uncataloged"
 
-#: templates/catalog/_photo_workspace.html:78
+#: templates/catalog/_photo_workspace.html:83
 msgid "Foto siguiente"
 msgstr "Next photo"
 
-#: templates/catalog/_photo_workspace.html:80
+#: templates/catalog/_photo_workspace.html:85
 msgid "Arrastra sobre la foto para dibujar el recuadro de la cara."
 msgstr "Drag over the photo to draw the face box."
 
-#: templates/catalog/_photo_workspace.html:83
+#: templates/catalog/_photo_workspace.html:88
 msgid "Catalogación"
 msgstr "Cataloging"
 
-#: templates/catalog/_photo_workspace.html:86
+#: templates/catalog/_photo_workspace.html:91
 #, python-format
 msgid "%(counter)s cara"
 msgid_plural "%(counter)s caras"
 msgstr[0] "%(counter)s face"
 msgstr[1] "%(counter)s faces"
 
-#: templates/catalog/_photo_workspace.html:89 templates/catalog/gallery.html:46
+#: templates/catalog/_photo_workspace.html:94 templates/catalog/gallery.html:46
 msgid "Compartir ahora"
 msgstr "Share now"
 
-#: templates/catalog/_photo_workspace.html:90
+#: templates/catalog/_photo_workspace.html:95
 msgid "Compartir o descargar la foto"
 msgstr "Share or download the photo"
 
-#: templates/catalog/_photo_workspace.html:93
+#: templates/catalog/_photo_workspace.html:98
 msgid "Girar 90° a la derecha"
 msgstr "Rotate 90° clockwise"
 
-#: templates/catalog/_photo_workspace.html:103
+#: templates/catalog/_photo_workspace.html:100
+msgid "Recortar"
+msgstr "Crop"
+
+#: templates/catalog/_photo_workspace.html:109
 msgid "Cara propuesta"
 msgstr "Proposed face"
 
-#: templates/catalog/_photo_workspace.html:103
+#: templates/catalog/_photo_workspace.html:109
 msgid "Sin identificar"
 msgstr "Unidentified"
 
-#: templates/catalog/_photo_workspace.html:109
+#: templates/catalog/_photo_workspace.html:115
 msgid "Persona aceptada:"
 msgstr "Accepted person:"
 
-#: templates/catalog/_photo_workspace.html:115
+#: templates/catalog/_photo_workspace.html:121
 msgid "Propuestas de nombre"
 msgstr "Name proposals"
 
-#: templates/catalog/_photo_workspace.html:120
+#: templates/catalog/_photo_workspace.html:126
 msgid "Sugerencias automáticas"
 msgstr "Automatic suggestions"
 
-#: templates/catalog/_photo_workspace.html:127
+#: templates/catalog/_photo_workspace.html:133
 #, python-format
 msgid "¿Es %(person)s?"
 msgstr "Is it %(person)s?"
 
-#: templates/catalog/_photo_workspace.html:131
+#: templates/catalog/_photo_workspace.html:137
 msgid ""
 "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
 
-#: templates/catalog/_photo_workspace.html:137
+#: templates/catalog/_photo_workspace.html:143
 msgid "Proponer otro nombre"
 msgstr "Propose another name"
 
-#: templates/catalog/_photo_workspace.html:137
+#: templates/catalog/_photo_workspace.html:143
 msgid "¿Quién es?"
 msgstr "Who is it?"
 
-#: templates/catalog/_photo_workspace.html:142
+#: templates/catalog/_photo_workspace.html:148
 msgid "Nombre y apellidos"
 msgstr "Full name"
 
-#: templates/catalog/_photo_workspace.html:145
 #: templates/catalog/_photo_workspace.html:151
+#: templates/catalog/_photo_workspace.html:157
 msgid "Proponer"
 msgstr "Propose"
 
-#: templates/catalog/_photo_workspace.html:150
+#: templates/catalog/_photo_workspace.html:156
 #, python-format
 msgid ""
 "¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
@@ -1271,35 +1292,35 @@ msgstr ""
 "Propose that box %(number)s is not a face? It will be voted like any other "
 "proposal."
 
-#: templates/catalog/_photo_workspace.html:159
+#: templates/catalog/_photo_workspace.html:165
 msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
 msgstr "No faces were detected. Use “Draw face” if one is missing."
 
-#: templates/catalog/_photo_workspace.html:168
+#: templates/catalog/_photo_workspace.html:174
 msgid "Aceptado:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:173
+#: templates/catalog/_photo_workspace.html:179
 msgid "Tipo de evento"
 msgstr "Event type"
 
-#: templates/catalog/_photo_workspace.html:175
+#: templates/catalog/_photo_workspace.html:181
 msgid "— Elige —"
 msgstr "— Choose —"
 
-#: templates/catalog/_photo_workspace.html:177
+#: templates/catalog/_photo_workspace.html:183
 msgid "Otro…"
 msgstr "Other…"
 
-#: templates/catalog/_photo_workspace.html:181
+#: templates/catalog/_photo_workspace.html:187
 msgid "¿Qué evento es?"
 msgstr "Which event is it?"
 
-#: templates/catalog/_photo_workspace.html:182
+#: templates/catalog/_photo_workspace.html:188
 msgid "Graduación"
 msgstr "Graduation"
 
-#: templates/catalog/_photo_workspace.html:183
+#: templates/catalog/_photo_workspace.html:189
 msgid ""
 "Si no está en la lista. Quedará disponible para todos cuando se acepte por "
 "votación."
@@ -1307,27 +1328,27 @@ msgstr ""
 "If it is not in the list. It becomes available to everyone once accepted by "
 "vote."
 
-#: templates/catalog/_photo_workspace.html:186
+#: templates/catalog/_photo_workspace.html:192
 msgid "Descripción (opcional)"
 msgstr "Description (optional)"
 
-#: templates/catalog/_photo_workspace.html:187
+#: templates/catalog/_photo_workspace.html:193
 msgid "Boda de Luis y Ana"
 msgstr "Luis and Ana's wedding"
 
-#: templates/catalog/_photo_workspace.html:189
+#: templates/catalog/_photo_workspace.html:195
 msgid "Proponer evento"
 msgstr "Propose event"
 
-#: templates/catalog/_photo_workspace.html:200
+#: templates/catalog/_photo_workspace.html:206
 msgid "Aceptada:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:205
+#: templates/catalog/_photo_workspace.html:211
 msgid "Precisión"
 msgstr "Precision"
 
-#: templates/catalog/_photo_workspace.html:219
+#: templates/catalog/_photo_workspace.html:225
 msgid "Proponer fecha"
 msgstr "Propose date"
 
@@ -1563,6 +1584,59 @@ msgstr ""
 "A proposal is accepted with at least N votes in favour and a minimum share "
 "in favour. It is rejected with N votes against that outnumber the votes in "
 "favour."
+
+#: templates/catalog/crop.html:2 templates/catalog/crop.html:4
+msgid "Recortar foto"
+msgstr "Crop photo"
+
+#: templates/catalog/crop.html:4
+msgid "Volver a la foto"
+msgstr "Back to the photo"
+
+#: templates/catalog/crop.html:7
+msgid "Hay un recorte pendiente de aplicar. Si guardas otro, lo sustituye."
+msgstr "A crop is waiting to be applied. Saving another one replaces it."
+
+#: templates/catalog/crop.html:11
+msgid ""
+"Se está preparando la vista del escaneo original para poder recortar. Vuelve "
+"a intentarlo en un minuto."
+msgstr "The view of the original scan is being prepared for cropping. Try again in a minute."
+
+#: templates/catalog/crop.html:12 templates/pwa/offline.html:18
+#: templates/scanner/_scan_panel.html:47
+msgid "Reintentar"
+msgstr "Try again"
+
+#: templates/catalog/crop.html:16
+msgid ""
+"Arrastra los bordes o las esquinas del recuadro. Puedes ampliarlo para "
+"recuperar lo que se cortó."
+msgstr "Drag the edges or corners of the box. You can enlarge it to recover what was cut off."
+
+#: templates/catalog/crop.html:18
+msgid "Recorte sobre el escaneo original"
+msgstr "Crop over the original scan"
+
+#: templates/catalog/crop.html:29
+msgid "Enderezar"
+msgstr "Straighten"
+
+#: templates/catalog/crop.html:30
+msgid "Girar 0,1° a la izquierda"
+msgstr "Rotate 0.1° to the left"
+
+#: templates/catalog/crop.html:32
+msgid "Girar 0,1° a la derecha"
+msgstr "Rotate 0.1° to the right"
+
+#: templates/catalog/crop.html:35
+msgid "El recuadro se sale del escaneo: ajústalo antes de guardar."
+msgstr "The box goes outside the scan: adjust it before saving."
+
+#: templates/catalog/crop.html:39
+msgid "Guardar recorte"
+msgstr "Save crop"
 
 #: templates/catalog/gallery.html:6 templates/catalog/my_activity.html:5
 msgid "Filtros"
@@ -1936,10 +2010,6 @@ msgid ""
 "No se puede contactar con PhotoTag. Comprueba tu conexión y vuelve a "
 "intentarlo."
 msgstr "PhotoTag cannot be reached. Check your connection and try again."
-
-#: templates/pwa/offline.html:18 templates/scanner/_scan_panel.html:47
-msgid "Reintentar"
-msgstr "Try again"
 
 #: templates/scanner/_scan_panel.html:8
 msgid "Preparando el escáner…"

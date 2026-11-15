@@ -5,6 +5,11 @@
     {% if photo.pending_rotation %}
     {# The worker applies the rotation in a few seconds; meanwhile preview it and poll. #}
     <p class="message" role="status">{% icon "rotate_right" %} {% translate "Aplicando el giro…" %}</p>
+    {% endif %}
+    {% if photo.pending_crop %}
+    <p class="message" role="status">{% icon "crop" %} {% translate "Aplicando el recorte…" %}</p>
+    {% endif %}
+    {% if photo.pending_rotation or photo.pending_crop %}
     <div hidden hx-get="{% url 'photo_detail' photo.pk %}" hx-trigger="every 3s" hx-target="#photo-workspace" hx-swap="outerHTML"></div>
     {% endif %}
     {% if photo.duplicate_of_id %}
@@ -15,12 +20,12 @@
     <div class="photo-frame{% if photo.pending_rotation %} rotating{% endif %}" id="photo-frame"
          style="aspect-ratio: {{ photo.width }} / {{ photo.height }};{% if photo.pending_rotation %} --pending: {{ photo.pending_rotation }}deg; --fit: {{ photo|rotation_fit }};{% endif %}"
          data-width="{{ photo.width }}" data-height="{{ photo.height }}"
-         data-full-url="{% url 'photo_image' photo.pk 'full' %}?v={{ photo.rotation }}"
+         data-full-url="{% url 'photo_image' photo.pk 'full' %}?v={{ photo.image_version }}"
          title="{% translate 'Toca la foto para verla a pantalla completa' %}"
          {% if prev_photo %}data-prev-url="{% url 'photo_detail' prev_photo.pk %}"{% endif %}
          {% if next_photo %}data-next-url="{% url 'photo_detail' next_photo.pk %}"{% endif %}>
-      <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }}"
-           srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }} {{ photo|thumb_width:1600 }}w"
+      <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.image_version }}"
+           srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.image_version }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.image_version }} {{ photo|thumb_width:1600 }}w"
            sizes="(min-width: 1024px) 62vw, 100vw"
            alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
       {% for face in faces %}
@@ -37,7 +42,7 @@
     <dialog class="viewer" id="photo-viewer" aria-label="{% translate 'Foto a pantalla completa' %}">
       <div class="viewer-stage" data-viewer-stage>
         <div class="viewer-content" data-viewer-content>
-          <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
+          <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.image_version }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
           <div class="viewer-faces">
             {% for face in faces %}
             <button type="button" class="viewer-face{% if face.person %} known{% endif %}" data-face="{{ face.pk }}"
@@ -92,6 +97,7 @@
           {% csrf_token %}
           <button type="submit" class="button text icon-only" aria-label="{% translate 'Girar 90° a la derecha' %}" title="{% translate 'Girar 90° a la derecha' %}">{% icon "rotate_right" %}</button>
         </form>
+        {% if user.is_catalog_admin %}<a class="button text icon-only" href="{% url 'crop_photo' photo.pk %}" aria-label="{% translate 'Recortar' %}" title="{% translate 'Recortar' %}">{% icon "crop" %}</a>{% endif %}
       </span>
     </div>
 

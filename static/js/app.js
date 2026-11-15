@@ -1226,4 +1226,238 @@
       if (panel) panel.classList.add("highlight");
     }
   });
+
+  // --- Crop editor: move the edges over the original scan and straighten -------------
+  // Same geometry as scanner/services/recrop.py: view = photo as shown (already turned);
+  // scan point = centre + R(angle)·(u, v) with (u, v) relative to the crop centre.
+  function initCropEditor(root) {
+    const data = JSON.parse(document.getElementById("crop-data").textContent);
+    const canvas = root.querySelector("[data-crop-canvas]");
+    const image = root.querySelector("[data-crop-preview]");
+    const slider = root.querySelector("[data-crop-angle]");
+    const angleOut = root.querySelector("[data-crop-angle-value]");
+    const outside = root.querySelector("[data-crop-outside]");
+    const save = root.querySelector("[data-crop-save]");
+    const form = root.querySelector("form");
+    const ctx = canvas.getContext("2d");
+    const W = data.width, H = data.height, r = ((data.rotation % 360) + 360) % 360;
+    const Wu = r % 180 ? H : W, Hu = r % 180 ? W : H;
+    const margin = 0.25 * Math.max(W, H);
+    const HANDLE = 22; // px on screen
+    let box = { x0: 0, y0: 0, x1: W, y1: H };
+    let base = { ...box }; // box chosen by hand; straightening shrinks a copy of it
+    let view = { k: 1, ox: 0, oy: 0 };
+    let drag = null;
+
+    const angle = () => data.angle + Number(slider.value);
+    const rad = (deg) => (deg * Math.PI) / 180;
+
+    function unturn(x, y) {
+      if (r === 90) return [y, W - x];
+      if (r === 180) return [W - x, H - y];
+      if (r === 270) return [H - y, x];
+      return [x, y];
+    }
+
+    function toScan(x, y, deg) {
+      const [ux, uy] = unturn(x, y);
+      const u = ux + data.inset - data.w / 2, v = uy + data.inset - data.h / 2;
+      const a = rad(deg);
+      return [data.cx + u * Math.cos(a) - v * Math.sin(a), data.cy + u * Math.sin(a) + v * Math.cos(a)];
+    }
+
+    function valid(b, deg) {
+      if (b.x1 - b.x0 < data.minSide || b.y1 - b.y0 < data.minSide) return false;
+      // Stay within what the canvas shows, so every edge can still be grabbed.
+      const { k, ox, oy, width, height } = view;
+      if (b.x0 < -ox / k || b.y0 < -oy / k || b.x1 > (width - ox) / k || b.y1 > (height - oy) / k) return false;
+      if (!data.scanWidth) return true;
+      return [[b.x0, b.y0], [b.x1, b.y0], [b.x1, b.y1], [b.x0, b.y1]].every(([x, y]) => {
+        const [sx, sy] = toScan(x, y, deg);
+        return sx >= -1 && sy >= -1 && sx <= data.scanWidth + 1 && sy <= data.scanHeight + 1;
+      });
+    }
+
+    function resize() {
+      const dpr = window.devicePixelRatio || 1;
+      const width = canvas.clientWidth, height = canvas.clientHeight;
+      canvas.width = Math.round(width * dpr);
+      canvas.height = Math.round(height * dpr);
+      const k = Math.min(width / (W + 2 * margin), height / (H + 2 * margin));
+      view = { k, ox: (width - k * W) / 2, oy: (height - k * H) / 2, dpr, width, height };
+      draw();
+    }
+
+    function draw() {
+      const { k, ox, oy, dpr, width, height } = view;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      ctx.save();
+      ctx.translate(ox, oy);
+      ctx.scale(k, k);
+      if (r === 90) { ctx.translate(Hu, 0); ctx.rotate(Math.PI / 2); }
+      else if (r === 180) { ctx.translate(Wu, Hu); ctx.rotate(Math.PI); }
+      else if (r === 270) { ctx.translate(0, Wu); ctx.rotate(-Math.PI / 2); }
+      ctx.translate(data.w / 2 - data.inset, data.h / 2 - data.inset);
+      ctx.rotate(-rad(angle()));
+      ctx.translate(-data.cx, -data.cy);
+      const s = image.naturalWidth / (data.scanWidth || image.naturalWidth);
+      ctx.scale(1 / s, 1 / s);
+      ctx.drawImage(image, 0, 0);
+      ctx.restore();
+
+      // Dim everything outside the crop, then the frame, thirds and handles.
+      const x = ox + box.x0 * k, y = oy + box.y0 * k;
+      const w = (box.x1 - box.x0) * k, h = (box.y1 - box.y0) * k;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+      ctx.beginPath();
+      ctx.rect(0, 0, width, height);
+      ctx.rect(x, y, w, h);
+      ctx.fill("evenodd");
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.45)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (const f of [1 / 3, 2 / 3]) {
+        ctx.moveTo(x + w * f, y); ctx.lineTo(x + w * f, y + h);
+        ctx.moveTo(x, y + h * f); ctx.lineTo(x + w, y + h * f);
+      }
+      ctx.stroke();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(x, y, w, h);
+      ctx.fillStyle = "#fff";
+      for (const [hx, hy] of [[x, y], [x + w, y], [x + w, y + h], [x, y + h]]) {
+        ctx.beginPath(); ctx.arc(hx, hy, 7, 0, 2 * Math.PI); ctx.fill();
+      }
+      for (const [hx, hy, horizontal] of [[x + w / 2, y, true], [x + w / 2, y + h, true], [x, y + h / 2, false], [x + w, y + h / 2, false]]) {
+        if (horizontal) ctx.fillRect(hx - 14, hy - 3, 28, 6);
+        else ctx.fillRect(hx - 3, hy - 14, 6, 28);
+      }
+    }
+
+    // Largest copy of the hand-picked box, scaled about its centre, that fits the scan.
+    function fitToAngle() {
+      if (valid(base, angle())) { box = { ...base }; return; }
+      const mx = (base.x0 + base.x1) / 2, my = (base.y0 + base.y1) / 2;
+      const scaled = (f) => ({
+        x0: mx - (mx - base.x0) * f, x1: mx + (base.x1 - mx) * f,
+        y0: my - (my - base.y0) * f, y1: my + (base.y1 - my) * f,
+      });
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 14; i++) {
+        const mid = (lo + hi) / 2;
+        if (valid(scaled(mid), angle())) lo = mid; else hi = mid;
+      }
+      if (valid(scaled(lo), angle())) box = scaled(lo);
+    }
+
+    function sync() {
+      const ok = valid(box, angle());
+      outside.hidden = ok;
+      save.disabled = !ok;
+      const delta = Number(slider.value);
+      angleOut.textContent = `${delta.toLocaleString(document.documentElement.lang || undefined, { minimumFractionDigits: 1, maximumFractionDigits: 1 })}°`;
+      draw();
+    }
+
+    function pointerView(event) {
+      const rect = canvas.getBoundingClientRect();
+      return [(event.clientX - rect.left - view.ox) / view.k, (event.clientY - rect.top - view.oy) / view.k];
+    }
+
+    function hit(x, y) {
+      const tol = HANDLE / view.k;
+      const inY = y > box.y0 - tol && y < box.y1 + tol, inX = x > box.x0 - tol && x < box.x1 + tol;
+      const edges = {
+        x0: inY && Math.abs(x - box.x0) < tol,
+        x1: inY && Math.abs(x - box.x1) < tol,
+        y0: inX && Math.abs(y - box.y0) < tol,
+        y1: inX && Math.abs(y - box.y1) < tol,
+      };
+      if (edges.x0 && edges.x1) edges[Math.abs(x - box.x0) < Math.abs(x - box.x1) ? "x1" : "x0"] = false;
+      if (edges.y0 && edges.y1) edges[Math.abs(y - box.y0) < Math.abs(y - box.y1) ? "y1" : "y0"] = false;
+      if (Object.values(edges).some(Boolean)) return edges;
+      if (x > box.x0 && x < box.x1 && y > box.y0 && y < box.y1) return { move: true };
+      return null;
+    }
+
+    function moved(start, edges, dx, dy) {
+      const b = { ...start };
+      if (edges.move) { b.x0 += dx; b.x1 += dx; b.y0 += dy; b.y1 += dy; return b; }
+      if (edges.x0) b.x0 = Math.min(start.x0 + dx, start.x1 - data.minSide);
+      if (edges.x1) b.x1 = Math.max(start.x1 + dx, start.x0 + data.minSide);
+      if (edges.y0) b.y0 = Math.min(start.y0 + dy, start.y1 - data.minSide);
+      if (edges.y1) b.y1 = Math.max(start.y1 + dy, start.y0 + data.minSide);
+      return b;
+    }
+
+    canvas.addEventListener("pointerdown", (event) => {
+      const [x, y] = pointerView(event);
+      const edges = hit(x, y);
+      if (!edges) return;
+      drag = { edges, x, y, start: { ...box } };
+      canvas.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drag) {
+        const edges = hit(...pointerView(event));
+        const cursor = !edges ? "default" : edges.move ? "move"
+          : (edges.x0 && edges.y0) || (edges.x1 && edges.y1) ? "nwse-resize"
+          : (edges.x1 && edges.y0) || (edges.x0 && edges.y1) ? "nesw-resize"
+          : edges.x0 || edges.x1 ? "ew-resize" : "ns-resize";
+        canvas.style.cursor = cursor;
+        return;
+      }
+      const [x, y] = pointerView(event);
+      const dx = x - drag.x, dy = y - drag.y;
+      // Go as far as possible towards the pointer without leaving the scan.
+      let lo = 0, hi = 1;
+      if (valid(moved(drag.start, drag.edges, dx, dy), angle())) lo = 1;
+      else for (let i = 0; i < 10; i++) {
+        const mid = (lo + hi) / 2;
+        if (valid(moved(drag.start, drag.edges, dx * mid, dy * mid), angle())) lo = mid; else hi = mid;
+      }
+      const candidate = moved(drag.start, drag.edges, dx * lo, dy * lo);
+      if (valid(candidate, angle()) || !valid(drag.start, angle())) box = candidate;
+      sync();
+    });
+    const endDrag = () => { if (drag) base = { ...box }; drag = null; };
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
+
+    slider.addEventListener("input", () => { fitToAngle(); sync(); });
+    root.addEventListener("click", (event) => {
+      const step = event.target.closest("[data-crop-step]");
+      if (step) {
+        const value = Number(slider.value) + Number(step.dataset.cropStep);
+        slider.value = Math.max(Number(slider.min), Math.min(Number(slider.max), value)).toFixed(1);
+        fitToAngle();
+        sync();
+      }
+      if (event.target.closest("[data-crop-reset]")) {
+        box = { x0: 0, y0: 0, x1: W, y1: H };
+        base = { ...box };
+        slider.value = "0";
+        sync();
+      }
+    });
+    form.addEventListener("submit", () => {
+      for (const key of ["x0", "y0", "x1", "y1"]) {
+        form.querySelector(`[data-crop-field="${key}"]`).value = box[key].toFixed(1);
+      }
+      form.querySelector('[data-crop-field="angle"]').value = angle().toFixed(2);
+    });
+    window.addEventListener("resize", resize);
+    resize();
+    sync();
+  }
+
+  ready(() => {
+    const root = document.querySelector("[data-crop-editor]");
+    if (!root) return;
+    const image = root.querySelector("[data-crop-preview]");
+    if (image.complete && image.naturalWidth) initCropEditor(root);
+    else image.addEventListener("load", () => initCropEditor(root), { once: true });
+  });
 })();

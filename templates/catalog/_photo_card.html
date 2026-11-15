@@ -1,8 +1,8 @@
 {% load catalog_tags i18n %}
 <li class="photo-card">
   <a href="{% url 'photo_detail' photo.pk %}">
-    <img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }}"
-         srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }} {{ photo|thumb_width:1600 }}w"
+    <img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.image_version }}"
+         srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.image_version }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.image_version }} {{ photo|thumb_width:1600 }}w"
          sizes="(min-width: 1024px) 20vw, (min-width: 768px) 33vw, 50vw"
          alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}{% if photo.event_type %} — {{ photo.event_type }}{% endif %}" loading="lazy"
          width="{{ photo.width }}" height="{{ photo.height }}">

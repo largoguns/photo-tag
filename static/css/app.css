@@ -728,3 +728,17 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
   background: var(--md-primary); color: var(--md-on-primary); }
 .avatar-choice-check .icon { width: 18px; height: 18px; }
 .avatar-sheet-body { padding: 0 1.5rem 1rem; }
+
+/* Crop editor: the scan around the photo on a canvas, with the controls below. */
+.crop-editor { display: flex; flex-direction: column; gap: .75rem; min-width: 0; }
+.crop-hint { margin: 0; }
+.crop-stage { background: #111; border-radius: var(--radius); overflow: hidden; }
+.crop-canvas { display: block; width: 100%; height: clamp(320px, calc(100dvh - 22rem), 900px); touch-action: none; }
+.crop-angle { display: flex; align-items: center; gap: .5rem; min-width: 0; }
+.crop-angle input[type="range"] { flex: 1; min-width: 0; accent-color: var(--md-primary); }
+.crop-angle output { min-width: 3.5rem; text-align: right; font-variant-numeric: tabular-nums; }
+.crop-actions { justify-content: flex-end; }
+@media (max-width: 599px) {
+  .crop-angle label { flex-basis: 100%; }
+  .crop-angle { flex-wrap: wrap; }
+}
