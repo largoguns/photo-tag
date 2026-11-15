@@ -1,5 +1,6 @@
 """Administration screens (spec section 5.5, screen 8)."""
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
@@ -23,6 +24,7 @@ def admin_home(request):
             "review_count": Scan.objects.filter(needs_review=True, reviewed=False).count(),
             "settings": CatalogSettings.load(),
             "recent_audit": AuditLog.objects.select_related("user")[:15],
+            "scanner_configured": bool(settings.SCANNER_URL),
         },
     )
 

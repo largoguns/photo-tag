@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_not_required
 from django.urls import include, path
 from django.views.i18n import set_language
 
+from scanner import views as scanner_views
+
 from . import pwa, views
 
 urlpatterns = [
@@ -14,5 +16,6 @@ urlpatterns = [
     path("admin/export/", include("exporter.urls")),
     path("notifications/", include("notifications.urls")),
     path("upload/", include("scanner.urls")),
+    path("admin/scan/", scanner_views.scan, name="scan"),
     path("", include("catalog.urls")),
 ]

@@ -21,4 +21,5 @@ def navigation(request):
         "nav_avatar_face_id": avatar_face["pk"] if avatar_face else None,
         "nav_initial": (user.get_display_name()[:1] or "?").upper(),
         "nav_push_key": push_key,
+        "nav_scanner": bool(settings.SCANNER_URL),
     }

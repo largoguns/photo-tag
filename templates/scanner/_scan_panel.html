@@ -1,0 +1,50 @@
+{% load i18n catalog_tags %}
+<div id="scan-panel" class="stack"
+     {% if busy or processing %}hx-get="{% url 'scan' %}" hx-trigger="every 2s" hx-target="#scan-panel" hx-swap="outerHTML"{% endif %}>
+  {% if job %}
+    {% if busy %}
+    <section class="card stack scan-status" aria-live="polite">
+      <div class="scan-progress" aria-hidden="true"></div>
+      <h2>{% if job.status == "queued" %}{% translate "Preparando el escáner…" %}{% else %}{% translate "Escaneando… no muevas las fotos" %}{% endif %}</h2>
+      <p class="muted">{% blocktranslate with dpi=job.resolution %}A {{ dpi }} ppp puede tardar uno o dos minutos.{% endblocktranslate %}</p>
+    </section>
+    {% elif job.status == "failed" %}
+    <section class="card stack scan-status" role="alert">
+      <h2>{% icon "close" %} {% translate "No se ha podido escanear" %}</h2>
+      <p>{{ job.error }}</p>
+    </section>
+    {% elif job.status == "done" %}
+    <section class="card stack scan-status" aria-live="polite">
+      <h2>{% icon "check" %} {% translate "Escaneo enviado al procesado" %}</h2>
+      {% if processing %}
+      <p class="muted">{% translate "Recortando las fotos…" %}</p>
+      {% elif result_photos %}
+      <ul class="photo-grid">
+        {% for photo in result_photos %}
+        <li class="photo-card"><a href="{% url 'photo_detail' photo.pk %}"><img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}"></a></li>
+        {% endfor %}
+      </ul>
+      {% elif job.upload %}
+      <p class="muted">{{ job.upload.get_status_display }}</p>
+      {% endif %}
+    </section>
+    {% endif %}
+  {% endif %}
+
+  {% if not busy %}
+  <form method="post" action="{% url 'scan' %}" hx-post="{% url 'scan' %}" hx-target="#scan-panel" hx-swap="outerHTML" class="card stack scan-ready">
+    {% csrf_token %}
+    <h2>{% translate "¿Todo listo para escanear?" %}</h2>
+    <p class="muted">{% translate "Coloca las fotos boca abajo en el cristal, separadas entre sí, y cierra la tapa." %}</p>
+    <fieldset class="stack plain-fieldset">
+      <legend>{% translate "Resolución" %}</legend>
+      <div class="segmented" role="radiogroup">
+        {% for dpi in resolutions %}
+        <label><input type="radio" name="resolution" value="{{ dpi }}" {% if dpi == default_resolution %}checked{% endif %}><span><span>{% blocktranslate %}{{ dpi }} ppp{% endblocktranslate %}</span></span></label>
+        {% endfor %}
+      </div>
+    </fieldset>
+    <button type="submit" class="button primary big" autofocus>{% icon "photo_library" %}<span>{% if job.status == "failed" %}{% translate "Reintentar" %}{% else %}{% translate "Escanear" %}{% endif %}</span></button>
+  </form>
+  {% endif %}
+</div>

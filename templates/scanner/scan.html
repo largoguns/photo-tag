@@ -1,0 +1,28 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Escanear" %}{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
+<h1>{% translate "Escanear" %}</h1>
+{% if configured %}
+  {% include "scanner/_scan_panel.html" %}
+  <section class="stack scan-history" aria-labelledby="scan-history-title">
+    <h2 id="scan-history-title">{% translate "Últimos escaneos" %}</h2>
+    <ul class="list compact">
+      {% for item in recent_jobs %}
+      <li class="list-item">
+        <span class="muted">{{ item.created_at|date:"SHORT_DATETIME_FORMAT" }}</span>
+        <span class="badge{% if item.status == 'done' %} ok{% elif item.status == 'failed' %} off{% endif %}">{{ item.get_status_display }}</span>
+        {% blocktranslate with dpi=item.resolution %}{{ dpi }} ppp{% endblocktranslate %} · {{ item.requested_by|default:"—" }}
+        {% if item.upload %}· {{ item.upload.get_status_display }}{% endif %}
+      </li>
+      {% empty %}<li class="empty">{% translate "Todavía no se ha escaneado nada desde aquí." %}</li>{% endfor %}
+    </ul>
+  </section>
+{% else %}
+  <section class="card stack">
+    <h2>{% translate "Escáner sin configurar" %}</h2>
+    <p>{% blocktranslate %}Para escanear desde PhotoTag, configura la variable <code>SCANNER_URL</code> con la dirección eSCL de la impresora (por ejemplo <code>http://192.168.1.50/eSCL</code>) y redespliega. La guía de despliegue lo explica paso a paso.{% endblocktranslate %}</p>
+  </section>
+{% endif %}
+{% endblock %}
