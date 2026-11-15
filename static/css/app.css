@@ -743,3 +743,5 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
   .crop-angle { flex-wrap: wrap; }
 }
 .crop-modes { max-width: 360px; }
+.review-scan .photo-card form { display: inline-block; padding-right: 0; }
+.button.text.danger { border-color: transparent; }

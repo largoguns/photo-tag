@@ -29,10 +29,11 @@ def test_no_template_uses_the_browser_confirm():
 def test_destructive_actions_ask_for_confirmation():
     expected = {
         "accounts/user_list.html": 2,  # reset password, deactivate
-        "catalog/admin/review_queue.html": 1,  # discard crop
+        "catalog/admin/review_queue.html": 3,  # discard crop, delete photo, delete scan
         "catalog/admin/merge.html": 1,
         "catalog/_proposal.html": 2,  # admin accept / reject
-        "catalog/_photo_workspace.html": 1,  # not a face
+        # not a face, delete photo, reprocess scan, delete scan
+        "catalog/_photo_workspace.html": 4,
     }
     for name, count in expected.items():
         text = (TEMPLATES / name).read_text()

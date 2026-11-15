@@ -4,6 +4,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
@@ -101,6 +103,57 @@ def photo_toggle_discard(request, pk):
     photo.save(update_fields=["discarded"])
     audit.log(request.user, "photo.discard" if photo.discarded else "photo.restore", photo)
     return redirect("admin_review_queue")
+
+
+def _safe_next(request):
+    target = request.POST.get("next", "")
+    if target and url_has_allowed_host_and_scheme(
+        target, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return target
+    return None
+
+
+@admin_required
+@require_POST
+def photo_delete(request, pk):
+    from scanner.services import deletion
+
+    photo = get_object_or_404(Photo.objects.select_related("scan"), pk=pk)
+    after = deletion.next_after(photo)
+    deletion.delete_photo(request.user, photo)
+    messages.success(request, _("Foto borrada."))
+    if target := _safe_next(request):
+        return redirect(target)
+    return redirect(reverse("photo_detail", args=[after.pk]) if after else reverse("gallery"))
+
+
+@admin_required
+@require_POST
+def scan_delete(request, pk):
+    from scanner.services import deletion
+
+    scan = get_object_or_404(Scan, pk=pk)
+    name = scan.file_name
+    deletion.delete_scan(request.user, scan)
+    messages.success(
+        request,
+        _("Escaneo «%(name)s» borrado. Puedes volver a escanearlo o subirlo.") % {"name": name},
+    )
+    return redirect(_safe_next(request) or reverse("gallery"))
+
+
+@admin_required
+@require_POST
+def scan_reprocess(request, pk):
+    from scanner.services import deletion
+
+    scan = get_object_or_404(Scan, pk=pk)
+    deletion.request_reprocess(request.user, scan)
+    messages.success(
+        request, _("Reprocesando «%(name)s»: tardará unos segundos.") % {"name": scan.file_name}
+    )
+    return redirect(_safe_next(request) or reverse("admin_review_queue"))
 
 
 @admin_required

@@ -3,13 +3,28 @@
 {% block content %}
 {% translate "Cola de revisión" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
 {% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
-<p class="muted">{% blocktranslate %}Para corregir un recorte, reprocesa el escaneo con <code>process_scans --force &lt;fichero&gt;</code>.{% endblocktranslate %}</p>
+<p class="muted">{% translate "Para rehacer los recortes de un escaneo, pulsa «Reprocesar»: se vuelve a recortar el original y se conservan los votos y los recortes manuales. Un recorte concreto se ajusta desde la foto con «Recortar»." %}</p>
 {% for scan in scans %}
-<section class="card stack review-scan">
+<section class="card stack review-scan" id="review-scan-{{ scan.pk }}">
   <div class="page-header">
     <h2>{{ scan.file_name }}</h2>
-    <form method="post" action="{% url 'admin_review_ok' scan.pk %}">{% csrf_token %}<button type="submit" class="button primary">{% translate "Marcar como correcto" %}</button></form>
+    <div class="actions">
+      <form method="post" action="{% url 'admin_scan_reprocess' scan.pk %}">
+        {% csrf_token %}<button type="submit" class="button" {% if scan.reprocess_requested %}disabled{% endif %}>{% icon "restart_alt" %}{% translate "Reprocesar" %}</button>
+      </form>
+      <form method="post" action="{% url 'admin_scan_delete' scan.pk %}"
+            data-confirm="{% translate '¿Borrar el escaneo completo? Se borran todas sus fotos con sus caras, propuestas y votos. El original se aparta en scans/deleted.' %}"
+            data-confirm-ok="{% translate 'Borrar escaneo' %}" data-confirm-variant="danger">
+        {% csrf_token %}<input type="hidden" name="next" value="{% url 'admin_review_queue' %}">
+        <button type="submit" class="button danger">{% icon "delete" %}{% translate "Borrar escaneo" %}</button>
+      </form>
+      <form method="post" action="{% url 'admin_review_ok' scan.pk %}">{% csrf_token %}<button type="submit" class="button primary">{% translate "Marcar como correcto" %}</button></form>
+    </div>
   </div>
+  {% if scan.reprocess_requested %}
+  <p class="message" role="status">{% icon "restart_alt" %} {% translate "Reprocesando…" %}</p>
+  <div hidden hx-get="{% url 'admin_review_queue' %}" hx-trigger="every 3s" hx-select="#review-scan-{{ scan.pk }}" hx-target="#review-scan-{{ scan.pk }}" hx-swap="outerHTML"></div>
+  {% endif %}
   <p class="muted">{% blocktranslate with date=scan.processed_at|date:"SHORT_DATETIME_FORMAT" hash=scan.sha256|slice:":12" %}Procesado el {{ date }} · hash {{ hash }}{% endblocktranslate %}</p>
   <ul class="reasons">{% for reason in scan.review_reason_labels %}<li>{{ reason }}</li>{% endfor %}</ul>
   <ul class="photo-grid">
@@ -28,6 +43,12 @@
       <form method="post" action="{% url 'admin_photo_toggle_discard' photo.pk %}"
             {% if not photo.discarded %}data-confirm="{% translate '¿Descartar este recorte? Dejará de aparecer en la galería y no se exportará. Se puede restaurar después.' %}" data-confirm-ok="{% translate 'Descartar' %}" data-confirm-variant="danger"{% endif %}>
         {% csrf_token %}<button type="submit" class="button small {% if not photo.discarded %}danger{% endif %}">{% if photo.discarded %}{% translate "Restaurar" %}{% else %}{% translate "Descartar" %}{% endif %}</button>
+      </form>
+      <form method="post" action="{% url 'admin_photo_delete' photo.pk %}"
+            data-confirm="{% translate '¿Borrar esta foto? Se eliminan sus caras, propuestas y votos. No se puede deshacer.' %}"
+            data-confirm-ok="{% translate 'Borrar' %}" data-confirm-variant="danger">
+        {% csrf_token %}<input type="hidden" name="next" value="{% url 'admin_review_queue' %}">
+        <button type="submit" class="button small danger">{% translate "Borrar" %}</button>
       </form>
     </li>
     {% empty %}<li class="empty">{% translate "No se detectó ninguna foto." %}</li>{% endfor %}

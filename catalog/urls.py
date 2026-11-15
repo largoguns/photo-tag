@@ -45,5 +45,10 @@ urlpatterns = [
         admin_views.photo_not_duplicate,
         name="admin_photo_not_duplicate",
     ),
+    path("admin/photos/<int:pk>/delete/", admin_views.photo_delete, name="admin_photo_delete"),
+    path("admin/scans/<int:pk>/delete/", admin_views.scan_delete, name="admin_scan_delete"),
+    path(
+        "admin/scans/<int:pk>/reprocess/", admin_views.scan_reprocess, name="admin_scan_reprocess"
+    ),
     path("admin/merge/", admin_views.merge, name="admin_merge"),
 ]

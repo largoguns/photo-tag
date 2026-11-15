@@ -9,7 +9,10 @@
     {% if photo.pending_crop %}
     <p class="message" role="status">{% icon "crop" %} {% translate "Aplicando el recorte…" %}</p>
     {% endif %}
-    {% if photo.pending_rotation or photo.pending_crop %}
+    {% if photo.scan.reprocess_requested %}
+    <p class="message" role="status">{% icon "restart_alt" %} {% translate "Reprocesando el escaneo…" %}</p>
+    {% endif %}
+    {% if photo.pending_rotation or photo.pending_crop or photo.scan.reprocess_requested %}
     <div hidden hx-get="{% url 'photo_detail' photo.pk %}" hx-trigger="every 3s" hx-target="#photo-workspace" hx-swap="outerHTML"></div>
     {% endif %}
     {% if photo.duplicate_of_id %}
@@ -98,6 +101,14 @@
           <button type="submit" class="button text icon-only" aria-label="{% translate 'Girar 90° a la derecha' %}" title="{% translate 'Girar 90° a la derecha' %}">{% icon "rotate_right" %}</button>
         </form>
         {% if user.is_catalog_admin %}<a class="button text icon-only" href="{% url 'crop_photo' photo.pk %}" aria-label="{% translate 'Recortar' %}" title="{% translate 'Recortar' %}">{% icon "crop" %}</a>{% endif %}
+        {% if user.is_catalog_admin %}
+        <form method="post" action="{% url 'admin_photo_delete' photo.pk %}"
+              data-confirm="{% translate '¿Borrar esta foto? Se eliminan sus caras, propuestas y votos. No se puede deshacer.' %}"
+              data-confirm-ok="{% translate 'Borrar' %}" data-confirm-variant="danger">
+          {% csrf_token %}
+          <button type="submit" class="button text icon-only danger" aria-label="{% translate 'Borrar foto' %}" title="{% translate 'Borrar foto' %}">{% icon "delete" %}</button>
+        </form>
+        {% endif %}
       </span>
     </div>
 
@@ -226,5 +237,29 @@
         </form>
       </div>
     </details>
+
+    {% if user.is_catalog_admin %}
+    <details class="panel" id="scan-panel">
+      <summary><span class="panel-title">{% translate "Escaneo de origen" %}</span></summary>
+      <div class="panel-body stack">
+        <p class="muted">{% blocktranslate with name=photo.scan.file_name count counter=photo.scan.photos.count %}{{ name }} · {{ counter }} foto{% plural %}{{ name }} · {{ counter }} fotos{% endblocktranslate %}</p>
+        <p class="muted">{% translate "Reprocesar vuelve a recortar el original con el algoritmo actual y conserva los votos y los recortes manuales." %}</p>
+        <div class="actions">
+          <form method="post" action="{% url 'admin_scan_reprocess' photo.scan_id %}"
+                data-confirm="{% translate '¿Reprocesar el escaneo? Los recortes automáticos se rehacen; las fotos que ya no aparezcan se borrarán.' %}"
+                data-confirm-ok="{% translate 'Reprocesar' %}">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ request.path }}">
+            <button type="submit" class="button" {% if photo.scan.reprocess_requested %}disabled{% endif %}>{% icon "restart_alt" %}{% translate "Reprocesar escaneo" %}</button>
+          </form>
+          <form method="post" action="{% url 'admin_scan_delete' photo.scan_id %}"
+                data-confirm="{% translate '¿Borrar el escaneo completo? Se borran todas sus fotos con sus caras, propuestas y votos. El original se aparta en scans/deleted.' %}"
+                data-confirm-ok="{% translate 'Borrar escaneo' %}" data-confirm-variant="danger">
+            {% csrf_token %}
+            <button type="submit" class="button danger">{% icon "delete" %}{% translate "Borrar escaneo completo" %}</button>
+          </form>
+        </div>
+      </div>
+    </details>
+    {% endif %}
   </aside>
 </div>
