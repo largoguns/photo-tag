@@ -1,10 +1,11 @@
 from io import BytesIO
 
+from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
-from django.http import FileResponse, Http404, HttpResponse
+from django.http import FileResponse, Http404, HttpResponse, StreamingHttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -13,9 +14,10 @@ from django.views.decorators.http import require_POST
 from PIL import Image
 
 from accounts.permissions import admin_required
+from accounts.services import audit
 from catalog import presenters
 from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
-from catalog.services import similarity, voting
+from catalog.services import sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
 GALLERY_PAGE_SIZE = 60
@@ -107,7 +109,7 @@ def gallery(request):
     avatars = presenters.person_avatars([p.pk for p in people])
     for person in people:
         person.avatar_face_id = avatars.get(person.pk)
-    event_types = list(EventType.objects.all())
+    event_types = list(EventType.objects.filter(is_provisional=False))
     decades = sorted(
         {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")},
         reverse=True,
@@ -128,6 +130,7 @@ def gallery(request):
             "selected_person": selected([(p.pk, p.display_name) for p in people], "person"),
             "selected_event": selected([(e.pk, str(e)) for e in event_types], "event"),
             "selected_decade": selected([(d, f"{d}s") for d in decades], "decade"),
+            "share_max": settings.SHARE_MAX_PHOTOS,
             "has_filters": any(
                 params.get(k) for k in ("status", "person", "event", "decade", "mine")
             ),
@@ -308,12 +311,18 @@ def propose_event(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
 
     def action():
-        event_type = EventType.objects.filter(pk=request.POST.get("event_type") or 0).first()
+        # "Other…" with a name proposes a new event type; a typed name always wins.
+        event_name = request.POST.get("event_name", "").strip()
+        selected = request.POST.get("event_type", "")
+        event_type = None
+        if not event_name and selected.isdigit():
+            event_type = EventType.objects.enabled().filter(pk=selected).first()
         voting.create_proposal(
             request.user,
             photo,
             Proposal.Kind.EVENT,
             event_type=event_type,
+            event_name=event_name,
             value={"description": request.POST.get("description", "")},
         )
 
@@ -335,6 +344,44 @@ def propose_date(request, pk):
         voting.create_proposal(request.user, photo, Proposal.Kind.DATE, value=value)
 
     return _run(request, photo, action)
+
+
+def download_photos(request):
+    """One photo as JPEG or several as a ZIP (when the browser cannot share files)."""
+    photos = sharing.photos_for(sharing.parse_ids(request.GET.get("ids")))
+    if not photos:
+        raise Http404
+    audit.log(request.user, "photo.download", None, count=len(photos), ids=[p.pk for p in photos])
+    if len(photos) == 1:
+        response = FileResponse(
+            photo_path(photos[0].file_name).open("rb"),
+            content_type="image/jpeg",
+            as_attachment=True,
+            filename=sharing.download_name(photos[0]),
+        )
+    else:
+        response = StreamingHttpResponse(sharing.zip_stream(photos), content_type="application/zip")
+        response["Content-Disposition"] = 'attachment; filename="PhotoTag.zip"'
+    response["Cache-Control"] = "private, no-store"
+    return response
+
+
+@require_POST
+def log_share(request):
+    """Audit trail for photos sent with the device's share sheet."""
+    ids = [p.pk for p in sharing.photos_for(sharing.parse_ids(request.POST.get("ids")))]
+    if ids:
+        audit.log(request.user, "photo.share", None, count=len(ids), ids=ids)
+    return HttpResponse(status=204)
+
+
+@require_POST
+def rotate_photo(request, pk):
+    from scanner.services.rotation import request_rotation
+
+    photo = get_object_or_404(Photo, pk=pk)
+    request_rotation(request.user, photo)
+    return _after_action(request, photo)
 
 
 @require_POST
@@ -399,5 +446,6 @@ def face_image(request, pk):
         buffer = BytesIO()
         avatar.save(buffer, "JPEG", quality=85)
     response = HttpResponse(buffer.getvalue(), content_type="image/jpeg")
-    response["Cache-Control"] = IMAGE_CACHE
+    # Short cache: the crop changes when the photo is rotated or the box is moved.
+    response["Cache-Control"] = "private, max-age=300"
     return response

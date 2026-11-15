@@ -20,10 +20,11 @@
       {% if params.mine %}{% icon "check" %}{% else %}{% icon "how_to_vote" %}{% endif %}{% translate "Pendientes de mi voto" %}
     </a>
     {% if has_filters %}<a class="chip" href="{% url 'gallery' %}">{% icon "close" %}{% translate "Borrar filtros" %}</a>{% endif %}
+    <button type="button" class="chip" data-selection="start">{% icon "checklist" %}{% translate "Seleccionar" %}</button>
   </nav>
 
   <p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</p>
-  <div id="gallery-results" hx-boost="false">
+  <div id="gallery-results" hx-boost="false" data-gallery-zoom>
     {% include "catalog/_gallery_page.html" %}
   </div>
 
@@ -37,6 +38,16 @@
   {% include "catalog/_filter_sheet.html" with key="event" title=t_event all_label=t_all options=event_options current=params.event searchable=False %}
   {% sheet_options decades "decade" as decade_options %}
   {% include "catalog/_filter_sheet.html" with key="decade" title=t_decade all_label=t_all_f options=decade_options current=params.decade searchable=False %}
+</div>
+<div class="selection-bar" id="selection-bar" hidden
+     data-max="{{ share_max }}" data-download-url="{% url 'download_photos' %}" data-log-url="{% url 'log_share' %}"
+     data-one="{% translate '1 seleccionada' %}" data-many="{% translate '%s seleccionadas' %}"
+     data-limit="{% blocktranslate %}Máximo {{ share_max }} fotos a la vez{% endblocktranslate %}"
+     data-ready-text="{% translate 'Compartir ahora' %}">
+  <button type="button" class="button text icon-only" data-selection="cancel" aria-label="{% translate 'Cancelar selección' %}">{% icon "close" %}</button>
+  <span class="selection-count" aria-live="polite" data-selection-count></span>
+  <button type="button" class="button text icon-only" data-selection="share" disabled aria-label="{% translate 'Compartir' %}" title="{% translate 'Compartir' %}">{% icon "share" %}</button>
+  <button type="button" class="button text icon-only" data-selection="download" disabled aria-label="{% translate 'Descargar' %}" title="{% translate 'Descargar' %}">{% icon "download" %}</button>
 </div>
 {% endblock %}
 {% block fab %}<a class="fab" href="{% url 'upload' %}">{% icon "add_photo_alternate" %}<span>{% translate "Subir" %}</span></a>{% endblock %}

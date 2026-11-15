@@ -421,6 +421,30 @@
     form.querySelector('[data-date-field="exact"]').hidden = !exact;
   });
 
+  // --- Event proposal: "Other…" reveals the new event name field --------------------
+  function syncEventForm(select) {
+    const field = select.closest("form").querySelector("[data-event-name]");
+    if (!field) return;
+    const isNew = select.value === "new";
+    field.hidden = !isNew;
+    field.querySelector("input").required = isNew;
+    if (isNew) field.querySelector("input").focus();
+  }
+
+  document.addEventListener("change", (event) => {
+    if (event.target.matches("[data-event-type]")) syncEventForm(event.target);
+  });
+
+  // Without JS the name field stays visible; with JS it only shows for "Other…".
+  function initEventForms(root) {
+    root.querySelectorAll("[data-event-name]").forEach((field) => {
+      const select = field.closest("form").querySelector("[data-event-type]");
+      field.hidden = !select || select.value !== "new";
+    });
+  }
+  ready(() => initEventForms(document));
+  document.addEventListener("htmx:afterSwap", (event) => initEventForms(event.target));
+
   // --- Keyboard navigation on desktop ----------------------------------------------
   document.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -573,6 +597,261 @@
       item.hidden = !!query && !nameKey(item.dataset.optionLabel).includes(query);
     });
   });
+
+  // --- Sharing photos (device share sheet, or download as a fallback) -------------------
+  // Files are fetched first; if that takes long enough for the browser to drop the tap's
+  // "user activation", sharing is refused, so the button turns into "Share now" and the
+  // second tap shares the files that are already downloaded.
+  const preparedShares = new WeakMap();
+
+  async function photoFiles(ids) {
+    return Promise.all(ids.map(async (id) => {
+      const response = await fetch(`/photos/${id}/image/full/`, { credentials: "same-origin" });
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return new File([await response.blob()], `PhotoTag-${id}.jpg`, { type: "image/jpeg" });
+    }));
+  }
+
+  function canShareFiles() {
+    if (!navigator.canShare || !window.File) return false;
+    try {
+      return navigator.canShare({ files: [new File([""], "x.jpg", { type: "image/jpeg" })] });
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function logShare(url, ids) {
+    const body = new URLSearchParams({ ids: ids.join(",") });
+    fetch(url, { method: "POST", credentials: "same-origin", headers: { "X-CSRFToken": csrfToken() }, body }).catch(() => {});
+  }
+
+  async function sharePhotos(button, ids, downloadUrl, logUrl) {
+    if (!ids.length) return;
+    if (!canShareFiles()) {
+      window.location.href = downloadUrl; // desktop browsers: JPEG or ZIP download
+      return;
+    }
+    const label = button.querySelector("span");
+    const originalText = label ? label.textContent : "";
+    const key = ids.join(",");
+    let files = preparedShares.get(button);
+    if (!files || files.key !== key) {
+      button.disabled = true;
+      try {
+        files = await photoFiles(ids);
+        files.key = key;
+        preparedShares.set(button, files);
+      } catch (error) {
+        button.disabled = false;
+        window.location.href = downloadUrl;
+        return;
+      }
+      button.disabled = false;
+    }
+    try {
+      await navigator.share({ files });
+      logShare(logUrl, ids);
+      preparedShares.delete(button);
+      button.classList.remove("ready");
+      if (label) label.textContent = originalText;
+    } catch (error) {
+      if (error.name === "NotAllowedError") {
+        // Files are ready now: the next tap shares them straight away.
+        const holder = button.closest("[data-ready-text]");
+        const ready = button.dataset.readyText || (holder && holder.dataset.readyText) || "";
+        if (label) label.textContent = ready;
+        else if (ready) { button.title = ready; button.setAttribute("aria-label", ready); }
+        button.classList.add("ready");
+      } else if (error.name !== "AbortError") {
+        window.location.href = downloadUrl;
+      }
+    }
+  }
+
+  document.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-share-photos]");
+    if (!button) return;
+    sharePhotos(button, [button.dataset.sharePhotos], button.dataset.downloadUrl, button.dataset.logUrl);
+  });
+
+  // --- Gallery selection mode ------------------------------------------------------------
+  const selection = new Set();
+  const LONG_PRESS_MS = 500;
+  let pressTimer = null;
+  let pressStart = null;
+  let suppressClick = false;
+
+  function selectionBar() { return document.getElementById("selection-bar"); }
+
+  function renderSelection(message) {
+    const bar = selectionBar();
+    if (!bar) return;
+    document.querySelectorAll(".jitem[data-photo-id]").forEach((item) => {
+      item.classList.toggle("selected", selection.has(item.dataset.photoId));
+    });
+    const count = selection.size;
+    bar.querySelector("[data-selection-count]").textContent = message
+      || (count === 1 ? bar.dataset.one : bar.dataset.many.replace("%s", count));
+    bar.querySelectorAll('[data-selection="share"], [data-selection="download"]').forEach((b) => { b.disabled = count === 0; });
+  }
+
+  function startSelection(firstId) {
+    const bar = selectionBar();
+    if (!bar) return;
+    document.body.classList.add("selecting");
+    bar.hidden = false;
+    if (firstId) selection.add(firstId);
+    renderSelection();
+  }
+
+  function endSelection() {
+    selection.clear();
+    document.body.classList.remove("selecting");
+    const bar = selectionBar();
+    if (bar) bar.hidden = true;
+    renderSelection();
+  }
+
+  function toggleSelected(id) {
+    const bar = selectionBar();
+    if (selection.has(id)) selection.delete(id);
+    else if (selection.size >= Number(bar.dataset.max)) { renderSelection(bar.dataset.limit); return; }
+    else selection.add(id);
+    renderSelection();
+  }
+
+  function selectionUrls() {
+    const bar = selectionBar();
+    const ids = [...selection];
+    return { ids, download: `${bar.dataset.downloadUrl}?ids=${ids.join(",")}`, log: bar.dataset.logUrl };
+  }
+
+  document.addEventListener("click", (event) => {
+    const control = event.target.closest("[data-selection]");
+    if (control) {
+      const action = control.dataset.selection;
+      if (action === "start") startSelection();
+      if (action === "cancel") endSelection();
+      if (action === "download") window.location.href = selectionUrls().download;
+      if (action === "share") {
+        const { ids, download, log } = selectionUrls();
+        sharePhotos(control, ids, download, log);
+      }
+      return;
+    }
+    const item = event.target.closest(".jitem[data-photo-id]");
+    if (!item) return;
+    if (suppressClick) { event.preventDefault(); suppressClick = false; return; }
+    if (document.body.classList.contains("selecting")) {
+      event.preventDefault();
+      toggleSelected(item.dataset.photoId);
+    }
+  });
+
+  // Long press on a photo starts selecting (like Google Photos).
+  document.addEventListener("pointerdown", (event) => {
+    const item = event.target.closest(".jitem[data-photo-id]");
+    if (!item || document.body.classList.contains("selecting")) return;
+    pressStart = { x: event.clientX, y: event.clientY };
+    pressTimer = window.setTimeout(() => {
+      pressTimer = null;
+      suppressClick = true;
+      startSelection(item.dataset.photoId);
+      if (navigator.vibrate) navigator.vibrate(20);
+    }, LONG_PRESS_MS);
+  });
+  document.addEventListener("pointermove", (event) => {
+    if (pressTimer && pressStart && Math.hypot(event.clientX - pressStart.x, event.clientY - pressStart.y) > 10) {
+      window.clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  });
+  ["pointerup", "pointercancel"].forEach((type) => document.addEventListener(type, () => {
+    if (pressTimer) { window.clearTimeout(pressTimer); pressTimer = null; }
+  }));
+  document.addEventListener("contextmenu", (event) => {
+    if (event.target.closest(".jitem")) event.preventDefault();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && document.body.classList.contains("selecting")) endSelection();
+  });
+  // New pages from infinite scroll keep the marks; a new filter starts over.
+  document.addEventListener("htmx:afterSwap", (event) => {
+    if (event.target.id === "gallery-body") endSelection();
+    else renderSelection();
+  });
+
+  // --- Gallery zoom: pinch to change the row height (Google Photos style) -------------
+  const ROW_KEY = "phototag:gallery-row-h";
+  const ROW_MIN = 64;
+  const ROW_MAX = 360;
+  const galleryPointers = new Map();
+  let galleryPinch = null;
+
+  function currentRowHeight() {
+    return parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--row-h")) || 120;
+  }
+
+  // Keep the photo under the fingers in place while the rows reflow.
+  function setRowHeight(px, anchorX, anchorY) {
+    const height = Math.round(Math.min(ROW_MAX, Math.max(ROW_MIN, px)));
+    const anchor = anchorY !== undefined && document.elementFromPoint(anchorX, anchorY);
+    const item = anchor && anchor.closest ? anchor.closest(".jitem") : null;
+    const before = item ? item.getBoundingClientRect().top : 0;
+    document.documentElement.style.setProperty("--row-h", `${height}px`);
+    if (item) window.scrollBy(0, item.getBoundingClientRect().top - before);
+    storageSet(ROW_KEY, String(height));
+  }
+
+  ready(() => {
+    const saved = Number(storageGet(ROW_KEY));
+    if (saved >= ROW_MIN && saved <= ROW_MAX) document.documentElement.style.setProperty("--row-h", `${saved}px`);
+  });
+
+  const nativeGestures = "ongesturechange" in window; // iOS Safari reports the scale itself
+
+  document.addEventListener("pointerdown", (event) => {
+    if (nativeGestures || event.pointerType !== "touch" || !event.target.closest("[data-gallery-zoom]")) return;
+    galleryPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (galleryPointers.size === 2) {
+      const [a, b] = [...galleryPointers.values()];
+      galleryPinch = { distance: Math.hypot(a.x - b.x, a.y - b.y), row: currentRowHeight() };
+      if (pressTimer) { window.clearTimeout(pressTimer); pressTimer = null; } // not a long press
+    }
+  });
+  document.addEventListener("pointermove", (event) => {
+    if (!galleryPointers.has(event.pointerId)) return;
+    galleryPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    if (galleryPinch && galleryPointers.size === 2) {
+      const [a, b] = [...galleryPointers.values()];
+      const scale = Math.hypot(a.x - b.x, a.y - b.y) / (galleryPinch.distance || 1);
+      setRowHeight(galleryPinch.row * scale, (a.x + b.x) / 2, (a.y + b.y) / 2);
+      suppressClick = true;
+    }
+  });
+  ["pointerup", "pointercancel"].forEach((type) => document.addEventListener(type, (event) => {
+    galleryPointers.delete(event.pointerId);
+    if (galleryPointers.size < 2) galleryPinch = null;
+  }));
+
+  let gestureRow = null;
+  document.addEventListener("gesturestart", (event) => {
+    if (event.target.closest && event.target.closest("[data-gallery-zoom]")) gestureRow = currentRowHeight();
+  });
+  document.addEventListener("gesturechange", (event) => {
+    if (gestureRow === null) return;
+    event.preventDefault();
+    setRowHeight(gestureRow * event.scale, event.clientX, event.clientY);
+  });
+  document.addEventListener("gestureend", () => { gestureRow = null; });
+
+  // Desktop: Ctrl + wheel (also what a trackpad pinch sends).
+  document.addEventListener("wheel", (event) => {
+    if (!event.ctrlKey || !event.target.closest || !event.target.closest("[data-gallery-zoom]")) return;
+    event.preventDefault();
+    setRowHeight(currentRowHeight() * Math.exp(-event.deltaY * 0.01), event.clientX, event.clientY);
+  }, { passive: false });
 
   // --- Confirmation dialog (replaces window.confirm) -------------------------------
   // Plain forms use data-confirm="…"; HTMX forms use hx-confirm="…". Both may add

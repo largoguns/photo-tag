@@ -1,11 +1,12 @@
 {% load catalog_tags i18n %}
-<li class="jitem" style="--r: {{ photo|aspect_ratio }}">
+<li class="jitem" style="--r: {{ photo|aspect_ratio }}" data-photo-id="{{ photo.pk }}">
   <a href="{% url 'photo_detail' photo.pk %}">
-    <img src="{% url 'photo_image' photo.pk 400 %}"
-         srcset="{% url 'photo_image' photo.pk 400 %} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %} {{ photo|thumb_width:1600 }}w"
+    <img src="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }}"
+         srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }} {{ photo|thumb_width:1600 }}w"
          sizes="(min-width: 840px) 25vw, 50vw"
          alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}{% if photo.event_type %} — {{ photo.event_type }}{% endif %}"
          loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
+    <span class="select-mark" aria-hidden="true">{% icon "radio_button_unchecked" %}{% icon "check_circle-fill" %}</span>
     {% if photo.pending_my_vote %}
     <span class="jitem-status vote" title="{% translate 'Pendiente de mi voto' %}">{% icon "how_to_vote" _("Pendiente de mi voto") %}</span>
     {% elif photo.status == "cataloged" %}

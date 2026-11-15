@@ -192,6 +192,14 @@ YUNET_MODEL_PATH = Path(
 )
 THUMBNAIL_SIZES = (400, 1600)
 
+# Orientation (photos placed sideways/upside down) and near-duplicate detection.
+ORIENTATION_MIN_SCORE = float(env("ORIENTATION_MIN_SCORE", "0.8"))
+ORIENTATION_MARGIN = float(env("ORIENTATION_MARGIN", "1.5"))
+ROTATION_POLL_SECONDS = int(env("ROTATION_POLL_SECONDS", "5"))
+DUPLICATE_MAX_DISTANCE = int(env("DUPLICATE_MAX_DISTANCE", "6"))
+# Sharing / downloading several photos at once.
+SHARE_MAX_PHOTOS = int(env("SHARE_MAX_PHOTOS", "20"))
+
 # Web uploads (written to the scans inbox for the worker).
 UPLOAD_MAX_MB = int(env("UPLOAD_MAX_MB", "50"))
 UPLOAD_MAX_FILES = int(env("UPLOAD_MAX_FILES", "20"))

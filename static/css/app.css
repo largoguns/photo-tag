@@ -349,6 +349,8 @@ progress { width: 100%; height: .5rem; accent-color: var(--md-primary); border-r
   position: sticky; top: calc(var(--top-bar-h) + 52px); z-index: 10;
   padding: .5rem 0; background: var(--md-surface); font-size: 1rem; font-weight: 500;
 }
+/* Pinch to resize the gallery (JS sets --row-h); vertical scrolling stays native. */
+[data-gallery-zoom] { touch-action: pan-y; }
 .justified { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 3px; }
 .justified::after { content: ""; flex-grow: 1000000; }
 .jitem {
@@ -364,6 +366,24 @@ progress { width: 100%; height: .5rem; accent-color: var(--md-primary); border-r
 .jitem-status .icon { width: 16px; height: 16px; }
 .jitem-status.cataloged { background: #1e7b34; }
 .jitem-status.vote { background: #1f5fbf; }
+/* Gallery selection mode (share / download several photos). */
+.select-mark { display: none; position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; color: #fff; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); pointer-events: none; }
+.select-mark .icon { width: 28px; height: 28px; position: absolute; inset: 0; }
+.select-mark .icon:last-child { display: none; color: var(--md-primary); background: #fff; border-radius: 50%; }
+body.selecting .select-mark { display: block; }
+.jitem.selected .select-mark .icon:first-child { display: none; }
+.jitem.selected .select-mark .icon:last-child { display: block; }
+.jitem img { -webkit-touch-callout: none; transition: transform .15s; }
+.jitem.selected img { transform: scale(.88); border-radius: 8px; }
+.jitem.selected { background: var(--md-secondary-container); }
+.selection-bar {
+  position: fixed; inset: 0 0 auto 0; z-index: 55; height: var(--top-bar-h);
+  padding: env(safe-area-inset-top) .5rem 0; display: flex; align-items: center; gap: .25rem;
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container); box-shadow: 0 1px 3px var(--md-shadow);
+}
+.selection-bar .button { color: inherit; }
+.selection-count { flex: 1; min-width: 0; font-size: 1.1rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+body.selecting .fab { display: none; }
 .load-more { flex-basis: 100%; display: flex; justify-content: center; padding: var(--space); list-style: none; }
 
 /* Simple grid (review queue, person page). */
@@ -373,6 +393,9 @@ progress { width: 100%; height: .5rem; accent-color: var(--md-primary); border-r
 .photo-card img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
 .photo-card .badge { position: absolute; left: .4rem; bottom: .4rem; }
 .photo-card form { padding: .5rem; }
+.duplicate-pair { display: flex; flex-direction: column; gap: .4rem; padding: .5rem; border-top: 1px solid var(--md-outline-variant); }
+.duplicate-pair img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; }
+.duplicate-pair form { padding: 0; }
 .photo-card.discarded img { opacity: .35; filter: grayscale(1); }
 
 /* Bottom sheets (filter options). */
@@ -439,6 +462,12 @@ progress { width: 100%; height: .5rem; accent-color: var(--md-primary); border-r
   min-width: 1.05rem; height: 1.05rem; padding: 0 .2rem; font-size: .65rem; pointer-events: none;
 }
 .face-box.known .face-num { background: #5fd17a; }
+.photo-frame.rotating img { transform: rotate(var(--pending)) scale(var(--fit)); transition: transform .3s; }
+.photo-frame.rotating .face-box { display: none; }
+.status-actions { display: flex; gap: .25rem; margin-left: auto; }
+.status-actions form { margin: 0; }
+.button.ready { background: var(--md-primary); color: var(--md-on-primary); } /* share sheet ready: tap again */
+.message .icon { vertical-align: -.2em; }
 .draw-rect { position: absolute; border: 2px dashed #8ab4ff; background: rgb(138 180 255 / .2); pointer-events: none; }
 .draw-form { display: flex; flex-direction: column; gap: .5rem; }
 .draw-form p { margin: 0; }

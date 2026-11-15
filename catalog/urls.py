@@ -6,8 +6,11 @@ urlpatterns = [
     path("", views.home, name="home"),
     path("gallery/", views.gallery, name="gallery"),
     path("photos/next/", views.next_uncataloged, name="next_uncataloged"),
+    path("photos/download/", views.download_photos, name="download_photos"),
+    path("photos/shared/", views.log_share, name="log_share"),
     path("photos/<int:pk>/", views.photo_detail, name="photo_detail"),
     path("photos/<int:pk>/image/<str:size>/", views.photo_image, name="photo_image"),
+    path("photos/<int:pk>/rotate/", views.rotate_photo, name="rotate_photo"),
     path("photos/<int:pk>/propose/event/", views.propose_event, name="propose_event"),
     path("photos/<int:pk>/propose/date/", views.propose_date, name="propose_date"),
     path("photos/<int:pk>/propose/face/", views.propose_add_face, name="propose_add_face"),
@@ -32,6 +35,11 @@ urlpatterns = [
         "admin/photos/<int:pk>/discard/",
         admin_views.photo_toggle_discard,
         name="admin_photo_toggle_discard",
+    ),
+    path(
+        "admin/photos/<int:pk>/not-duplicate/",
+        admin_views.photo_not_duplicate,
+        name="admin_photo_not_duplicate",
     ),
     path("admin/merge/", admin_views.merge, name="admin_merge"),
 ]

@@ -2,15 +2,25 @@
 <div id="photo-workspace" class="photo-layout" hx-target="#photo-workspace" hx-swap="outerHTML">
   <section class="photo-stage" aria-label="{% translate 'Foto' %}">
     {% if request.htmx_partial %}{% include "_messages.html" %}{% endif %}
-    <div class="photo-frame" id="photo-frame"
-         style="aspect-ratio: {{ photo.width }} / {{ photo.height }}"
+    {% if photo.pending_rotation %}
+    {# The worker applies the rotation in a few seconds; meanwhile preview it and poll. #}
+    <p class="message" role="status">{% icon "rotate_right" %} {% translate "Aplicando el giro…" %}</p>
+    <div hidden hx-get="{% url 'photo_detail' photo.pk %}" hx-trigger="every 3s" hx-target="#photo-workspace" hx-swap="outerHTML"></div>
+    {% endif %}
+    {% if photo.duplicate_of_id %}
+    <p class="message message-warning">{% icon "content_copy" %}
+      {% url 'photo_detail' photo.duplicate_of_id as original_url %}{% blocktranslate with id=photo.duplicate_of_id %}Posible duplicado de la <a href="{{ original_url }}">foto {{ id }}</a>.{% endblocktranslate %}
+    </p>
+    {% endif %}
+    <div class="photo-frame{% if photo.pending_rotation %} rotating{% endif %}" id="photo-frame"
+         style="aspect-ratio: {{ photo.width }} / {{ photo.height }};{% if photo.pending_rotation %} --pending: {{ photo.pending_rotation }}deg; --fit: {{ photo|rotation_fit }};{% endif %}"
          data-width="{{ photo.width }}" data-height="{{ photo.height }}"
-         data-full-url="{% url 'photo_image' photo.pk 'full' %}"
+         data-full-url="{% url 'photo_image' photo.pk 'full' %}?v={{ photo.rotation }}"
          title="{% translate 'Toca la foto para verla a pantalla completa' %}"
          {% if prev_photo %}data-prev-url="{% url 'photo_detail' prev_photo.pk %}"{% endif %}
          {% if next_photo %}data-next-url="{% url 'photo_detail' next_photo.pk %}"{% endif %}>
-      <img src="{% url 'photo_image' photo.pk 1600 %}"
-           srcset="{% url 'photo_image' photo.pk 400 %} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %} {{ photo|thumb_width:1600 }}w"
+      <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }}"
+           srcset="{% url 'photo_image' photo.pk 400 %}?v={{ photo.rotation }} {{ photo|thumb_width:400 }}w, {% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }} {{ photo|thumb_width:1600 }}w"
            sizes="(min-width: 1024px) 62vw, 100vw"
            alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
       {% for face in faces %}
@@ -27,7 +37,7 @@
     <dialog class="viewer" id="photo-viewer" aria-label="{% translate 'Foto a pantalla completa' %}">
       <div class="viewer-stage" data-viewer-stage>
         <div class="viewer-content" data-viewer-content>
-          <img src="{% url 'photo_image' photo.pk 1600 %}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
+          <img src="{% url 'photo_image' photo.pk 1600 %}?v={{ photo.rotation }}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
           <div class="viewer-faces">
             {% for face in faces %}
             <button type="button" class="viewer-face{% if face.person %} known{% endif %}" data-face="{{ face.pk }}"
@@ -74,6 +84,15 @@
     <div class="photo-status">
       <span class="badge status-{{ photo.status }}">{{ photo.get_status_display }}</span>
       <span class="muted">{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %} · {% blocktranslate count counter=faces|length %}{{ counter }} cara{% plural %}{{ counter }} caras{% endblocktranslate %}</span>
+      <span class="status-actions">
+        <button type="button" class="button text icon-only" data-share-photos="{{ photo.pk }}"
+                data-download-url="{% url 'download_photos' %}?ids={{ photo.pk }}" data-log-url="{% url 'log_share' %}" data-ready-text="{% translate 'Compartir ahora' %}"
+                aria-label="{% translate 'Compartir o descargar la foto' %}" title="{% translate 'Compartir o descargar la foto' %}">{% icon "share" %}</button>
+        <form method="post" action="{% url 'rotate_photo' photo.pk %}" hx-post="{% url 'rotate_photo' photo.pk %}">
+          {% csrf_token %}
+          <button type="submit" class="button text icon-only" aria-label="{% translate 'Girar 90° a la derecha' %}" title="{% translate 'Girar 90° a la derecha' %}">{% icon "rotate_right" %}</button>
+        </form>
+      </span>
     </div>
 
     {% for face in faces %}
@@ -152,10 +171,16 @@
           {% csrf_token %}
           <div class="field">
             <label for="event-type">{% translate "Tipo de evento" %}</label>
-            <select id="event-type" name="event_type" required>
+            <select id="event-type" name="event_type" data-event-type>
               <option value="">{% translate "— Elige —" %}</option>
               {% for event in event_types %}<option value="{{ event.pk }}">{{ event }}</option>{% endfor %}
+              <option value="new">{% translate "Otro…" %}</option>
             </select>
+          </div>
+          <div class="field" data-event-name>
+            <label for="event-name">{% translate "¿Qué evento es?" %}</label>
+            <input type="text" id="event-name" name="event_name" maxlength="100" autocomplete="off" placeholder="{% translate 'Graduación' %}">
+            <span class="helptext">{% translate "Si no está en la lista. Quedará disponible para todos cuando se acepte por votación." %}</span>
           </div>
           <div class="field">
             <label for="event-description">{% translate "Descripción (opcional)" %}</label>

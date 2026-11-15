@@ -12,7 +12,7 @@
   {% for proposal in page %}
   <li class="list-item">
     <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">
-      <img src="{% url 'photo_image' proposal.photo_id 400 %}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60">
+      <img src="{% url 'photo_image' proposal.photo_id 400 %}?v={{ proposal.photo.rotation }}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60">
     </a>
     <div class="list-main">
       <strong>{{ proposal.get_kind_display }}</strong>: {{ proposal.label }}

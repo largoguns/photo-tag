@@ -65,3 +65,12 @@ def sheet_options(items, kind="choices"):
 def aspect_ratio(photo):
     """Width/height as a locale-independent number for inline CSS."""
     return f"{photo.width / photo.height:.4f}" if photo.height else "1"
+
+
+@register.filter
+def rotation_fit(photo):
+    """Scale that keeps a photo inside its frame while previewing a 90/270° rotation."""
+    if photo.pending_rotation % 180 == 0 or not photo.width or not photo.height:
+        return "1"
+    ratio = photo.width / photo.height
+    return f"{min(ratio, 1 / ratio):.4f}"
