@@ -182,3 +182,44 @@ def test_languages_are_named_in_their_own_language(client, alice):
     client.force_login(alice)
     content = client.get(reverse("home"), HTTP_ACCEPT_LANGUAGE="es").content.decode()
     assert ">Español</button>" in content and ">English</button>" in content
+
+
+@pytest.mark.parametrize(
+    ("name", "back"),
+    [
+        ("admin_event_types", "admin_home"),
+        ("admin_thresholds", "admin_home"),
+        ("admin_review_queue", "admin_home"),
+        ("admin_merge", "admin_home"),
+        ("export_home", "admin_home"),
+        ("scan", "admin_home"),
+        ("user_list", "admin_home"),
+        ("user_create", "user_list"),
+    ],
+)
+def test_admin_screens_have_a_back_arrow_header(client, superadmin, name, back):
+    client.force_login(superadmin)
+    content = client.get(reverse(name)).content.decode()
+    header = content.split('class="page-title"')[1].split("</div>")[0]
+    assert f'href="{reverse(back)}"' in header and "back-button" in header
+    assert "← " not in content
+
+
+def test_profile_is_a_settings_list_with_collapsible_rows(client, alice):
+    client.force_login(alice)
+    content = client.get(reverse("profile")).content.decode()
+    assert 'class="settings-list"' in content
+    for row in ["setting-name", "setting-theme", "setting-language", "setting-password"]:
+        assert re.search(rf'<details class="setting" id="{row}"\s*>', content)
+    assert 'name="save_profile"' in content and 'name="change_password"' in content
+
+
+def test_profile_opens_the_row_with_errors(client, alice):
+    client.force_login(alice)
+    response = client.post(
+        reverse("profile"),
+        {"change_password": "1", "new_password1": "a", "new_password2": "b"},
+    )
+    content = response.content.decode()
+    assert '<details class="setting" id="setting-password" open>' in content
+    assert re.search(r'<details class="setting" id="setting-name"\s*>', content)

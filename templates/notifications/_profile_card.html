@@ -1,11 +1,16 @@
-{% load i18n %}
-<section class="card stack push-card" id="push-card" aria-labelledby="push-title"
+{% load i18n catalog_tags %}
+<details class="setting push-card" id="push-card"{% if notification_form.errors %} open{% endif %}
          data-vapid-key="{{ vapid_public_key }}"
          data-subscribe-url="{% url 'push_subscribe' %}"
          data-unsubscribe-url="{% url 'push_unsubscribe' %}"
          data-test-url="{% url 'push_test' %}"
          data-error-text="{% translate 'No se ha podido completar. Inténtalo de nuevo.' %}">
-  <h2 id="push-title">{% translate "Avisos" %}</h2>
+  <summary>
+    {% icon "notifications" %}
+    <span class="setting-text"><span class="setting-title">{% translate "Avisos" %}</span><span class="setting-value">{% translate "Novedades en este dispositivo" %}</span></span>
+    {% icon "keyboard_arrow_down" %}
+  </summary>
+  <div class="setting-body stack">
   <p class="muted">{% translate "Recibe en este dispositivo un resumen de novedades: como mucho uno por hora de cada tipo y nunca de noche." %}</p>
 
   <div class="push-status" aria-live="polite">
@@ -44,4 +49,5 @@
     </ul>
   </div>
   {% endif %}
-</section>
+  </div>
+</details>
