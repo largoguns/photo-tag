@@ -16,6 +16,11 @@ from tests.conftest import FOUR_PHOTOS, synthetic_scan
 pytestmark = pytest.mark.django_db
 
 
+@pytest.fixture(autouse=True)
+def no_waiting(monkeypatch):
+    monkeypatch.setattr(scanning.time, "sleep", lambda seconds: None)
+
+
 @pytest.fixture
 def scanner(settings, tmp_path):
     settings.SCANNER_URL = "http://192.168.18.46/eSCL"
@@ -28,12 +33,22 @@ def scanner(settings, tmp_path):
 class FakeScanimage:
     """Stands in for subprocess.run(["scanimage", ...])."""
 
-    def __init__(self, returncode=0, stderr=b"", timeout=False, writes=True, intent=True):
+    OPEN_FAILED = b"scanimage: open of device airscan:e0:PhotoTag failed: Error during device I/O"
+
+    def __init__(
+        self, returncode=0, stderr=b"", timeout=False, writes=True, intent=True, open_failures=0
+    ):
         self.returncode, self.stderr = returncode, stderr
         self.timeout, self.writes, self.intent = timeout, writes, intent
+        self.open_failures = open_failures  # first N opens fail, like a sleeping printer
         self.calls = []
 
     def __call__(self, args, **kwargs):
+        if self.open_failures:
+            self.open_failures -= 1
+            if "-A" not in args:
+                self.calls.append((args, kwargs))
+            return subprocess.CompletedProcess(args, 1, b"", self.OPEN_FAILED)
         if "-A" in args:  # option list, asked once to detect --scan-intent support
             options = b"--resolution 300|600dpi\n" + (
                 b"--scan-intent Photo\n" if self.intent else b""
@@ -236,3 +251,37 @@ def test_scan_intent_is_skipped_when_sane_airscan_is_older(
 
     assert job.status == ScanJob.Status.DONE
     assert "--scan-intent" not in fake.calls[0][0]
+
+
+def test_sleeping_printer_is_retried_until_it_answers(scanner, data_dirs, admin_user, monkeypatch):
+    # Regression: the HP DeskJet refuses the first connections while it wakes up.
+    fake = FakeScanimage(open_failures=4)  # option query + scan fail twice, then it wakes up
+    monkeypatch.setattr(subprocess, "run", fake)
+    scanning.request_scan(admin_user, 600)
+
+    job = scanning.run_pending_scan()
+
+    assert job.status == ScanJob.Status.DONE
+    assert len(fake.calls) == 3
+    assert "--scan-intent" in fake.calls[-1][0]  # asked again once the printer answered
+    assert len(os.listdir(data_dirs / "scans" / "inbox")) == 1
+
+
+def test_printer_that_never_answers_fails_after_the_retries(
+    scanner, data_dirs, admin_user, monkeypatch
+):
+    fake = FakeScanimage(open_failures=99)
+    monkeypatch.setattr(subprocess, "run", fake)
+    scanning.request_scan(admin_user, 600)
+
+    job = scanning.run_pending_scan()
+
+    assert job.status == ScanJob.Status.FAILED and "no responde" in job.error
+    assert len(fake.calls) == len(scanning.OPEN_RETRY_DELAYS) + 1
+    assert os.listdir(data_dirs / "scans" / "inbox") == []
+
+
+def test_failed_option_query_is_not_remembered(scanner, monkeypatch):
+    monkeypatch.setattr(subprocess, "run", FakeScanimage(open_failures=1))
+    assert scanning.photo_intent_args() == []
+    assert scanning.photo_intent_args() == ["--scan-intent", "Photo"]

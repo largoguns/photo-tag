@@ -9,6 +9,7 @@ import hashlib
 import logging
 import os
 import subprocess
+import time
 import uuid
 from pathlib import Path
 
@@ -25,6 +26,9 @@ logger = logging.getLogger("scanner")
 
 DEVICE_NAME = "PhotoTag"
 DEVICE = f"airscan:e0:{DEVICE_NAME}"
+# Printers waking up from sleep often refuse the first eSCL connections ("open of device
+# ... failed"). Nothing has been scanned yet, so it is safe to wait and try again.
+OPEN_RETRY_DELAYS = (3, 6, 10)
 
 
 class ScannerError(Exception):
@@ -91,11 +95,17 @@ def photo_intent_args():
     if url not in _option_support:
         try:
             result = run_scanimage(["-d", DEVICE, "-A"], timeout=60)
-            options = result.stdout.decode(errors="replace")
-            _option_support[url] = result.returncode == 0 and "--scan-intent" in options
         except (OSError, subprocess.SubprocessError):
-            return []  # unknown for now; retried on the next scan
+            return []  # unknown for now; asked again on the next scan
+        if result.returncode != 0:
+            return []  # printer not answering (asleep?): do not remember a wrong answer
+        _option_support[url] = "--scan-intent" in result.stdout.decode(errors="replace")
     return ["--scan-intent", "Photo"] if _option_support[url] else []
+
+
+def is_open_failure(result):
+    """The device could not be opened: the scan did not even start."""
+    return result.returncode != 0 and b"open of device" in result.stderr
 
 
 def scan_to_file(resolution, target, before_publish=None):
@@ -106,21 +116,27 @@ def scan_to_file(resolution, target, before_publish=None):
     """
     partial = target.with_name(f".{target.name}.part")
     try:
-        result = run_scanimage(
-            [
-                "-d",
-                DEVICE,
-                "--mode",
-                "Color",
-                *photo_intent_args(),
-                "--resolution",
-                str(resolution),
-                "--format=png",
-                "-o",
-                str(partial),
-            ],
-            timeout=settings.SCAN_TIMEOUT_SECONDS,
-        )
+        for delay in (*OPEN_RETRY_DELAYS, None):
+            result = run_scanimage(
+                [
+                    "-d",
+                    DEVICE,
+                    "--mode",
+                    "Color",
+                    *photo_intent_args(),
+                    "--resolution",
+                    str(resolution),
+                    "--format=png",
+                    "-o",
+                    str(partial),
+                ],
+                timeout=settings.SCAN_TIMEOUT_SECONDS,
+            )
+            if delay is None or not is_open_failure(result):
+                break
+            logger.info("event=scan_open_retry delay=%ss", delay)
+            partial.unlink(missing_ok=True)
+            time.sleep(delay)
     except subprocess.TimeoutExpired as exc:
         partial.unlink(missing_ok=True)
         raise ScannerError(
