@@ -11,7 +11,7 @@ from django.db import close_old_connections
 from exporter.services import backup, export
 from notifications.services import digest
 from scanner.management.commands.process_scans import watch_inbox
-from scanner.services import embeddings
+from scanner.services import embeddings, rotation
 
 logger = logging.getLogger("worker")
 
@@ -50,6 +50,13 @@ def build_scheduler():
             id="periodic_export",
             **common,
         )
+    scheduler.add_job(
+        job(rotation.apply_pending_rotations),
+        "interval",
+        seconds=settings.ROTATION_POLL_SECONDS,
+        id="photo_rotations",
+        **common,
+    )
     scheduler.add_job(
         job(embeddings.compute_missing),
         "interval",
