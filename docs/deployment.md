@@ -216,7 +216,7 @@ Ninguno de los contenedores publica puertos en el NAS; es lo correcto.
    - **Android (Firefox)**: el aviso explica la ruta: menú **⋮ → Instalar**.
    - **iPhone / iPad (Safari)**: el aviso indica **Compartir → Añadir a pantalla de inicio**. iOS no permite instalar con un botón; hay que hacerlo desde ese menú.
    - «Ahora no» oculta el aviso 30 días en ese dispositivo.
-5. **Prueba de escaneo**: deja un escaneo en `phototag/scans/inbox`. En menos de dos minutos aparecerán sus fotos en la galería y el original pasará a `scans/processed`.
+5. **Prueba de escaneo**: deja un escaneo en `phototag/scans/inbox` o súbelo desde la app con el botón **Subir**. En menos de dos minutos aparecerán sus fotos en la galería y el original pasará a `scans/processed`. El contenedor `web` monta `scans/inbox` en escritura para recibir las subidas; por eso esa carpeta también debe ser de `PUID:PGID` (paso 1.5). El tamaño máximo por fichero se cambia con `UPLOAD_MAX_MB` (50 por defecto).
 6. **Activar las notificaciones push** (opcional):
    1. Portainer → `phototag-web-1` → **Console** → *Connect* (`/bin/sh`) y ejecuta:
 

@@ -60,6 +60,8 @@ Cada usuario puede activar avisos push en «Mi perfil»: fotos nuevas para catal
 ## Uso
 
 - **Escanear**: deja los escaneos (JPG, PNG o TIFF) en `scans/inbox`. El worker los procesa en menos de un minuto y mueve el original a `scans/processed` (nunca se borra).
+- **Subir desde la app**: cualquier usuario puede pulsar **Subir** (botón flotante en Inicio y Galería) y elegir «Escaneo con varias fotos» o «Foto suelta». Los ficheros van a `scans/inbox` y el worker los procesa igual que los escaneos de la carpeta.
+- **Ver una foto en detalle**: toca la imagen para abrirla a pantalla completa y hacer zoom; el resto de la app no se puede ampliar con los dedos.
 - **Catalogar**: en la web, abre «Siguiente foto sin catalogar», pulsa cada recuadro de cara para proponer o votar un nombre y propone el evento y la fecha.
 - **Sugerencias**: en cuanto una persona está aceptada en alguna foto, las caras parecidas muestran «¿Es …?» en su panel, y la ficha de la persona lista «Puede que aparezca en». Pulsar una sugerencia crea una propuesta con tu voto. Si salen demasiadas sugerencias erróneas, sube `FACE_MATCH_THRESHOLD`; si salen pocas, bájalo.
 - **Votación**: una propuesta se acepta con al menos 2 votos a favor y un 66 % de apoyo (configurable en *Administración → Umbrales*). Una foto queda catalogada cuando todas sus caras tienen persona y tiene evento.

@@ -50,6 +50,7 @@ Servicios del stack (Docker Compose, desplegado con Portainer en el NAS):
 ### 3.1 Entrada
 
 - Carpeta `/data/scans/inbox` con escaneos A4 (JPG, PNG o TIFF), resolución típica 300–600 ppp.
+- **Subidas desde la web**: cualquier usuario puede subir imágenes (pantalla «Subir»). Al subir elige el tipo: **escaneo con varias fotos** (se recorta como cualquier escaneo) o **foto suelta** (se usa la imagen entera, respetando la orientación EXIF, y solo se detectan caras). Se valida el tipo real (JPEG/PNG/TIFF) y el tamaño (`UPLOAD_MAX_MB`, 50 por defecto; hasta 20 ficheros por envío), se rechazan los duplicados por SHA-256 y el fichero se escribe en `inbox` de forma atómica. Cada subida queda registrada (`Upload`) con su estado (en cola, procesada, duplicada o con error) y el escaneo resultante guarda quién lo subió.
 - Fondo blanco o casi blanco (tapa del escáner). Las fotos pueden estar ligeramente giradas y muy próximas, aunque normalmente no se tocan.
 
 ### 3.2 Procesamiento
@@ -148,7 +149,11 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 - **Vista de foto en móvil**: imagen a ancho completo arriba y paneles de caras, evento y fecha debajo, plegables. **En escritorio**: imagen a la izquierda y paneles en una columna lateral a la derecha.
 - Interacción táctil de primera clase: usar Pointer Events para seleccionar y dibujar recuadros de cara, de modo que funcione igual con ratón y con dedo. Nada debe depender solo de `hover`.
 - Objetivos táctiles de al menos 44 × 44 px (botones de voto, recuadros de cara pequeños con área ampliada).
-- Navegación: barra inferior en móvil, barra superior o lateral en escritorio.
+- **Material Design 3 (Material You)**: paleta tonal clara y oscura, botones en píldora, chips e iconos Material Symbols Rounded (sprite SVG propio, sin CDN). Barra superior con la marca y el **avatar del usuario arriba a la derecha**, que abre su menú (perfil, administración, usuarios, idioma y cerrar sesión).
+- Navegación: **barra de navegación flotante** en móvil (se oculta al bajar y reaparece al subir) y **navigation rail** a la izquierda desde 840 px. Botón flotante (FAB) «Subir» en Inicio y Galería.
+- **Sin desbordes**: los botones nunca parten su texto en varias líneas (se recortan con puntos suspensivos y conservan el texto completo como etiqueta accesible) y la barra de herramientas de la foto pasa a solo iconos cuando no cabe.
+- **Zoom**: la aplicación no permite pellizcar para hacer zoom en la página. En la vista de foto, al tocar la imagen se abre un **visor a pantalla completa** con la imagen original y zoom propio (pellizco, doble toque, rueda y botones, hasta ×8), con los recuadros de cara ocultos por defecto y un interruptor para mostrarlos.
+- Al abrir la **app instalada** sin avisos activados en ese dispositivo, se propone activarlos con un banner (se puede posponer 30 días).
 - Imágenes con `srcset` usando las miniaturas de 400 y 1600 px para no descargar originales en móvil.
 - Gestos opcionales en móvil: deslizar a izquierda/derecha para pasar de foto.
 - Accesibilidad básica: contraste suficiente (AA en ambos temas), etiquetas en formularios, navegación por teclado en escritorio.
@@ -161,7 +166,8 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 
 | Entidad | Campos principales |
 |---|---|
-| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed |
+| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable) |
+| `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
 | `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
@@ -196,7 +202,9 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 1. **Login** y **cambio obligatorio de contraseña** en el primer acceso.
 2. **Inicio**: progreso global (fotos catalogadas / total), propuestas abiertas pendientes de mi voto y botón «Siguiente foto sin catalogar».
-3. **Galería** con filtros: estado, persona, evento, década y «pendientes de mi voto». Scroll infinito con HTMX.
+3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones; la de persona tiene buscador y caras. Scroll infinito con HTMX.
+   - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara.
+   - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
 4. **Vista de foto** (pantalla principal):
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
    - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
@@ -264,7 +272,7 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 
 | Ruta en contenedor | Uso | Montado en |
 |---|---|---|
-| `/data/scans` | Escaneos (`inbox`, `processed`) | worker (rw) |
+| `/data/scans` | Escaneos (`inbox`, `processed`) | worker (rw); web solo `inbox` (rw, para las subidas) |
 | `/data/photos` | Recortes y miniaturas | web (ro), worker (rw) |
 | `/data/export` | Salida para Immich | worker (rw); Immich lo monta como biblioteca externa (ro) |
 | `/data/backups` | Copias de la BD | worker (rw) |
@@ -284,6 +292,7 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `SUPERADMIN_USERNAME` | web | `admin` |
 | `SUPERADMIN_PASSWORD` | web | — (obligatoria en el primer arranque) |
 | `DEFAULT_USER_PASSWORD` | web | — (obligatoria) |
+| `UPLOAD_MAX_MB` | web | `50` |
 | `TS_AUTHKEY` | tailscale | — (solo en el primer arranque) |
 | `TS_HOSTNAME` | tailscale | `phototag` |
 | `POLL_INTERVAL_SECONDS` | worker | `60` |
