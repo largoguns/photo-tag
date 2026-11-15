@@ -77,6 +77,12 @@ for (const variant of variants) {
     await page.goto(`${base}/gallery/`, { waitUntil: "networkidle" });
     await page.click('[data-open-sheet="sheet-person"]');
     await shot("person-sheet");
+    await page.keyboard.press("Escape");
+    await page.click('[data-selection="start"]');
+    const items = page.locator(".jitem a");
+    if (await items.count() > 1) { await items.nth(0).click(); await items.nth(1).click(); }
+    await shot("gallery-selection");
+    await page.click('[data-selection="cancel"]');
     if (photoLink) {
       await page.goto(base + photoLink, { waitUntil: "networkidle" });
       await page.click('[data-action="open-viewer"]');

@@ -63,6 +63,8 @@ Para cada escaneo:
 4. Detectar contornos externos (`cv2.findContours`) y descartar los de área menor que `MIN_PHOTO_AREA_RATIO` (por defecto, 3 % del A4).
 5. Para cada contorno válido, obtener el rectángulo mínimo rotado (`cv2.minAreaRect`) y aplicar transformación de perspectiva para obtener la foto recta.
 6. Recortar un margen interior configurable (`CROP_INSET_PX`, por defecto 4 px) para eliminar restos del fondo.
+6b. **Orientación**: para detectar fotos colocadas de lado o boca abajo, se prueban las cuatro orientaciones (0°, 90°, 180° y 270°) con YuNet sobre una copia reducida. La foto se gira si una orientación distinta de 0° suma una confianza en caras ≥ `ORIENTATION_MIN_SCORE` (0.8) y supera a la siguiente en un factor ≥ `ORIENTATION_MARGIN` (1.5). Si gana sin margen suficiente, no se gira y el escaneo va a revisión. Las fotos sin caras no se tocan. El giro aplicado se guarda en `Photo.rotation`.
+6c. **Posibles duplicados**: se calcula un hash perceptual (dHash de 64 bits, ignorando imágenes sin detalle) y se compara, en las cuatro orientaciones, con el de las fotos existentes. Con una distancia de Hamming ≤ `DUPLICATE_MAX_DISTANCE` (6), la foto se marca como posible duplicado de la más antigua (`Photo.duplicate_of`) y el escaneo va a revisión. El comando `python manage.py find_duplicates` lo aplica a las fotos ya procesadas.
 7. Detectar caras con **OpenCV YuNet** (`cv2.FaceDetectorYN`, modelo `face_detection_yunet_2023mar.onnx` incluido en la imagen) sobre cada foto. Umbral configurable (`FACE_SCORE_THRESHOLD`, por defecto 0.7).
 8. Guardar cada foto como JPG de calidad 95 en `/data/photos/`, generar miniaturas (400 px y 1600 px) en `/data/photos/thumbs/` y crear en BD los registros `Scan`, `Photo` y `Face` (source `auto`) dentro de una transacción.
 9. Mover el escaneo original a `/data/scans/processed/` (nunca borrarlo).
@@ -74,6 +76,8 @@ Marcar el `Scan` con `needs_review = True` cuando:
 - Se detecten menos de 1 o más de 6 fotos.
 - Algún contorno tenga una relación de aspecto anómala (mayor de 4:1).
 - Dos rectángulos se solapen.
+- La orientación de alguna foto sea dudosa (6b).
+- Alguna foto sea un posible duplicado (6c). En la cola se ven las dos fotos juntas y se puede descartar la copia o marcar «No es duplicado».
 
 Los escaneos marcados se procesan igualmente y aparecen en la cola de revisión del administrador (ver 5.6).
 
@@ -168,10 +172,10 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 |---|---|
 | `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable) |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
-| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en |
+| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, phash, posible_duplicado_de (nullable) |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
-| `EventType` | nombre (catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones, Otro…) |
+| `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
 | `Vote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
 
@@ -196,6 +200,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 - Un valor aceptado puede reabrirse con una nueva propuesta; el anterior sigue vigente hasta que la nueva se acepte.
 - Un administrador puede aceptar o rechazar directamente cualquier propuesta (queda registrado).
 - Los umbrales son configurables desde la administración.
+- **Eventos nuevos**: cualquier usuario puede proponer «Otro…» con un nombre. Si coincide con un tipo existente (sin distinguir tildes ni mayúsculas, en español o en inglés), se usa ese tipo; si no, se crea uno **provisional** con el nombre en formato frase. Pasa al catálogo cuando la propuesta se acepta y se elimina si se rechaza o queda sustituida sin que nadie más lo use. Los administradores ven quién lo propuso y pueden editarlo o desactivarlo.
 - Una foto pasa a `cataloged` cuando todas sus caras tienen persona aceptada y tiene evento aceptado.
 
 ### 5.5 Pantallas
@@ -205,6 +210,9 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones; la de persona tiene buscador y caras. Scroll infinito con HTMX.
    - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara.
    - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
+   - **Zoom de la galería**: pellizcar (o Ctrl + rueda en escritorio) cambia el tamaño de las filas, como en Google Photos; cada dispositivo recuerda el tamaño.
+   - **Compartir**: en la galería, el modo selección (botón «Seleccionar» o pulsación larga) muestra la barra «N seleccionadas · Compartir · Descargar». En la vista de foto, un botón «Compartir». Se usa la hoja de compartir del dispositivo con los ficheros originales (Web Share API); sin ella, se descarga el JPG o un ZIP (máximo `SHARE_MAX_PHOTOS`, 20). Compartir y descargar quedan en la auditoría.
+   - **Girar**: cualquier usuario puede girar una foto 90° desde su vista. El giro lo aplica el `worker` en unos segundos (fichero, miniaturas y recuadros de cara) y se mantiene al reprocesar el escaneo.
 4. **Vista de foto** (pantalla principal):
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
    - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
@@ -293,6 +301,10 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `SUPERADMIN_PASSWORD` | web | — (obligatoria en el primer arranque) |
 | `DEFAULT_USER_PASSWORD` | web | — (obligatoria) |
 | `UPLOAD_MAX_MB` | web | `50` |
+| `ORIENTATION_MIN_SCORE` / `ORIENTATION_MARGIN` | worker | `0.8` / `1.5` |
+| `DUPLICATE_MAX_DISTANCE` | worker | `6` |
+| `ROTATION_POLL_SECONDS` | worker | `5` |
+| `SHARE_MAX_PHOTOS` | web | `20` |
 | `TS_AUTHKEY` | tailscale | — (solo en el primer arranque) |
 | `TS_HOSTNAME` | tailscale | `phototag` |
 | `POLL_INTERVAL_SECONDS` | worker | `60` |

@@ -61,6 +61,10 @@ Cada usuario puede activar avisos push en «Mi perfil»: fotos nuevas para catal
 
 - **Escanear**: deja los escaneos (JPG, PNG o TIFF) en `scans/inbox`. El worker los procesa en menos de un minuto y mueve el original a `scans/processed` (nunca se borra).
 - **Subir desde la app**: cualquier usuario puede pulsar **Subir** (botón flotante en Inicio y Galería) y elegir «Escaneo con varias fotos» o «Foto suelta». Los ficheros van a `scans/inbox` y el worker los procesa igual que los escaneos de la carpeta.
+- **Fotos de lado o boca abajo**: el procesado las endereza solo cuando tienen caras. Si no, pulsa **Girar** en la vista de la foto.
+- **Duplicados**: un reescaneo o una copia recomprimida de una foto ya existente aparece en la cola de revisión como «posible duplicado». Para revisar las fotos ya procesadas, ejecuta `python manage.py find_duplicates` en el worker.
+- **Compartir**: botón **Compartir** en una foto, o **Seleccionar** en la galería (también con pulsación larga) para enviar varias a la vez. En el ordenador se descargan en un ZIP.
+- **Eventos**: si el evento no está en la lista, elige «Otro…» y escríbelo. Queda disponible para todos cuando la propuesta se acepta.
 - **Ver una foto en detalle**: toca la imagen para abrirla a pantalla completa y hacer zoom; el resto de la app no se puede ampliar con los dedos.
 - **Catalogar**: en la web, abre «Siguiente foto sin catalogar», pulsa cada recuadro de cara para proponer o votar un nombre y propone el evento y la fecha.
 - **Sugerencias**: en cuanto una persona está aceptada en alguna foto, las caras parecidas muestran «¿Es …?» en su panel, y la ficha de la persona lista «Puede que aparezca en». Pulsar una sugerencia crea una propuesta con tu voto. Si salen demasiadas sugerencias erróneas, sube `FACE_MATCH_THRESHOLD`; si salen pocas, bájalo.
