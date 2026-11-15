@@ -1052,33 +1052,62 @@
     if (remember) storageSet(INSTALL_DISMISS_KEY, String(Date.now()));
   }
 
+  // «Instalar la app» in the avatar menu: always reachable, even after «Ahora no».
+  function installMode() {
+    if (isInstalled()) return null;
+    if (deferredInstall) return "prompt";
+    return mobilePlatform();
+  }
+
+  function syncInstallMenu() {
+    const item = document.querySelector("[data-install-open]");
+    if (item) item.hidden = !installMode();
+  }
+
+  function promptInstall() {
+    const prompt = deferredInstall;
+    deferredInstall = null;
+    prompt.prompt();
+    prompt.userChoice.then((choice) => {
+      hideInstallBanner(choice.outcome !== "accepted");
+      syncInstallMenu();
+    });
+  }
+
   // Chromium fires this when the app is installable; keep it to prompt later.
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstall = event;
+    syncInstallMenu();
     if (mobilePlatform() && !isInstalled() && !recentlyDismissed(INSTALL_DISMISS_KEY)) showInstallBanner("prompt");
   });
 
   window.addEventListener("appinstalled", () => {
     deferredInstall = null;
     hideInstallBanner(false);
+    syncInstallMenu();
   });
 
   document.addEventListener("click", (event) => {
+    const opener = event.target.closest("[data-install-open]");
+    if (opener) {
+      opener.closest("details")?.removeAttribute("open");
+      const mode = installMode();
+      if (mode === "prompt") promptInstall();
+      else if (mode) showInstallBanner(mode); // the steps, even if dismissed before
+      return;
+    }
     const action = event.target.closest("[data-install-action]");
     if (!action) return;
     if (action.dataset.installAction === "dismiss") {
       hideInstallBanner(true);
       return;
     }
-    if (!deferredInstall) return;
-    const prompt = deferredInstall;
-    deferredInstall = null;
-    prompt.prompt();
-    prompt.userChoice.then((choice) => hideInstallBanner(choice.outcome !== "accepted"));
+    if (deferredInstall) promptInstall();
   });
 
   ready(() => {
+    syncInstallMenu();
     const platform = mobilePlatform();
     if (!platform || isInstalled() || recentlyDismissed(INSTALL_DISMISS_KEY)) return;
     if (platform === "ios") {

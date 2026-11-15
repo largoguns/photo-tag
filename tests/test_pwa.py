@@ -1,6 +1,7 @@
 """Installable Progressive Web App: manifest, service worker, offline page and banner."""
 
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -137,3 +138,12 @@ def test_cache_version_changes_with_file_content(monkeypatch, tmp_path):
     before = pwa.shell_version(["/static/css/app.css"])
     css.write_text("a{color:red}")
     assert pwa.shell_version(["/static/css/app.css"]) != before
+
+
+def test_avatar_menu_offers_installing_the_app(client, alice):
+    # Hidden until app.js knows the app is not installed and this browser can install it,
+    # so the steps stay reachable even after «Ahora no» on the banner.
+    client.force_login(alice)
+    content = client.get(reverse("home")).content.decode()
+    assert re.search(r"<button[^>]*data-install-open hidden>", content)
+    assert "Instalar la app" in content

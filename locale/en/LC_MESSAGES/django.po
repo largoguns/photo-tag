@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 17:13+0100\n"
+"POT-Creation-Date: 2026-11-15 17:35+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -115,7 +115,7 @@ msgstr "Photos"
 msgid "Escaneos y subidas"
 msgstr "Scans and uploads"
 
-#: accounts/services/audit_catalog.py:23 templates/base.html:69
+#: accounts/services/audit_catalog.py:23 templates/base.html:71
 #: templates/catalog/persons.html:2 templates/catalog/persons.html:4
 msgid "Personas"
 msgstr "People"
@@ -1144,8 +1144,12 @@ msgid ""
 msgid_plural ""
 "Te han adelantado en el ranking de la semana: estás a %(gap)s puntos del "
 "puesto %(place)s."
-msgstr[0] "Someone overtook you in this week’s ranking: you are %(gap)s point behind place %(place)s."
-msgstr[1] "Someone overtook you in this week’s ranking: you are %(gap)s points behind place %(place)s."
+msgstr[0] ""
+"Someone overtook you in this week’s ranking: you are %(gap)s point behind "
+"place %(place)s."
+msgstr[1] ""
+"Someone overtook you in this week’s ranking: you are %(gap)s points behind "
+"place %(place)s."
 
 #: notifications/services/digest.py:104
 #, python-format
@@ -1309,7 +1313,7 @@ msgid "La página que buscas no existe."
 msgstr "The page you are looking for does not exist."
 
 #: templates/_language_switch.html:2 templates/accounts/profile.html:22
-#: templates/accounts/profile.html:121 templates/base.html:46
+#: templates/accounts/profile.html:121 templates/base.html:48
 msgid "Idioma"
 msgstr "Language"
 
@@ -1533,7 +1537,7 @@ msgstr ""
 msgid "Guardar y continuar"
 msgstr "Save and continue"
 
-#: templates/accounts/password_change_forced.html:15 templates/base.html:51
+#: templates/accounts/password_change_forced.html:15 templates/base.html:53
 msgid "Cerrar sesión"
 msgstr "Sign out"
 
@@ -1671,7 +1675,7 @@ msgid "El usuario deberá cambiar la contraseña en su primer acceso."
 msgstr ""
 "The user will have to change the password when signing in for the first time."
 
-#: templates/accounts/user_form.html:14 templates/base.html:120
+#: templates/accounts/user_form.html:14 templates/base.html:122
 #: templates/catalog/_photo_workspace.html:77
 #: templates/catalog/admin/event_type_form.html:12
 #: templates/catalog/admin/merge.html:15
@@ -1706,7 +1710,7 @@ msgstr "Search"
 msgid "Contraseña genérica"
 msgstr "Generic password"
 
-#: templates/accounts/user_list.html:27 templates/base.html:73
+#: templates/accounts/user_list.html:27 templates/base.html:75
 msgid "Actividad"
 msgstr "Activity"
 
@@ -1768,28 +1772,32 @@ msgstr "Ranking"
 msgid "Escanear"
 msgstr "Scan"
 
-#: templates/base.html:58
+#: templates/base.html:45
+msgid "Instalar la app"
+msgstr "Install the app"
+
+#: templates/base.html:60
 msgid "Navegación principal"
 msgstr "Main navigation"
 
-#: templates/base.html:61 templates/catalog/home.html:2
+#: templates/base.html:63 templates/catalog/home.html:2
 msgid "Inicio"
 msgstr "Home"
 
-#: templates/base.html:65 templates/catalog/gallery.html:2
+#: templates/base.html:67 templates/catalog/gallery.html:2
 #: templates/catalog/gallery.html:5
 msgid "Galería"
 msgstr "Gallery"
 
-#: templates/base.html:89
+#: templates/base.html:91
 msgid "Instala PhotoTag"
 msgstr "Install PhotoTag"
 
-#: templates/base.html:90
+#: templates/base.html:92
 msgid "Añádela a tu pantalla de inicio y ábrela como una app."
 msgstr "Add it to your home screen and open it like an app."
 
-#: templates/base.html:91
+#: templates/base.html:93
 msgid ""
 "Pulsa <strong>Compartir</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> y elige <strong>Añadir a pantalla de inicio</strong>."
@@ -1797,7 +1805,7 @@ msgstr ""
 "Tap <strong>Share</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> and choose <strong>Add to Home Screen</strong>."
 
-#: templates/base.html:92
+#: templates/base.html:94
 msgid ""
 "Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</"
 "strong> o <strong>Añadir a pantalla de inicio</strong>."
@@ -1805,19 +1813,19 @@ msgstr ""
 "Open the browser menu <strong>⋮</strong> and choose <strong>Install app</"
 "strong> or <strong>Add to Home screen</strong>."
 
-#: templates/base.html:95 templates/base.html:109
+#: templates/base.html:97 templates/base.html:111
 msgid "Ahora no"
 msgstr "Not now"
 
-#: templates/base.html:96
+#: templates/base.html:98
 msgid "Instalar"
 msgstr "Install"
 
-#: templates/base.html:104
+#: templates/base.html:106
 msgid "Activa los avisos"
 msgstr "Turn on notifications"
 
-#: templates/base.html:105
+#: templates/base.html:107
 msgid ""
 "Te avisaremos de fotos nuevas y de propuestas que esperan tu voto. Como "
 "mucho uno por hora y nunca de noche."
@@ -1825,19 +1833,19 @@ msgstr ""
 "We'll let you know about new photos and proposals waiting for your vote. At "
 "most one per hour, never at night."
 
-#: templates/base.html:106
+#: templates/base.html:108
 msgid "No se han podido activar. Puedes intentarlo desde Mi perfil."
 msgstr "They could not be turned on. You can try again from My profile."
 
-#: templates/base.html:110
+#: templates/base.html:112
 msgid "Activar"
 msgstr "Turn on"
 
-#: templates/base.html:117
+#: templates/base.html:119
 msgid "¿Confirmar?"
 msgstr "Confirm?"
 
-#: templates/base.html:121
+#: templates/base.html:123
 msgid "Confirmar"
 msgstr "Confirm"
 
