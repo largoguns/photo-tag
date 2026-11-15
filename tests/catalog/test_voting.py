@@ -313,10 +313,11 @@ def test_every_action_is_audited(photo, alice, bob):
 def test_merge_persons_moves_faces_and_proposals(photo, alice, bob, admin_user):
     first, second = photo.faces.all()
     voting.cast_vote(bob, identity(alice, first, "Luis"), Vote.UP)
-    voting.cast_vote(bob, identity(alice, second, "Luís"), Vote.UP)
+    # A duplicate created under another name (e.g. a nickname) is merged by an admin.
+    voting.cast_vote(bob, identity(alice, second, "Luisito"), Vote.UP)
     luis, luis_dup = (
         Person.objects.get(display_name="Luis"),
-        Person.objects.get(display_name="Luís"),
+        Person.objects.get(display_name="Luisito"),
     )
 
     merge_persons(admin_user, luis_dup, luis)
@@ -335,3 +336,15 @@ def test_merge_with_itself_is_refused(photo, admin_user):
     person = Person.objects.create(display_name="Luis")
     with pytest.raises(ValidationError):
         merge_persons(admin_user, person, person)
+
+
+@pytest.mark.parametrize("typed", ["luis", "LUIS", "Luís", "  luis  "])
+def test_existing_person_is_reused_ignoring_case_and_accents(photo, alice, typed):
+    existing = Person.objects.create(display_name="Luis")
+    assert voting.resolve_person(typed, alice) == existing
+
+
+def test_new_person_names_are_normalized(photo, alice):
+    person = voting.resolve_person("maría josé DE LA cruz", alice)
+    assert person.display_name == "María José de la Cruz"
+    assert person.is_provisional

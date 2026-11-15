@@ -12,6 +12,7 @@ from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import CatalogSettings, EventType, Face, Person, Photo, Proposal, Vote
+from catalog.services.names import name_key, normalize_name
 
 Kind = Proposal.Kind
 Status = Proposal.Status
@@ -24,12 +25,14 @@ Status = Proposal.Status
 
 def resolve_person(name, user):
     """Return an existing active person by name, or a new provisional one."""
-    name = " ".join(name.split())
+    name = normalize_name(name)
     if not name:
         raise ValidationError(_("El nombre no puede estar vacío."))
-    person = Person.objects.active().filter(display_name__iexact=name).order_by("id").first()
-    if person:
-        return person
+    # Accent- and case-insensitive: "adri", "Adri" and "ADRÍ" are the same person.
+    key = name_key(name)
+    for person in Person.objects.active().order_by("id").only("id", "display_name"):
+        if name_key(person.display_name) == key:
+            return Person.objects.get(pk=person.pk)
     return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
 
 
