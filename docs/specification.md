@@ -87,6 +87,7 @@ Los escaneos marcados se procesan igualmente y aparecen en la cola de revisión 
 
 - Comando `python manage.py process_scans` que procesa todo lo pendiente en `inbox`.
 - Opciones: `--watch` (bucle cada `POLL_INTERVAL_SECONDS`, por defecto 60) y `--force <hash|fichero>` para reprocesar un escaneo. Reprocesar no debe borrar votos ni propuestas de fotos que sigan existiendo.
+- Un administrador también puede **reprocesar desde la web** (cola de revisión o panel «Escaneo de origen» de la vista de foto): se marca `Scan.reprocess_requested` y el `worker` lo ejecuta en segundos con el algoritmo actual, conservando votos y recortes manuales. Las fotos que dejan de aparecer se borran (también su copia exportada).
 - El servicio `worker` ejecuta `process_scans --watch` y el planificador de tareas (ver 5.8).
 - Logs estructurados por stdout (visibles en Portainer).
 - Dependencias: `opencv-python-headless`, `numpy`. Sin GPU.
@@ -184,7 +185,8 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 
 | Entidad | Campos principales |
 |---|---|
-| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable), ancho y alto del original |
+| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable), ancho y alto del original, reprocesado pedido |
+| `FileCleanup` | tipo (`photo`, `export`, `preview`, `original`), nombre o ruta, fecha. Tareas de ficheros pendientes tras un borrado |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
 | `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, cuadrilátero de perspectiva (nullable), recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable) |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
@@ -245,7 +247,9 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 ### 5.6 Cola de revisión
 
-El administrador ve los escaneos con `needs_review` junto a sus recortes y puede marcarlos como correctos o descartar recortes erróneos. Un recorte concreto se corrige con el editor de recorte (3.6); para rehacer todo el escaneo se usa `process_scans --force`.
+El administrador ve los escaneos con `needs_review` junto a sus recortes y puede marcarlos como correctos o descartar recortes erróneos. Un recorte concreto se corrige con el editor de recorte (3.6); para rehacer todo el escaneo, el botón «Reprocesar» (o `process_scans --force`).
+
+**Borrar** (solo administradores, con confirmación): una foto (desde la cola o la vista de foto) o un escaneo entero con todas sus fotos (cola o panel «Escaneo de origen»). Se eliminan caras, propuestas, votos y las personas o tipos de evento provisionales que solo existían por ellas. Si la foto se exportó, se borran también su JPG y su `.xmp` de la exportación, para que Immich la retire. Al borrar un escaneo su original se aparta en `scans/deleted/` (nunca se borra), y ese fichero o un reescaneo se pueden volver a procesar. La web solo cambia la base de datos; los ficheros los limpia el `worker` desde una cola (`FileCleanup`). Todo queda en la auditoría.
 
 ### 5.7 Auditoría
 
@@ -298,8 +302,8 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 
 | Ruta en contenedor | Uso | Montado en |
 |---|---|---|
-| `/data/scans` | Escaneos (`inbox`, `processed`) | worker (rw); web solo `inbox` (rw, para las subidas) |
-| `/data/photos` | Recortes y miniaturas | web (ro), worker (rw) |
+| `/data/scans` | Escaneos (`inbox`, `processed`, `deleted`) | worker (rw); web solo `inbox` (rw, para las subidas) |
+| `/data/photos` | Recortes, miniaturas y vistas previas de los escaneos (`previews`) | web (ro), worker (rw) |
 | `/data/export` | Salida para Immich | worker (rw); Immich lo monta como biblioteca externa (ro) |
 | `/data/backups` | Copias de la BD | worker (rw) |
 | `pgdata` | Datos de PostgreSQL | db |
