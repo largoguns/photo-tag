@@ -1,0 +1,59 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Subir fotos" %}{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+<h1>{% translate "Subir fotos" %}</h1>
+<form id="upload-form" method="post" enctype="multipart/form-data" class="card stack"
+      data-error-text="{% translate 'No se ha podido subir. Comprueba la conexión e inténtalo de nuevo.' %}"
+      data-uploading-text="{% translate 'Subiendo…' %}">
+  {% csrf_token %}
+  <fieldset class="stack plain-fieldset">
+    <legend>{% translate "¿Qué vas a subir?" %}</legend>
+    <div class="segmented" role="radiogroup">
+      {% for value, label in kinds %}
+      <label>
+        <input type="radio" name="kind" value="{{ value }}" {% if forloop.first %}checked{% endif %}>
+        <span>{% if value == "scan" %}{% icon "photo_library" %}{% else %}{% icon "add_photo_alternate" %}{% endif %}<span>{{ label }}</span></span>
+      </label>
+      {% endfor %}
+    </div>
+    <p class="hint muted" data-kind-hint="scan">{% translate "Un escaneo A4 con varias fotos sobre fondo blanco: se recortarán automáticamente." %}</p>
+    <p class="hint muted" data-kind-hint="single" hidden>{% translate "Una foto ya recortada o hecha con el móvil: se usará entera." %}</p>
+  </fieldset>
+
+  <label class="dropzone" for="upload-files">
+    {% icon "cloud_upload" %}
+    <strong>{% translate "Elige las imágenes" %}</strong>
+    <span class="muted">{% blocktranslate %}O arrástralas aquí. JPG, PNG o TIFF, hasta {{ max_mb }} MB cada una y {{ max_files }} a la vez.{% endblocktranslate %}</span>
+  </label>
+  <input type="file" id="upload-files" name="files" class="visually-hidden" multiple required
+         accept="image/jpeg,image/png,image/tiff">
+
+  <ul class="file-list" data-file-list hidden></ul>
+  <progress data-upload-progress max="100" value="0" hidden></progress>
+  <p class="push-message" data-upload-message role="status" hidden></p>
+
+  <button type="submit" class="button primary">{% icon "upload" %}<span>{% translate "Subir" %}</span></button>
+</form>
+
+<section class="stack" aria-labelledby="my-uploads-title">
+  <h2 id="my-uploads-title">{% translate "Mis subidas" %}</h2>
+  <ul class="list">
+    {% for item in my_uploads %}
+    <li class="list-item">
+      <div class="list-main">
+        <strong>{{ item.original_name }}</strong>
+        <div class="meta">
+          <span class="badge {% if item.status == 'processed' %}ok{% elif item.status == 'failed' %}off{% elif item.status == 'duplicate' %}warn{% endif %}">{{ item.get_status_display }}</span>
+          <span class="muted">{{ item.get_kind_display }} · {{ item.created_at|date:"SHORT_DATETIME_FORMAT" }}</span>
+          {% if item.scan_id %}{% with photo=item.scan.photos.first %}{% if photo %}<a href="{% url 'photo_detail' photo.pk %}">{% translate "Ver fotos" %}</a>{% endif %}{% endwith %}{% endif %}
+        </div>
+      </div>
+    </li>
+    {% empty %}
+    <li class="empty">{% translate "Todavía no has subido nada." %}</li>
+    {% endfor %}
+  </ul>
+  {% if my_uploads %}<p class="hint muted">{% translate "Las imágenes se procesan en uno o dos minutos." %}</p>{% endif %}
+</section>
+{% endblock %}

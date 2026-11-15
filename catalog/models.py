@@ -15,6 +15,14 @@ class Scan(models.Model):
     # Codes such as {"code": "photo_count", "count": 7}; translated when displayed.
     review_reasons = models.JSONField(default=list, blank=True)
     reviewed = models.BooleanField(_("revisado"), default=False)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="uploaded_scans",
+        verbose_name=_("subido por"),
+    )
 
     class Meta:
         ordering = ["-processed_at", "-id"]
@@ -364,3 +372,39 @@ class CatalogSettings(models.Model):
             },
         )
         return obj
+
+
+class Upload(models.Model):
+    """An image uploaded from the web, waiting in the inbox for the worker."""
+
+    class Kind(models.TextChoices):
+        SCAN = "scan", _("Escaneo con varias fotos")
+        SINGLE = "single", _("Foto suelta")
+
+    class Status(models.TextChoices):
+        PENDING = "pending", _("En cola")
+        PROCESSED = "processed", _("Procesada")
+        DUPLICATE = "duplicate", _("Ya estaba subida")
+        FAILED = "failed", _("Error al procesar")
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL, related_name="uploads"
+    )
+    original_name = models.CharField(max_length=255)
+    stored_name = models.CharField(max_length=255, unique=True)
+    kind = models.CharField(max_length=10, choices=Kind.choices, default=Kind.SCAN)
+    sha256 = models.CharField(max_length=64, db_index=True)
+    size = models.PositiveBigIntegerField()
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.PENDING, db_index=True
+    )
+    scan = models.ForeignKey(
+        Scan, null=True, blank=True, on_delete=models.SET_NULL, related_name="uploads"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return self.original_name

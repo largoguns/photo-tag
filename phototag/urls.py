@@ -13,5 +13,6 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("admin/export/", include("exporter.urls")),
     path("notifications/", include("notifications.urls")),
+    path("upload/", include("scanner.urls")),
     path("", include("catalog.urls")),
 ]

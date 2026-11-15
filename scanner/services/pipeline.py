@@ -14,9 +14,9 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from catalog.models import Face, Photo, Scan
+from catalog.models import Face, Photo, Scan, Upload
 from catalog.services.voting import refresh_photo_status
-from scanner.services import cropping, embeddings, faces, images
+from scanner.services import cropping, embeddings, faces, images, uploads
 
 logger = logging.getLogger("scanner")
 
@@ -84,11 +84,21 @@ def _move_to_processed(path, sha):
     return target
 
 
-def analyse(image):
-    """Crop the photos of a scan and detect faces in each one."""
-    result = cropping.split_scan(
-        image, min_area_ratio=settings.MIN_PHOTO_AREA_RATIO, inset=settings.CROP_INSET_PX
-    )
+def whole_image(image):
+    """A single uploaded photo: no cropping, the whole image is the photo."""
+    height, width = image.shape[:2]
+    crop = cropping.Crop(image=image, center=(width / 2, height / 2), size=(width, height), angle=0)
+    return cropping.CropResult(crops=[crop])
+
+
+def analyse(image, single=False):
+    """Crop the photos of a scan (or take a single photo whole) and detect faces."""
+    if single:
+        result = whole_image(image)
+    else:
+        result = cropping.split_scan(
+            image, min_area_ratio=settings.MIN_PHOTO_AREA_RATIO, inset=settings.CROP_INSET_PX
+        )
     processed = [
         ProcessedPhoto(
             crop=crop,
@@ -132,7 +142,19 @@ def process_file(path):
     path = Path(path)
     data = path.read_bytes()
     sha = sha256_of(data)
+    upload = uploads.pending_upload_for(sha)
+    try:
+        return _process(path, data, sha, upload)
+    except Exception:
+        if upload is not None:
+            Upload.objects.filter(pk=upload.pk).update(status=Upload.Status.FAILED)
+        raise
+
+
+def _process(path, data, sha, upload):
     if Scan.objects.filter(sha256=sha).exists():
+        if upload is not None:
+            Upload.objects.filter(pk=upload.pk).update(status=Upload.Status.DUPLICATE)
         target = _move_to_processed(path, sha)
         logger.info(
             "event=scan_skipped reason=duplicate file=%s sha=%s moved_to=%s",
@@ -143,7 +165,8 @@ def process_file(path):
         return None
 
     started = time.monotonic()
-    processed, reasons = analyse(decode_image(data))
+    single = upload is not None and upload.kind == Upload.Kind.SINGLE
+    processed, reasons = analyse(decode_image(data), single=single)
     names = _write_files(sha, processed)
     target = _unique_destination(Path(settings.SCANS_PROCESSED_DIR), path.name, sha)
     created = []
@@ -154,7 +177,12 @@ def process_file(path):
                 file_name=target.name,
                 needs_review=bool(reasons),
                 review_reasons=reasons,
+                uploaded_by=upload.user if upload else None,
             )
+            if upload is not None:
+                Upload.objects.filter(pk=upload.pk).update(
+                    status=Upload.Status.PROCESSED, scan=scan
+                )
             for index, (item, name) in enumerate(zip(processed, names, strict=True)):
                 photo = Photo.objects.create(
                     scan=scan,
@@ -287,7 +315,8 @@ def _refresh_faces(photo, old_size, detected):
 def reprocess(scan):
     """Re-run cropping for a known scan, preserving photos (and their votes) that still exist."""
     source = _source_file(scan)
-    processed, reasons = analyse(decode_image(source.read_bytes()))
+    single = scan.uploads.filter(kind=Upload.Kind.SINGLE).exists()
+    processed, reasons = analyse(decode_image(source.read_bytes()), single=single)
     old_photos = list(scan.photos.all())
     matches, unmatched = _match_photos(old_photos, processed)
 
