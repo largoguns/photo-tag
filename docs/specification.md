@@ -296,6 +296,8 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 - **Niveles**: Curioso (0), Aprendiz de archivero (50), Archivero (150), Detective de familia (400), Cronista (900), Memoria de la familia (1800) y Guardián del álbum (3500).
 - **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta) y Racha (7 días seguidos proponiendo o votando).
 - **Avisos**: push inmediato al subir de nivel o conseguir un logro (preferencia «Mis niveles y logros»).
+- **Retos para subir de nivel** (preferencia propia, activada por defecto): a un colaborador que lleva 2 días sin proponer ni votar se le envía, como mucho cada `NOTIFY_CHALLENGE_DAYS` (3) días y fuera de las horas de silencio, el reto que más le motive, sin nombres de personas: que alguien le ha adelantado en el ranking de la semana (a cuántos puntos está), o cuántos puntos le faltan para el siguiente nivel y cuántas propuestas esperan su voto o cuántas fotos quedan por catalogar.
+- **Cinturón**: el avatar de cada colaborador (menú, perfil y ranking) lleva un anillo con el color de su nivel, como los cinturones de un arte marcial (blanco, amarillo, naranja, verde, azul, marrón y negro), que se va llenando en el sentido de las agujas del reloj con el color del nivel siguiente según su progreso.
 - **Ranking** (`/ranking/`, visible para todos): esta semana, este mes y total, con podio de los tres primeros. El detalle de puntos de cada colaborador solo lo ve el superadmin (pestaña «Puntos» de la auditoría).
 - **Inicio**: tarjeta «Tu nivel» con el progreso y, para todos, la meta colectiva con mensajes al 25, 50, 75 y 100 % del álbum catalogado. **Mi perfil**: «Tu progreso» con nivel, acierto y logros.
 - `python manage.py rebuild_scores` recalcula todo desde el historial, sin avisos (al estrenar la función).
@@ -374,6 +376,7 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` | web, worker | — (vacías = sin notificaciones; ver 5.9) |
 | `VAPID_SUBJECT` | web, worker | `mailto:admin@midominio.com` |
 | `NOTIFY_POLL_MINUTES` / `NOTIFY_MIN_INTERVAL_MINUTES` / `NOTIFY_QUIET_HOURS` | worker | `10` / `60` / `22-9` |
+| `NOTIFY_CHALLENGE_DAYS` | worker | `3` (días mínimos entre retos para subir de nivel) |
 
 ### 8.3 Requisitos del stack
 
