@@ -1250,6 +1250,10 @@
     let base = { ...box }; // box chosen by hand; straightening shrinks a copy of it
     let view = { k: 1, ox: 0, oy: 0 };
     let drag = null;
+    // Zoom on top of the fitted view: screen = centre + (fitted - centre) * zoom + pan.
+    let zoom = 1, pan = [0, 0], panning = null, pinch = null;
+    const pointers = new Map();
+    const MAX_ZOOM = 8;
     const SW = data.scanWidth || image.naturalWidth, SH = data.scanHeight || image.naturalHeight;
     const TW = r % 180 ? SH : SW, TH = r % 180 ? SW : SH; // the original, turned
     const initialQuad = data.quad ? data.quad.map((p) => [...p]) : [[0, 0], [SW, 0], [SW, SH], [0, SH]];
@@ -1316,8 +1320,27 @@
       return [tx, ty];
     }
 
-    const toCanvas = ([X, Y]) => { const [tx, ty] = turnScan(X, Y); return [full.ox + tx * full.k, full.oy + ty * full.k]; };
-    const fromCanvas = (cx, cy) => unturnScan((cx - full.ox) / full.k, (cy - full.oy) / full.k);
+    function eff(fitted) {
+      const cx = view.width / 2, cy = view.height / 2;
+      return { k: fitted.k * zoom, ox: cx + (fitted.ox - cx) * zoom + pan[0], oy: cy + (fitted.oy - cy) * zoom + pan[1] };
+    }
+
+    function zoomAt(factor, px, py) {
+      const next = Math.max(1, Math.min(MAX_ZOOM, zoom * factor));
+      const cx = view.width / 2, cy = view.height / 2;
+      pan = next === 1 ? [0, 0] : [
+        px - cx - (px - cx - pan[0]) * (next / zoom),
+        py - cy - (py - cy - pan[1]) * (next / zoom),
+      ];
+      zoom = next;
+      draw();
+    }
+
+    const toCanvas = ([X, Y]) => {
+      const [tx, ty] = turnScan(X, Y), f = eff(full);
+      return [f.ox + tx * f.k, f.oy + ty * f.k];
+    };
+    const fromCanvas = (cx, cy) => { const f = eff(full); return unturnScan((cx - f.ox) / f.k, (cy - f.oy) / f.k); };
 
     function drawOriginal(transform) {
       ctx.save();
@@ -1344,7 +1367,7 @@
       const { dpr, width, height } = view;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
-      drawOriginal(() => { ctx.translate(full.ox, full.oy); ctx.scale(full.k, full.k); });
+      drawOriginal(() => { const f = eff(full); ctx.translate(f.ox, f.oy); ctx.scale(f.k, f.k); });
       const corners = quad.map(toCanvas);
       ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
       ctx.beginPath();
@@ -1375,7 +1398,8 @@
       ctx.fillRect(lx - radius, ly - radius, 2 * radius, 2 * radius);
       drawOriginal(() => {
         ctx.translate(lx, ly); ctx.scale(zoom, zoom); ctx.translate(-px, -py);
-        ctx.translate(full.ox, full.oy); ctx.scale(full.k, full.k);
+        const f = eff(full);
+        ctx.translate(f.ox, f.oy); ctx.scale(f.k, f.k);
       });
       ctx.strokeStyle = "#fff";
       ctx.lineWidth = 1;
@@ -1400,7 +1424,8 @@
     function draw() { if (mode === "quad") drawQuad(); else drawBox(); }
 
     function drawBox() {
-      const { k, ox, oy, dpr, width, height } = view;
+      const { dpr, width, height } = view;
+      const { k, ox, oy } = eff(view);
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
       ctx.save();
@@ -1483,11 +1508,12 @@
 
     function pointerView(event) {
       const rect = canvas.getBoundingClientRect();
-      return [(event.clientX - rect.left - view.ox) / view.k, (event.clientY - rect.top - view.oy) / view.k];
+      const v = eff(view);
+      return [(event.clientX - rect.left - v.ox) / v.k, (event.clientY - rect.top - v.oy) / v.k];
     }
 
     function hit(x, y) {
-      const tol = HANDLE / view.k;
+      const tol = HANDLE / eff(view).k;
       const inY = y > box.y0 - tol && y < box.y1 + tol, inX = x > box.x0 - tol && x < box.x1 + tol;
       const edges = {
         x0: inY && Math.abs(x - box.x0) < tol,
@@ -1517,10 +1543,25 @@
       return [event.clientX - rect.left, event.clientY - rect.top];
     }
 
+    function startPan(event) {
+      if (zoom <= 1) return;
+      panning = { x: event.clientX, y: event.clientY, pan: [...pan] };
+      canvas.setPointerCapture(event.pointerId);
+      canvas.style.cursor = "grabbing";
+    }
+
     canvas.addEventListener("pointerdown", (event) => {
+      pointers.set(event.pointerId, [event.clientX, event.clientY]);
+      if (pointers.size === 2) { // two fingers: zoom, whatever was being dragged
+        const [a, b] = [...pointers.values()];
+        pinch = { distance: Math.hypot(a[0] - b[0], a[1] - b[1]), zoom };
+        drag = null;
+        panning = null;
+        return;
+      }
       if (mode === "quad") {
         const corner = hitCorner(...canvasPoint(event));
-        if (corner < 0) return;
+        if (corner < 0) { startPan(event); return; }
         drag = { corner };
         canvas.setPointerCapture(event.pointerId);
         event.preventDefault();
@@ -1529,15 +1570,28 @@
       }
       const [x, y] = pointerView(event);
       const edges = hit(x, y);
-      if (!edges) return;
+      if (!edges) { startPan(event); return; }
       drag = { edges, x, y, start: { ...box } };
       canvas.setPointerCapture(event.pointerId);
       event.preventDefault();
     });
     canvas.addEventListener("pointermove", (event) => {
+      if (pointers.has(event.pointerId)) pointers.set(event.pointerId, [event.clientX, event.clientY]);
+      if (pinch && pointers.size === 2) {
+        const [a, b] = [...pointers.values()];
+        const rect = canvas.getBoundingClientRect();
+        const distance = Math.hypot(a[0] - b[0], a[1] - b[1]);
+        zoomAt((pinch.zoom * distance) / pinch.distance / zoom, (a[0] + b[0]) / 2 - rect.left, (a[1] + b[1]) / 2 - rect.top);
+        return;
+      }
+      if (panning) {
+        pan = [panning.pan[0] + event.clientX - panning.x, panning.pan[1] + event.clientY - panning.y];
+        draw();
+        return;
+      }
       if (mode === "quad") {
         if (!drag) {
-          canvas.style.cursor = hitCorner(...canvasPoint(event)) >= 0 ? "grab" : "default";
+          canvas.style.cursor = hitCorner(...canvasPoint(event)) >= 0 ? "grab" : zoom > 1 ? "move" : "default";
           return;
         }
         const [X, Y] = fromCanvas(...canvasPoint(event));
@@ -1567,11 +1621,19 @@
       if (valid(candidate, angle()) || !valid(drag.start, angle())) box = candidate;
       sync();
     });
-    const endDrag = () => {
+    const endDrag = (event) => {
+      pointers.delete(event.pointerId);
+      if (pointers.size < 2) pinch = null;
+      panning = null;
       if (drag && mode === "box") base = { ...box };
       drag = null;
       draw();
     };
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      const [x, y] = canvasPoint(event);
+      zoomAt(event.deltaY < 0 ? 1.15 : 1 / 1.15, x, y);
+    }, { passive: false });
     canvas.addEventListener("pointerup", endDrag);
     canvas.addEventListener("pointercancel", endDrag);
 
@@ -1591,6 +1653,12 @@
         quad = initialQuad.map((p) => [...p]);
         sync();
       }
+      const zoomButton = event.target.closest("[data-crop-zoom]");
+      if (zoomButton) {
+        const action = zoomButton.dataset.cropZoom;
+        if (action === "fit") { zoom = 1; pan = [0, 0]; draw(); }
+        else zoomAt(action === "in" ? 1.5 : 1 / 1.5, view.width / 2, view.height / 2);
+      }
       const detect = event.target.closest("[data-crop-detect]");
       if (detect) {
         detect.disabled = true;
@@ -1609,6 +1677,8 @@
     root.addEventListener("change", (event) => {
       if (!event.target.matches("[data-crop-mode]")) return;
       mode = event.target.value;
+      zoom = 1;
+      pan = [0, 0];
       drag = null;
       sync();
     });
@@ -1627,6 +1697,52 @@
     resize();
     sync();
   }
+
+  // --- Person page: rename in place ----------------------------------------------------
+  document.addEventListener("click", (event) => {
+    const toggle = event.target.closest("[data-rename-toggle]");
+    if (!toggle) return;
+    const form = document.getElementById("rename-form");
+    const opener = document.querySelector('[data-rename-toggle][aria-controls="rename-form"]');
+    form.hidden = !form.hidden;
+    opener.setAttribute("aria-expanded", String(!form.hidden));
+    if (!form.hidden) { const input = form.querySelector("input[name=display_name]"); input.focus(); input.select(); }
+    else opener.focus();
+  });
+
+  // --- Profile: on wide windows every section is open, with an index that follows -----
+  ready(() => {
+    const root = document.querySelector("[data-settings]");
+    if (!root) return;
+    const sections = [...root.querySelectorAll("details.setting")];
+    const links = [...root.querySelectorAll("[data-settings-link]")];
+    const wide = window.matchMedia("(min-width: 840px)");
+    const remembered = new Map(sections.map((s) => [s, s.open]));
+
+    function apply() {
+      root.classList.toggle("settings-wide", wide.matches);
+      for (const section of sections) section.open = wide.matches ? true : remembered.get(section);
+    }
+    // Wide: the headers are titles, not toggles. Narrow: remember what the user opened.
+    root.addEventListener("click", (event) => {
+      if (wide.matches && event.target.closest("details.setting > summary")) event.preventDefault();
+    });
+    for (const section of sections) {
+      section.addEventListener("toggle", () => { if (!wide.matches) remembered.set(section, section.open); });
+    }
+    wide.addEventListener("change", apply);
+    apply();
+
+    if ("IntersectionObserver" in window && links.length) {
+      const observer = new IntersectionObserver((items) => {
+        const visible = items.filter((item) => item.isIntersecting);
+        if (!visible.length) return;
+        const id = visible[0].target.id;
+        for (const link of links) link.setAttribute("aria-current", link.hash === `#${id}` ? "true" : "false");
+      }, { rootMargin: "-20% 0px -60% 0px" });
+      sections.forEach((section) => observer.observe(section));
+    }
+  });
 
   ready(() => {
     const root = document.querySelector("[data-crop-editor]");

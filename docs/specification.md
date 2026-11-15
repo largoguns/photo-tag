@@ -109,6 +109,7 @@ Cuando el recorte automático no acierta (bordes de anchura variable, esquinas r
 - **Editor**: muestra la foto recta y girada como se ve, sobre el **escaneo original** que la rodea, con un recuadro de 4 bordes y 4 esquinas arrastrables (también hacia fuera, para recuperar lo que se cortó) y un deslizador **Enderezar** de ±10° (pasos de 0,1°). Al enderezar, el recuadro se reduce lo justo para no salirse del escaneo. No se permite un recuadro fuera del escaneo ni menor de 64 px.
 - **Vista previa del escaneo**: el `worker` guarda una copia reducida (2000 px de lado mayor) en `/data/photos/previews/<sha256>.jpg` al procesar, y genera las que falten de escaneos antiguos en una tarea periódica. Se sirve solo a administradores con sesión, nunca como estático público. En las subidas de una sola foto el escaneo es la propia foto: solo se puede recortar hacia dentro.
 - **Aplicación**: la web solo registra el recorte pedido (`Photo.pending_crop`, en píxeles del escaneo); el `worker` lo aplica en unos segundos desde el original: rehace la foto y sus miniaturas, traslada las caras con intervención humana (persona, dibujadas o con propuestas), vuelve a detectar las automáticas, recalcula huellas y phash y marca la foto para reexportar. Mientras tanto, la vista de foto muestra «Aplicando el recorte…».
+- **Zoom** en ambos modos: rueda del ratón (acerca hacia el puntero), pellizcar con dos dedos o botones +/−/ajustar; con zoom se desplaza la vista arrastrando fuera del recuadro o de las esquinas.
 - **Modo Perspectiva** (fotos de una copia en papel hechas con el móvil): se muestra la imagen original entera, girada como la foto, con 4 esquinas libres que se llevan a las de la copia; una lupa ampliada ayuda a afinar al arrastrar. Al guardar, la foto se aplana con una transformación de perspectiva (`Photo.crop_quad`). El cuadrilátero debe ser convexo, estar dentro de la imagen y tener lados de al menos 64 px. Una foto con recorte en perspectiva solo se edita en este modo.
 - **Detección de esquinas**: en las subidas de una sola foto el modo Perspectiva arranca con las esquinas de la copia detectadas automáticamente (bordes y contornos de 4 vértices con OpenCV sobre la vista previa), y el botón «Detectar esquinas» lo repite en cualquier foto. Es solo una sugerencia: nunca se recorta nada sin que un administrador lo guarde.
 - El recorte queda marcado como manual (`Photo.crop_manual`) y **se respeta al reprocesar** el escaneo con `--force`.
@@ -239,9 +240,9 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - Botón para dibujar una cara nueva y para marcar una cara como falso positivo.
    - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
-5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla.
+5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮».
 6. **Mi actividad**: mis propuestas y su estado.
-7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema e idioma.
+7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema, idioma y avisos. En móvil es una lista de ajustes plegables; en ventanas anchas (≥ 840 px), dos columnas: la tarjeta del usuario con un índice fijo de secciones a la izquierda y todas las secciones abiertas como tarjetas a la derecha.
 8. **Administración**: tipos de evento, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
 9. **Gestión de usuarios** (solo superadmin, ver 4.4).
 
@@ -254,6 +255,8 @@ El administrador ve los escaneos con `needs_review` junto a sus recortes y puede
 ### 5.7 Auditoría
 
 Toda creación de propuesta, voto, decisión de administrador, fusión de personas y acción de gestión de usuarios queda registrada con usuario y fecha (tabla `AuditLog`).
+
+**Pantalla «Auditoría»** (`/accounts/audit/`, solo superadmin; enlazada desde Usuarios con un botón «Actividad» por usuario, desde la ficha de cada usuario y desde Administración): línea de tiempo de todo lo registrado, filtrable con chips por **usuario**, **evento** (uno concreto o una categoría entera: Catalogación, Fotos, Escaneos y subidas, Personas, Usuarios y accesos, Avisos, Administración) y **periodo** (hoy, 7 días, 30 días, este año). Cada entrada muestra un texto legible, un enlace al objeto si sigue existiendo (o su nombre con «ya no existe») y sus detalles. Incluye los inicios de sesión y los intentos fallidos registrados por django-axes (`AXES_ENABLE_ACCESS_FAILURE_LOG`). Filtrando por un usuario aparece su resumen (propuestas por estado, votos a favor y en contra, subidas, escaneos, acciones e inicios de sesión) y las pestañas Historial, Propuestas y Votos. Toda acción que se registre en el código debe tener su etiqueta en el catálogo de eventos (lo comprueba un test).
 
 ### 5.8 Tareas en segundo plano
 
