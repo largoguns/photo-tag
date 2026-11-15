@@ -25,6 +25,9 @@ staticfiles/
 !tests/**/*.tiff
 !static/img/**
 
+# Visual check screenshots (scripts/agents/ui_check.mjs)
+.ui-shots/
+
 # Python
 __pycache__/
 *.py[cod]

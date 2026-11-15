@@ -22,6 +22,8 @@ ruff check . && ruff format --check .                      # linting y formato
 
 Una tarea no está terminada hasta que los tests pasan y `ruff` no da errores.
 
+Los scripts auxiliares (traducciones, datos de demo, revisión visual) están en `scripts/agents/`; úsalos y amplíalos ahí en lugar de crear scripts temporales fuera del repositorio.
+
 ## Convenciones de código
 
 - Código, identificadores, comentarios y commits en **inglés**; textos de la interfaz en **español**, siempre marcados para traducción (`{% translate %}`, `{% blocktranslate %}`, `gettext`/`gettext_lazy`).
