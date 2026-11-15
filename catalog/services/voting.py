@@ -211,10 +211,16 @@ def cast_vote(user, proposal, value):
     proposal = Proposal.objects.select_for_update().get(pk=proposal.pk)
     if not proposal.is_open:
         raise ValidationError(_("La propuesta ya está cerrada."))
-    Vote.objects.update_or_create(proposal=proposal, user=user, defaults={"value": value})
+    vote, _created = Vote.objects.update_or_create(
+        proposal=proposal, user=user, defaults={"value": value}
+    )
     audit.log(user, "vote.cast", proposal, value=value)
     evaluate(proposal)
     proposal.refresh_from_db()
+    if not proposal.is_open:  # this vote decided it
+        from gamification.services import scoring
+
+        scoring.vote_decided(vote)
     return proposal
 
 
@@ -270,9 +276,13 @@ def admin_decide(admin, proposal, accept):
 
 
 def _close(proposal, status):
+    from gamification.services import scoring
+
+    previous = proposal.status
     proposal.status = status
     proposal.decided_at = timezone.now()
     proposal.save(update_fields=["status", "decided_at", "decided_by"])
+    scoring.proposal_closed(proposal, previous)
 
 
 def _accept(proposal):

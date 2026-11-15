@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Ranking" %}{% endblock %}
+{% block content %}
+<h1>{% translate "Ranking" %}</h1>
+<nav class="segmented audit-tabs" aria-label="{% translate 'Periodo' %}">
+  <a href="{{ tab_urls.week }}" {% if period == "week" %}aria-current="page"{% endif %}><span><span>{% translate "Esta semana" %}</span></span></a>
+  <a href="{{ tab_urls.month }}" {% if period == "month" %}aria-current="page"{% endif %}><span><span>{% translate "Este mes" %}</span></span></a>
+  <a href="{{ tab_urls.total }}" {% if period == "total" %}aria-current="page"{% endif %}><span><span>{% translate "Total" %}</span></span></a>
+</nav>
+{% if podium %}
+<ol class="podium" aria-label="{% translate 'Podio' %}">
+  {% for entry in podium %}
+  <li class="podium-step podium-{{ entry.position }}{% if entry.me %} me{% endif %}">
+    {% if entry.avatar %}<img class="podium-avatar" src="{% url 'face_image' entry.avatar %}" alt="" width="64" height="64">{% else %}<span class="podium-avatar" aria-hidden="true">{{ entry.user.get_display_name|first|upper }}</span>{% endif %}
+    <strong>{{ entry.user.get_display_name }}</strong>
+    <span class="muted">{{ entry.level.name }}</span>
+    <span class="podium-points">{% blocktranslate with points=entry.points %}{{ points }} pts{% endblocktranslate %}</span>
+    <span class="podium-place" aria-label="{% blocktranslate with n=entry.position %}Puesto {{ n }}{% endblocktranslate %}">{{ entry.position }}</span>
+  </li>
+  {% endfor %}
+</ol>
+{% endif %}
+<ol class="list ranking-list">
+  {% for entry in entries %}
+  <li class="list-item ranking-row{% if entry.me %} me{% endif %}" {% if entry.me %}aria-current="true"{% endif %}>
+    <span class="ranking-position">{{ entry.position }}</span>
+    {% if entry.avatar %}<img class="ranking-avatar" src="{% url 'face_image' entry.avatar %}" alt="" width="40" height="40" loading="lazy">{% else %}<span class="ranking-avatar" aria-hidden="true">{{ entry.user.get_display_name|first|upper }}</span>{% endif %}
+    <div class="list-main">
+      <strong>{{ entry.user.get_display_name }}{% if entry.me %} <span class="badge ok">{% translate "Tú" %}</span>{% endif %}</strong>
+      <div class="meta muted">{% blocktranslate with level=entry.level.name number=entry.level.number %}Nivel {{ number }} · {{ level }}{% endblocktranslate %}</div>
+    </div>
+    <span class="ranking-points">{% blocktranslate with points=entry.points %}{{ points }} pts{% endblocktranslate %}</span>
+  </li>
+  {% empty %}
+  <li class="empty">{% translate "Todavía no hay colaboradores." %}</li>
+  {% endfor %}
+</ol>
+<p class="muted">{% translate "Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, propuestas aceptadas y votos que coinciden con el resultado." %}</p>
+{% endblock %}

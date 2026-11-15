@@ -203,6 +203,13 @@ def _notify_upload(upload):
         logger.exception("event=upload_notification_failed upload=%s", upload.pk)
 
 
+def _score_photos(photos):
+    from gamification.services import scoring
+
+    for photo in photos:
+        scoring.photo_added(photo)
+
+
 def _process(path, data, sha, upload):
     if Scan.objects.filter(sha256=sha).exists():
         if upload is not None:
@@ -260,6 +267,7 @@ def _process(path, data, sha, upload):
         raise
     shutil.move(str(path), target)
     _embed_photos(created)
+    _score_photos(photo for _image, photo in created)
     logger.info(
         "event=scan_processed file=%s sha=%s photos=%d faces=%d needs_review=%s seconds=%.1f",
         path.name,
@@ -433,6 +441,9 @@ def reprocess(scan):
 
     with transaction.atomic():
         for old in unmatched:
+            from gamification.services import scoring
+
+            scoring.photo_removed(old, deleted=True)
             if old.export_path:  # its Immich copy goes too (removed by the cleanup job)
                 FileCleanup.objects.create(kind=FileCleanup.Kind.EXPORT, name=old.export_path)
             old.delete()
@@ -476,6 +487,7 @@ def reprocess(scan):
         _flag_duplicates(scan, duplicates)
 
     _embed_photos(refreshed)
+    _score_photos(photo for _image, photo in refreshed)
     logger.info(
         "event=scan_reprocessed sha=%s photos=%d kept=%d removed=%d needs_review=%s",
         scan.sha256[:12],

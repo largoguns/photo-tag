@@ -101,6 +101,12 @@ def photo_toggle_discard(request, pk):
     photo.discarded = not photo.discarded
     photo.save(update_fields=["discarded"])
     audit.log(request.user, "photo.discard" if photo.discarded else "photo.restore", photo)
+    from gamification.services import scoring
+
+    if photo.discarded:
+        scoring.photo_removed(photo)
+    else:
+        scoring.photo_added(photo)
     return redirect("admin_review_queue")
 
 
@@ -162,6 +168,10 @@ def photo_not_duplicate(request, pk):
     original = photo.duplicate_of_id
     Photo.objects.filter(pk=pk).update(duplicate_of=None)
     audit.log(request.user, "photo.not_duplicate", photo, original=original)
+    from gamification.services import scoring
+
+    photo.duplicate_of_id = None
+    scoring.photo_added(photo)
     return redirect("admin_review_queue")
 
 

@@ -1,0 +1,9 @@
+{% load i18n %}
+<div class="level-card">
+  <div class="level-head">
+    <span><span class="muted">{% blocktranslate with number=progress.level.number %}Nivel {{ number }}{% endblocktranslate %}</span> · <strong class="level-name">{{ progress.level.name }}</strong></span>
+    <span>{% blocktranslate with points=progress.points %}{{ points }} pts{% endblocktranslate %}</span>
+  </div>
+  <progress max="100" value="{{ progress.level.percent }}" aria-label="{% translate 'Progreso hasta el siguiente nivel' %}">{{ progress.level.percent }} %</progress>
+  <p class="muted">{% if progress.level.next_name %}{% blocktranslate with missing=progress.level.missing next=progress.level.next_name %}Te faltan {{ missing }} puntos para {{ next }}.{% endblocktranslate %}{% else %}{% translate "Has alcanzado el nivel más alto. ¡Gracias por cuidar el álbum!" %}{% endif %}</p>
+</div>

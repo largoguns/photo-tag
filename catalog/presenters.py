@@ -127,3 +127,18 @@ def proposal_activity(proposals, params, viewer):
         else None,
         "selected_kind": Proposal.Kind(kind).label if kind in Proposal.Kind.values else None,
     }
+
+
+def family_milestone(percent):
+    """The collective goal: a message at 25, 50, 75 and 100 % of the album catalogued."""
+    from django.utils.translation import gettext as _
+
+    if percent >= 100:
+        return _("¡La familia ha catalogado todo el álbum!")
+    if percent >= 75:
+        return _("¡Ya tenéis tres cuartas partes del álbum catalogadas!")
+    if percent >= 50:
+        return _("¡La familia ha catalogado la mitad del álbum!")
+    if percent >= 25:
+        return _("¡Un cuarto del álbum ya está catalogado!")
+    return ""

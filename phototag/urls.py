@@ -16,6 +16,7 @@ urlpatterns = [
     path("admin/export/", include("exporter.urls")),
     path("notifications/", include("notifications.urls")),
     path("upload/", include("scanner.urls")),
+    path("ranking/", include("gamification.urls")),
     path("admin/scan/", scanner_views.scan, name="scan"),
     path("", include("catalog.urls")),
 ]

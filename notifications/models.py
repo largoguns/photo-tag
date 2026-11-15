@@ -40,6 +40,8 @@ class NotificationSettings(models.Model):
     resolved = models.BooleanField(_("Mis propuestas aceptadas o rechazadas"), default=True)
     # Sent right away (no digest, no quiet hours): the user just asked for the scan.
     scans = models.BooleanField(_("Mis escaneos terminados"), default=True)
+    # Immediate: a new level or badge (only collaborators earn them).
+    achievements = models.BooleanField(_("Mis niveles y logros"), default=True)
     # Start "now" so a new user is not notified about the whole history.
     new_photos_sent_at = models.DateTimeField(default=timezone.now)
     pending_votes_sent_at = models.DateTimeField(default=timezone.now)
