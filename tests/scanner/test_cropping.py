@@ -1,6 +1,7 @@
+import cv2
 import pytest
 
-from scanner.services.cropping import normalize_rect, split_scan
+from scanner.services.cropping import normalize_rect, reading_order, split_scan
 from tests.conftest import FOUR_PHOTOS, synthetic_scan
 
 
@@ -73,3 +74,38 @@ def test_normalize_rect_folds_angle():
     (_, (w, h), angle) = normalize_rect(((10, 10), (100, 50), 80))
     assert angle == pytest.approx(-10)
     assert (w, h) == (50, 100)
+
+
+# --- Regressions from a real scan of old prints (2026-11-15) ---------------------------
+
+
+def test_cream_border_and_white_areas_stay_in_one_photo():
+    # Old prints: cream border brighter than an Otsu cut, and a white blanket crossing
+    # the whole picture. The tint of the border keeps the print in one piece.
+    page = synthetic_scan([])
+    cv2.rectangle(page, (300, 300), (900, 1200), (205, 238, 250), -1)  # cream border
+    cv2.rectangle(page, (330, 330), (870, 1170), (60, 70, 120), -1)  # picture
+    cv2.rectangle(page, (330, 700), (870, 800), (250, 250, 250), -1)  # white blanket
+    result = split_scan(page)
+
+    assert not result.needs_review
+    (crop,) = result.crops
+    assert sorted(crop.size) == pytest.approx([600, 900], abs=8)  # border included
+
+
+def test_dark_band_at_the_page_edge_does_not_glue_photos():
+    # The strip outside the glass is dark and joined two photos touching the bottom edge.
+    specs = [((330, 1450), (500, 600), 0), ((900, 1450), (480, 600), 0)]
+    page = synthetic_scan(specs)
+    page[-8:, :] = 70
+    result = split_scan(page)
+
+    assert not result.needs_review
+    assert len(result.crops) == 2
+
+
+def test_reading_order_with_staggered_rows():
+    left_lower = ((300, 600), (400, 700), 0)
+    right_higher = ((900, 450), (400, 700), 0)
+    below = ((600, 1400), (400, 300), 0)
+    assert reading_order([below, right_higher, left_lower]) == [left_lower, right_higher, below]
