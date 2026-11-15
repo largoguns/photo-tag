@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 12:19+0100\n"
+"POT-Creation-Date: 2026-11-15 13:16+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11,8 +11,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: accounts/apps.py:8 templates/accounts/user_list.html:2
-#: templates/accounts/user_list.html:5 templates/base.html:41
-#: templates/catalog/admin/home.html:11
+#: templates/accounts/user_list.html:5 templates/base.html:42
+#: templates/catalog/admin/home.html:12
 msgid "Usuarios"
 msgstr "Users"
 
@@ -136,25 +136,25 @@ msgstr "User “%(username)s” deactivated."
 msgid "Contraseña de «%(username)s» restablecida a la contraseña genérica."
 msgstr "Password of “%(username)s” reset to the generic password."
 
-#: catalog/admin_views.py:37
+#: catalog/admin_views.py:39
 #, python-format
 msgid "Tipo de evento «%(name)s» creado."
 msgstr "Event type “%(name)s” created."
 
-#: catalog/admin_views.py:54
+#: catalog/admin_views.py:56
 msgid "Tipo de evento actualizado."
 msgstr "Event type updated."
 
-#: catalog/admin_views.py:68
+#: catalog/admin_views.py:70
 msgid "Umbrales actualizados."
 msgstr "Thresholds updated."
 
-#: catalog/admin_views.py:89
+#: catalog/admin_views.py:91
 #, python-format
 msgid "Escaneo «%(name)s» marcado como revisado."
 msgstr "Scan “%(name)s” marked as reviewed."
 
-#: catalog/admin_views.py:127
+#: catalog/admin_views.py:129
 #, python-format
 msgid "Personas fusionadas en «%(name)s»."
 msgstr "People merged into “%(name)s”."
@@ -245,11 +245,11 @@ msgstr "In progress"
 msgid "Catalogada"
 msgstr "Cataloged"
 
-#: catalog/models.py:66 templates/catalog/_photo_workspace.html:206
+#: catalog/models.py:66 templates/catalog/_photo_workspace.html:208
 msgid "Fecha exacta"
 msgstr "Exact date"
 
-#: catalog/models.py:67 templates/catalog/_photo_workspace.html:210
+#: catalog/models.py:67 templates/catalog/_photo_workspace.html:212
 msgid "Año"
 msgstr "Year"
 
@@ -293,6 +293,7 @@ msgstr "exported at"
 #: templates/catalog/_photo_workspace.html:86
 #: templates/catalog/admin/review_queue.html:22 templates/catalog/home.html:21
 #: templates/catalog/my_activity.html:15 templates/catalog/photo.html:2
+#: templates/scanner/_scan_panel.html:24
 #, python-format
 msgid "Foto %(id)s"
 msgstr "Photo %(id)s"
@@ -363,13 +364,13 @@ msgstr "order"
 msgid "Identidad de cara"
 msgstr "Face identity"
 
-#: catalog/models.py:279 templates/catalog/_photo_workspace.html:161
+#: catalog/models.py:279 templates/catalog/_photo_workspace.html:163
 #: templates/catalog/gallery.html:14 templates/catalog/gallery.html:32
 msgid "Evento"
 msgstr "Event"
 
-#: catalog/models.py:280 templates/catalog/_photo_workspace.html:193
-#: templates/catalog/_photo_workspace.html:214
+#: catalog/models.py:280 templates/catalog/_photo_workspace.html:195
+#: templates/catalog/_photo_workspace.html:216
 msgid "Fecha"
 msgstr "Date"
 
@@ -401,7 +402,7 @@ msgstr "(deleted person)"
 msgid "Añadir esta cara"
 msgstr "Add this face"
 
-#: catalog/models.py:343 templates/catalog/_photo_workspace.html:151
+#: catalog/models.py:343 templates/catalog/_photo_workspace.html:153
 msgid "No es una cara"
 msgstr "Not a face"
 
@@ -437,7 +438,7 @@ msgstr "Scan with several photos"
 msgid "Foto suelta"
 msgstr "Single photo"
 
-#: catalog/models.py:412
+#: catalog/models.py:412 scanner/models.py:13
 msgid "En cola"
 msgstr "Queued"
 
@@ -590,6 +591,10 @@ msgstr "Proposals waiting for my vote"
 msgid "Mis propuestas aceptadas o rechazadas"
 msgstr "My proposals accepted or rejected"
 
+#: notifications/models.py:42
+msgid "Mis escaneos terminados"
+msgstr "My finished scans"
+
 #: notifications/services/digest.py:46
 #, python-format
 msgid "%(count)s foto nueva para catalogar"
@@ -622,6 +627,27 @@ msgstr[1] "%(count)s of your proposals rejected"
 msgid "Los avisos funcionan en este dispositivo."
 msgstr "Notifications work on this device."
 
+#: notifications/services/scans.py:29
+#, python-format
+msgid "%(count)s foto lista del escaneo de las %(time)s"
+msgid_plural "%(count)s fotos listas del escaneo de las %(time)s"
+msgstr[0] "%(count)s photo ready from the %(time)s scan"
+msgstr[1] "%(count)s photos ready from the %(time)s scan"
+
+#: notifications/services/scans.py:35
+#, python-format
+msgid "El escaneo de las %(time)s ya estaba en PhotoTag."
+msgstr "The %(time)s scan was already in PhotoTag."
+
+#: notifications/services/scans.py:38
+#, python-format
+msgid "No se ha podido escanear: %(reason)s"
+msgstr "The scan failed: %(reason)s"
+
+#: notifications/services/scans.py:39
+msgid "error al procesar la imagen."
+msgstr "the image could not be processed."
+
 #: notifications/views.py:102
 msgid "Aviso de prueba enviado."
 msgstr "Test notification sent."
@@ -631,13 +657,68 @@ msgid "No se pudo enviar el aviso. Activa los avisos en este dispositivo."
 msgstr ""
 "The notification could not be sent. Turn on notifications on this device."
 
-#: phototag/pwa.py:44
+#: phototag/pwa.py:58
 msgid "Catalogación colaborativa de las fotos familiares"
 msgstr "Collaborative cataloging of the family photos"
 
 #: scanner/apps.py:8
 msgid "Escáner"
 msgstr "Scanner"
+
+#: scanner/models.py:14
+msgid "Escaneando"
+msgstr "Scanning"
+
+#: scanner/models.py:15
+msgid "Enviado al procesado"
+msgstr "Sent for processing"
+
+#: scanner/models.py:16
+msgid "Error"
+msgstr "Error"
+
+#: scanner/models.py:21
+msgid "resolución"
+msgstr "resolution"
+
+#: scanner/services/scanning.py:68
+msgid ""
+"El software de escaneo del servidor no admite una opción. Revisa los logs "
+"del worker."
+msgstr ""
+"The server scanning software does not support an option. Check the worker "
+"logs."
+
+#: scanner/services/scanning.py:72
+msgid ""
+"No se encuentra el escáner: revisa SCANNER_URL y que la impresora esté en la "
+"red."
+msgstr ""
+"Scanner not found: check SCANNER_URL and that the printer is on the network."
+
+#: scanner/services/scanning.py:75
+msgid "El escáner está ocupado. Espera a que termine y vuelve a intentarlo."
+msgstr "The scanner is busy. Wait for it to finish and try again."
+
+#: scanner/services/scanning.py:77
+msgid "Revisa el escáner: la tapa, el papel o el cristal."
+msgstr "Check the scanner: the lid, the paper or the glass."
+
+#: scanner/services/scanning.py:78
+msgid "La impresora no responde: ¿está encendida y conectada a la WiFi?"
+msgstr "The printer is not responding: is it on and connected to the WiFi?"
+
+#: scanner/services/scanning.py:127
+msgid "El escaneo ha tardado demasiado. ¿Sigue encendida la impresora?"
+msgstr "The scan took too long. Is the printer still on?"
+
+#: scanner/services/scanning.py:130
+msgid "Este servidor no tiene instalado el software de escaneo."
+msgstr "This server does not have the scanning software installed."
+
+#: scanner/services/scanning.py:186
+msgid "Error inesperado al escanear."
+msgstr "Unexpected error while scanning."
 
 #: scanner/services/uploads.py:66
 msgid "Tipo de subida no válido."
@@ -681,7 +762,7 @@ msgid "La página que buscas no existe."
 msgstr "The page you are looking for does not exist."
 
 #: templates/_language_switch.html:2 templates/accounts/profile.html:16
-#: templates/base.html:44
+#: templates/base.html:45
 msgid "Idioma"
 msgstr "Language"
 
@@ -751,7 +832,7 @@ msgstr ""
 msgid "Guardar y continuar"
 msgstr "Save and continue"
 
-#: templates/accounts/password_change_forced.html:15 templates/base.html:49
+#: templates/accounts/password_change_forced.html:15 templates/base.html:50
 msgid "Cerrar sesión"
 msgstr "Sign out"
 
@@ -806,7 +887,7 @@ msgid "El usuario deberá cambiar la contraseña en su primer acceso."
 msgstr ""
 "The user will have to change the password when signing in for the first time."
 
-#: templates/accounts/user_form.html:12 templates/base.html:118
+#: templates/accounts/user_form.html:12 templates/base.html:119
 #: templates/catalog/_photo_workspace.html:69
 #: templates/catalog/admin/event_type_form.html:11
 #: templates/catalog/admin/merge.html:14
@@ -903,40 +984,47 @@ msgstr "Menu for %(name)s"
 #: templates/base.html:40 templates/catalog/admin/event_types.html:4
 #: templates/catalog/admin/home.html:2 templates/catalog/admin/home.html:4
 #: templates/catalog/admin/review_queue.html:4 templates/exporter/export.html:4
+#: templates/scanner/scan.html:5
 msgid "Administración"
 msgstr "Administration"
 
-#: templates/base.html:56
+#: templates/base.html:41 templates/catalog/admin/home.html:6
+#: templates/scanner/_scan_panel.html:47 templates/scanner/scan.html:2
+#: templates/scanner/scan.html:6
+msgid "Escanear"
+msgstr "Scan"
+
+#: templates/base.html:57
 msgid "Navegación principal"
 msgstr "Main navigation"
 
-#: templates/base.html:59 templates/catalog/home.html:2
+#: templates/base.html:60 templates/catalog/home.html:2
 msgid "Inicio"
 msgstr "Home"
 
-#: templates/base.html:63 templates/catalog/gallery.html:2
+#: templates/base.html:64 templates/catalog/gallery.html:2
 #: templates/catalog/gallery.html:5
 msgid "Galería"
 msgstr "Gallery"
 
-#: templates/base.html:67 templates/catalog/persons.html:2
+#: templates/base.html:68 templates/catalog/persons.html:2
 #: templates/catalog/persons.html:4
 msgid "Personas"
 msgstr "People"
 
-#: templates/base.html:71
+#: templates/base.html:72
 msgid "Actividad"
 msgstr "Activity"
 
-#: templates/base.html:87
+#: templates/base.html:88
 msgid "Instala PhotoTag"
 msgstr "Install PhotoTag"
 
-#: templates/base.html:88
+#: templates/base.html:89
 msgid "Añádela a tu pantalla de inicio y ábrela como una app."
 msgstr "Add it to your home screen and open it like an app."
 
-#: templates/base.html:89
+#: templates/base.html:90
 msgid ""
 "Pulsa <strong>Compartir</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> y elige <strong>Añadir a pantalla de inicio</strong>."
@@ -944,7 +1032,7 @@ msgstr ""
 "Tap <strong>Share</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> and choose <strong>Add to Home Screen</strong>."
 
-#: templates/base.html:90
+#: templates/base.html:91
 msgid ""
 "Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</"
 "strong> o <strong>Añadir a pantalla de inicio</strong>."
@@ -952,19 +1040,19 @@ msgstr ""
 "Open the browser menu <strong>⋮</strong> and choose <strong>Install app</"
 "strong> or <strong>Add to Home screen</strong>."
 
-#: templates/base.html:93 templates/base.html:107
+#: templates/base.html:94 templates/base.html:108
 msgid "Ahora no"
 msgstr "Not now"
 
-#: templates/base.html:94
+#: templates/base.html:95
 msgid "Instalar"
 msgstr "Install"
 
-#: templates/base.html:102
+#: templates/base.html:103
 msgid "Activa los avisos"
 msgstr "Turn on notifications"
 
-#: templates/base.html:103
+#: templates/base.html:104
 msgid ""
 "Te avisaremos de fotos nuevas y de propuestas que esperan tu voto. Como "
 "mucho uno por hora y nunca de noche."
@@ -972,19 +1060,19 @@ msgstr ""
 "We'll let you know about new photos and proposals waiting for your vote. At "
 "most one per hour, never at night."
 
-#: templates/base.html:104
+#: templates/base.html:105
 msgid "No se han podido activar. Puedes intentarlo desde Mi perfil."
 msgstr "They could not be turned on. You can try again from My profile."
 
-#: templates/base.html:108
+#: templates/base.html:109
 msgid "Activar"
 msgstr "Turn on"
 
-#: templates/base.html:115
+#: templates/base.html:116
 msgid "¿Confirmar?"
 msgstr "Confirm?"
 
-#: templates/base.html:119
+#: templates/base.html:120
 msgid "Confirmar"
 msgstr "Confirm"
 
@@ -1099,70 +1187,62 @@ msgstr[1] "%(counter)s faces"
 msgid "Compartir ahora"
 msgstr "Share now"
 
-#: templates/catalog/_photo_workspace.html:89
+#: templates/catalog/_photo_workspace.html:90
 msgid "Compartir o descargar la foto"
 msgstr "Share or download the photo"
 
-#: templates/catalog/_photo_workspace.html:89 templates/catalog/gallery.html:49
-msgid "Compartir"
-msgstr "Share"
-
-#: templates/catalog/_photo_workspace.html:92
+#: templates/catalog/_photo_workspace.html:93
 msgid "Girar 90° a la derecha"
 msgstr "Rotate 90° clockwise"
 
-#: templates/catalog/_photo_workspace.html:92
-msgid "Girar"
-msgstr "Rotate"
-
-#: templates/catalog/_photo_workspace.html:101
+#: templates/catalog/_photo_workspace.html:103
 msgid "Cara propuesta"
 msgstr "Proposed face"
 
-#: templates/catalog/_photo_workspace.html:101
+#: templates/catalog/_photo_workspace.html:103
 msgid "Sin identificar"
 msgstr "Unidentified"
 
-#: templates/catalog/_photo_workspace.html:107
+#: templates/catalog/_photo_workspace.html:109
 msgid "Persona aceptada:"
 msgstr "Accepted person:"
 
-#: templates/catalog/_photo_workspace.html:113
+#: templates/catalog/_photo_workspace.html:115
 msgid "Propuestas de nombre"
 msgstr "Name proposals"
 
-#: templates/catalog/_photo_workspace.html:118
+#: templates/catalog/_photo_workspace.html:120
 msgid "Sugerencias automáticas"
 msgstr "Automatic suggestions"
 
-#: templates/catalog/_photo_workspace.html:125
+#: templates/catalog/_photo_workspace.html:127
 #, python-format
 msgid "¿Es %(person)s?"
 msgstr "Is it %(person)s?"
 
-#: templates/catalog/_photo_workspace.html:129
+#: templates/catalog/_photo_workspace.html:131
 msgid ""
 "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
 
-#: templates/catalog/_photo_workspace.html:135
+#: templates/catalog/_photo_workspace.html:137
 msgid "Proponer otro nombre"
 msgstr "Propose another name"
 
-#: templates/catalog/_photo_workspace.html:135
+#: templates/catalog/_photo_workspace.html:137
 msgid "¿Quién es?"
 msgstr "Who is it?"
 
-#: templates/catalog/_photo_workspace.html:140
+#: templates/catalog/_photo_workspace.html:142
 msgid "Nombre y apellidos"
 msgstr "Full name"
 
-#: templates/catalog/_photo_workspace.html:143
-#: templates/catalog/_photo_workspace.html:149
+#: templates/catalog/_photo_workspace.html:145
+#: templates/catalog/_photo_workspace.html:151
 msgid "Proponer"
 msgstr "Propose"
 
-#: templates/catalog/_photo_workspace.html:148
+#: templates/catalog/_photo_workspace.html:150
 #, python-format
 msgid ""
 "¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
@@ -1171,61 +1251,63 @@ msgstr ""
 "Propose that box %(number)s is not a face? It will be voted like any other "
 "proposal."
 
-#: templates/catalog/_photo_workspace.html:157
+#: templates/catalog/_photo_workspace.html:159
 msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
 msgstr "No faces were detected. Use “Draw face” if one is missing."
 
-#: templates/catalog/_photo_workspace.html:166
+#: templates/catalog/_photo_workspace.html:168
 msgid "Aceptado:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:171
+#: templates/catalog/_photo_workspace.html:173
 msgid "Tipo de evento"
 msgstr "Event type"
 
-#: templates/catalog/_photo_workspace.html:173
+#: templates/catalog/_photo_workspace.html:175
 msgid "— Elige —"
 msgstr "— Choose —"
 
-#: templates/catalog/_photo_workspace.html:175
+#: templates/catalog/_photo_workspace.html:177
 msgid "Otro…"
 msgstr "Other…"
 
-#: templates/catalog/_photo_workspace.html:179
+#: templates/catalog/_photo_workspace.html:181
 msgid "¿Qué evento es?"
 msgstr "Which event is it?"
 
-#: templates/catalog/_photo_workspace.html:180
+#: templates/catalog/_photo_workspace.html:182
 msgid "Graduación"
 msgstr "Graduation"
 
-#: templates/catalog/_photo_workspace.html:181
+#: templates/catalog/_photo_workspace.html:183
 msgid ""
 "Si no está en la lista. Quedará disponible para todos cuando se acepte por "
 "votación."
-msgstr "If it is not in the list. It becomes available to everyone once accepted by vote."
+msgstr ""
+"If it is not in the list. It becomes available to everyone once accepted by "
+"vote."
 
-#: templates/catalog/_photo_workspace.html:184
+#: templates/catalog/_photo_workspace.html:186
 msgid "Descripción (opcional)"
 msgstr "Description (optional)"
 
-#: templates/catalog/_photo_workspace.html:185
+#: templates/catalog/_photo_workspace.html:187
 msgid "Boda de Luis y Ana"
 msgstr "Luis and Ana's wedding"
 
-#: templates/catalog/_photo_workspace.html:187
+#: templates/catalog/_photo_workspace.html:189
 msgid "Proponer evento"
 msgstr "Propose event"
 
-#: templates/catalog/_photo_workspace.html:198
+#: templates/catalog/_photo_workspace.html:200
 msgid "Aceptada:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:203
+#: templates/catalog/_photo_workspace.html:205
 msgid "Precisión"
 msgstr "Precision"
 
-#: templates/catalog/_photo_workspace.html:217
+#: templates/catalog/_photo_workspace.html:219
 msgid "Proponer fecha"
 msgstr "Propose date"
 
@@ -1281,7 +1363,7 @@ msgstr "Edit “%(name)s”"
 
 #: templates/catalog/admin/event_types.html:2
 #: templates/catalog/admin/event_types.html:5
-#: templates/catalog/admin/home.html:7
+#: templates/catalog/admin/home.html:8
 msgid "Tipos de evento"
 msgstr "Event types"
 
@@ -1308,63 +1390,67 @@ msgid "Añadir"
 msgstr "Add"
 
 #: templates/catalog/admin/home.html:6
+msgid "Escáner de red: coloca las fotos y pulsa un botón"
+msgstr "Network scanner: place the photos and press a button"
+
+#: templates/catalog/admin/home.html:7
 #: templates/catalog/admin/review_queue.html:2
 #: templates/catalog/admin/review_queue.html:5
 msgid "Cola de revisión"
 msgstr "Review queue"
 
-#: templates/catalog/admin/home.html:6
+#: templates/catalog/admin/home.html:7
 #, python-format
 msgid "%(counter)s escaneo pendiente"
 msgid_plural "%(counter)s escaneos pendientes"
 msgstr[0] "%(counter)s pending scan"
 msgstr[1] "%(counter)s pending scans"
 
-#: templates/catalog/admin/home.html:7
+#: templates/catalog/admin/home.html:8
 msgid "Catálogo editable"
 msgstr "Editable catalog"
 
-#: templates/catalog/admin/home.html:8
+#: templates/catalog/admin/home.html:9
 #: templates/catalog/admin/thresholds.html:2
 #: templates/catalog/admin/thresholds.html:7
 msgid "Umbrales de votación"
 msgstr "Voting thresholds"
 
-#: templates/catalog/admin/home.html:8
+#: templates/catalog/admin/home.html:9
 #, python-format
 msgid "%(votes)s votos · %(ratio)s"
 msgstr "%(votes)s votes · %(ratio)s"
 
-#: templates/catalog/admin/home.html:9 templates/catalog/admin/merge.html:2
+#: templates/catalog/admin/home.html:10 templates/catalog/admin/merge.html:2
 #: templates/catalog/admin/merge.html:9
 msgid "Fusionar personas"
 msgstr "Merge people"
 
-#: templates/catalog/admin/home.html:9
+#: templates/catalog/admin/home.html:10
 msgid "Unificar duplicados"
 msgstr "Combine duplicates"
 
-#: templates/catalog/admin/home.html:10 templates/exporter/export.html:5
+#: templates/catalog/admin/home.html:11 templates/exporter/export.html:5
 msgid "Exportación a Immich"
 msgstr "Export to Immich"
 
-#: templates/catalog/admin/home.html:10
+#: templates/catalog/admin/home.html:11
 msgid "XMP con caras y eventos"
 msgstr "XMP with faces and events"
 
-#: templates/catalog/admin/home.html:11
+#: templates/catalog/admin/home.html:12
 msgid "Altas, roles y contraseñas"
 msgstr "Accounts, roles and passwords"
 
-#: templates/catalog/admin/home.html:14
+#: templates/catalog/admin/home.html:15
 msgid "Actividad reciente"
 msgstr "Recent activity"
 
-#: templates/catalog/admin/home.html:17
+#: templates/catalog/admin/home.html:18
 msgid "sistema"
 msgstr "system"
 
-#: templates/catalog/admin/home.html:18
+#: templates/catalog/admin/home.html:19
 msgid "Sin actividad."
 msgstr "No activity."
 
@@ -1511,6 +1597,10 @@ msgstr "Up to %(share_max)s photos at a time"
 #: templates/catalog/gallery.html:47
 msgid "Cancelar selección"
 msgstr "Cancel selection"
+
+#: templates/catalog/gallery.html:49
+msgid "Compartir"
+msgstr "Share"
 
 #: templates/catalog/gallery.html:50
 msgid "Descargar"
@@ -1788,9 +1878,77 @@ msgid ""
 "intentarlo."
 msgstr "PhotoTag cannot be reached. Check your connection and try again."
 
-#: templates/pwa/offline.html:18
+#: templates/pwa/offline.html:18 templates/scanner/_scan_panel.html:47
 msgid "Reintentar"
 msgstr "Try again"
+
+#: templates/scanner/_scan_panel.html:8
+msgid "Preparando el escáner…"
+msgstr "Preparing the scanner…"
+
+#: templates/scanner/_scan_panel.html:8
+msgid "Escaneando… no muevas las fotos"
+msgstr "Scanning… don't move the photos"
+
+#: templates/scanner/_scan_panel.html:9
+#, python-format
+msgid "A %(dpi)s ppp puede tardar uno o dos minutos."
+msgstr "At %(dpi)s dpi it can take a minute or two."
+
+#: templates/scanner/_scan_panel.html:13
+msgid "No se ha podido escanear"
+msgstr "The scan failed"
+
+#: templates/scanner/_scan_panel.html:18
+msgid "Escaneo enviado al procesado"
+msgstr "Scan sent for processing"
+
+#: templates/scanner/_scan_panel.html:20
+msgid "Recortando las fotos…"
+msgstr "Cropping the photos…"
+
+#: templates/scanner/_scan_panel.html:37
+msgid "¿Todo listo para escanear?"
+msgstr "Ready to scan?"
+
+#: templates/scanner/_scan_panel.html:38
+msgid ""
+"Coloca las fotos boca abajo en el cristal, separadas entre sí, y cierra la "
+"tapa."
+msgstr ""
+"Place the photos face down on the glass, apart from each other, and close "
+"the lid."
+
+#: templates/scanner/_scan_panel.html:40
+msgid "Resolución"
+msgstr "Resolution"
+
+#: templates/scanner/_scan_panel.html:43 templates/scanner/scan.html:16
+#, python-format
+msgid "%(dpi)s ppp"
+msgstr "%(dpi)s dpi"
+
+#: templates/scanner/scan.html:10
+msgid "Últimos escaneos"
+msgstr "Recent scans"
+
+#: templates/scanner/scan.html:19
+msgid "Todavía no se ha escaneado nada desde aquí."
+msgstr "Nothing has been scanned from here yet."
+
+#: templates/scanner/scan.html:24
+msgid "Escáner sin configurar"
+msgstr "Scanner not configured"
+
+#: templates/scanner/scan.html:25
+msgid ""
+"Para escanear desde PhotoTag, configura la variable <code>SCANNER_URL</code> "
+"con la dirección eSCL de la impresora (por ejemplo <code>http://192.168.1.50/"
+"eSCL</code>) y redespliega. La guía de despliegue lo explica paso a paso."
+msgstr ""
+"To scan from PhotoTag, set the <code>SCANNER_URL</code> variable to the "
+"printer's eSCL address (for example <code>http://192.168.1.50/eSCL</code>) "
+"and redeploy. The deployment guide explains it step by step."
 
 #: templates/scanner/upload.html:2 templates/scanner/upload.html:5
 msgid "Subir fotos"
