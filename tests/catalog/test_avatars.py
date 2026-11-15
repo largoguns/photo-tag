@@ -79,3 +79,46 @@ def test_nav_avatar_uses_the_chosen_face(client, alice, maria):
     client.force_login(alice)
     content = client.get(reverse("home")).content.decode()
     assert reverse("face_image", args=[small.pk]) in content
+
+
+# --- Renaming ---------------------------------------------------------------------------
+
+
+def test_admin_renames_a_person_and_photos_are_re_exported(client, admin_user, maria):
+    person, small, big = maria
+    client.force_login(admin_user)
+    content = client.get(reverse("person_detail", args=[person.pk])).content.decode()
+    assert reverse("person_rename", args=[person.pk]) in content
+
+    client.post(reverse("person_rename", args=[person.pk]), {"display_name": "maría de la luz"})
+
+    person.refresh_from_db()
+    assert person.display_name == "María de la Luz"  # normalized like any new name
+    assert small.photo.__class__.objects.get(pk=small.photo_id).catalog_changed_at
+    from accounts.models import AuditLog
+
+    entry = AuditLog.objects.get(action="person.rename")
+    assert entry.details == {"old": "María", "new": "María de la Luz"}
+
+
+def test_rename_refuses_the_name_of_another_person(client, admin_user, maria):
+    person, small, big = maria
+    Person.objects.create(display_name="Pedro")
+    client.force_login(admin_user)
+    response = client.post(
+        reverse("person_rename", args=[person.pk]), {"display_name": "PEDRO"}, follow=True
+    )
+    assert "Fusionar personas" in response.content.decode()
+    person.refresh_from_db()
+    assert person.display_name == "María"
+
+
+def test_collaborators_cannot_rename(client, alice, maria):
+    person, small, big = maria
+    client.force_login(alice)
+    assert (
+        client.post(reverse("person_rename", args=[person.pk]), {"display_name": "X"}).status_code
+        == 403
+    )
+    content = client.get(reverse("person_detail", args=[person.pk])).content.decode()
+    assert reverse("person_rename", args=[person.pk]) not in content

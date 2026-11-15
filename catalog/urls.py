@@ -27,6 +27,7 @@ urlpatterns = [
     path("persons/", views.persons, name="persons"),
     path("persons/<int:pk>/", views.person_detail, name="person_detail"),
     path("persons/<int:pk>/avatar/", views.person_avatar, name="person_avatar"),
+    path("persons/<int:pk>/rename/", views.person_rename, name="person_rename"),
     path("activity/", views.my_activity, name="my_activity"),
     # Administration
     path("admin/", admin_views.admin_home, name="admin_home"),

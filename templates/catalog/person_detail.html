@@ -9,12 +9,29 @@
   </button>
   {% else %}<span class="person-avatar avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>{% endif %}
   <div class="person-header-main">
-    <h1>{{ person }}</h1>
-    <div class="actions">
-      {% if avatar_choices|length > 1 %}<button type="button" class="button small" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}{% translate "Cambiar foto principal" %}</button>{% endif %}
-      {% if user.is_catalog_admin %}<a class="button small" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% translate "Fusionar con otra persona" %}</a>{% endif %}
+    <div class="person-name">
+      <h1>{{ person }}</h1>
+      {% if user.is_catalog_admin %}<button type="button" class="button text icon-only" data-rename-toggle aria-controls="rename-form" aria-expanded="false" aria-label="{% translate 'Cambiar nombre' %}" title="{% translate 'Cambiar nombre' %}">{% icon "edit" %}</button>{% endif %}
     </div>
+    {% if user.is_catalog_admin %}
+    <form method="post" action="{% url 'person_rename' person.pk %}" class="rename-form" id="rename-form" hidden>
+      {% csrf_token %}
+      <label class="visually-hidden" for="rename-name">{% translate "Nombre" %}</label>
+      <input type="text" id="rename-name" name="display_name" value="{{ person.display_name }}" maxlength="150" required autocomplete="off">
+      <button type="submit" class="button primary small">{% translate "Guardar" %}</button>
+      <button type="button" class="button text small" data-rename-toggle>{% translate "Cancelar" %}</button>
+    </form>
+    {% endif %}
   </div>
+  {% if user.is_catalog_admin %}
+  <details class="user-menu person-menu">
+    <summary class="button text icon-only" aria-label="{% translate 'Más acciones' %}" title="{% translate 'Más acciones' %}">{% icon "more_vert" %}</summary>
+    <div class="menu">
+      {% if avatar_choices|length > 1 %}<button type="button" class="menu-item" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}<span>{% translate "Cambiar foto principal" %}</span></button>{% endif %}
+      <a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>
+    </div>
+  </details>
+  {% endif %}
 </div>
 {% if person.user %}<p class="muted">{% blocktranslate with linked=person.user %}Usuario vinculado: {{ linked }}{% endblocktranslate %}</p>{% endif %}
 {% if person.notes %}<p>{{ person.notes|linebreaksbr }}</p>{% endif %}

@@ -45,3 +45,30 @@ def photo_count(person):
         .distinct()
         .count()
     )
+
+
+@transaction.atomic
+def rename_person(admin, person, name):
+    """Give `person` a new display name (normalized). Photos are re-exported with it."""
+    from catalog.services.names import name_key, normalize_name
+
+    new = normalize_name(name)
+    if not new:
+        raise ValidationError(_("El nombre no puede estar vacío."))
+    old = person.display_name
+    if new == old:
+        return person
+    key = name_key(new)
+    for other in Person.objects.active().exclude(pk=person.pk).only("id", "display_name"):
+        if name_key(other.display_name) == key:
+            raise ValidationError(
+                _("Ya existe «%(name)s». Si son la misma persona, usa «Fusionar personas».")
+                % {"name": other.display_name}
+            )
+    person.display_name = new
+    person.save(update_fields=["display_name"])
+    # The person's name travels in the XMP of every photo where they appear.
+    photo_ids = Face.objects.filter(person=person).values_list("photo_id", flat=True)
+    Photo.objects.filter(pk__in=set(photo_ids)).update(catalog_changed_at=timezone.now())
+    audit.log(admin, "person.rename", person, old=old, new=new)
+    return person
