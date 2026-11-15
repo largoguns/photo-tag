@@ -53,7 +53,7 @@ def qs(params, key, value=None):
 def sheet_options(items, kind="choices"):
     """Normalize filter options to (value, label, avatar_face_id) tuples."""
     if kind == "person":
-        return [(p.pk, p.display_name, getattr(p, "avatar_face_id", None)) for p in items]
+        return [(p.pk, p.display_name, getattr(p, "avatar_id", None)) for p in items]
     if kind == "event":
         return [(e.pk, str(e), None) for e in items]
     if kind == "decade":

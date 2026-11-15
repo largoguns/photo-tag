@@ -162,6 +162,10 @@ class Person(models.Model):
         on_delete=models.SET_NULL,
         related_name="person",
     )
+    # Face chosen as main photo; when empty or no longer valid, the largest face is used.
+    avatar_face = models.ForeignKey(
+        "Face", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     objects = PersonQuerySet.as_manager()
 

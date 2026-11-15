@@ -1,9 +1,20 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n catalog_tags %}
 {% block title %}{{ person }}{% endblock %}
 {% block content %}
-<div class="page-header">
-  <h1>{{ person }}</h1>
-  {% if user.is_catalog_admin %}<a class="button small" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% translate "Fusionar con otra persona" %}</a>{% endif %}
+<div class="person-header">
+  {% if avatar_id %}
+  <button type="button" class="person-avatar-button" data-open-sheet="sheet-avatar" aria-haspopup="dialog" aria-label="{% translate 'Cambiar foto principal' %}" title="{% translate 'Cambiar foto principal' %}">
+    <img class="person-avatar" src="{% url 'face_image' avatar_id %}" alt="" width="96" height="96">
+    <span class="person-avatar-edit" aria-hidden="true">{% icon "draw" %}</span>
+  </button>
+  {% else %}<span class="person-avatar avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>{% endif %}
+  <div class="person-header-main">
+    <h1>{{ person }}</h1>
+    <div class="actions">
+      {% if avatar_choices|length > 1 %}<button type="button" class="button small" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}{% translate "Cambiar foto principal" %}</button>{% endif %}
+      {% if user.is_catalog_admin %}<a class="button small" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% translate "Fusionar con otra persona" %}</a>{% endif %}
+    </div>
+  </div>
 </div>
 {% if person.user %}<p class="muted">{% blocktranslate with linked=person.user %}Usuario vinculado: {{ linked }}{% endblocktranslate %}</p>{% endif %}
 {% if person.notes %}<p>{{ person.notes|linebreaksbr }}</p>{% endif %}
@@ -34,4 +45,30 @@
   {% for photo in page %}{% include "catalog/_photo_card.html" %}{% empty %}<li class="empty">{% translate "Sin fotos." %}</li>{% endfor %}
 </ul>
 {% include "_pagination.html" %}
+{% if avatar_id %}
+<dialog class="sheet" id="sheet-avatar" aria-labelledby="sheet-avatar-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-header">
+    <h2 id="sheet-avatar-title">{% translate "Foto principal" %}</h2>
+    <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
+  </div>
+  <div class="sheet-body avatar-sheet-body">
+    <p class="muted">{% blocktranslate %}Elige la cara que identifica a {{ person }} en toda la app.{% endblocktranslate %}</p>
+    <form method="post" action="{% url 'person_avatar' person.pk %}">
+      {% csrf_token %}
+      <ul class="avatar-choices">
+        {% for face in avatar_choices %}
+        <li>
+          <button type="submit" name="face" value="{{ face.pk }}" class="avatar-choice" {% if face.pk == avatar_id %}aria-current="true"{% endif %}
+                  aria-label="{% blocktranslate with id=face.photo_id %}Cara de la foto {{ id }}{% endblocktranslate %}">
+            <img src="{% url 'face_image' face.pk %}" alt="" loading="lazy" width="96" height="96">
+            {% if face.pk == avatar_id %}<span class="avatar-choice-check">{% icon "check" %}</span>{% endif %}
+          </button>
+        </li>
+        {% endfor %}
+      </ul>
+    </form>
+  </div>
+</dialog>
+{% endif %}
 {% endblock %}

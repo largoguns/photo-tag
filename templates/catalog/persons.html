@@ -11,8 +11,8 @@
   {% for person in page %}
   <li>
     <a class="person-card" href="{% url 'person_detail' person.pk %}">
-      {% if person.avatar %}
-      <img src="{% url 'face_image' person.avatar.pk %}" alt="" loading="lazy" width="96" height="96">
+      {% if person.avatar_id %}
+      <img src="{% url 'face_image' person.avatar_id %}" alt="" loading="lazy" width="96" height="96">
       {% else %}
       <span class="avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>
       {% endif %}

@@ -17,7 +17,7 @@ from accounts.permissions import admin_required
 from accounts.services import audit
 from catalog import presenters
 from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
-from catalog.services import names, sharing, similarity, voting
+from catalog.services import avatars, names, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
 GALLERY_PAGE_SIZE = 60
@@ -108,7 +108,7 @@ def gallery(request):
     people = list(Person.objects.active().filter(is_provisional=False))
     avatars = presenters.person_avatars([p.pk for p in people])
     for person in people:
-        person.avatar_face_id = avatars.get(person.pk)
+        person.avatar_id = avatars.get(person.pk)
     event_types = list(EventType.objects.filter(is_provisional=False))
     decades = sorted(
         {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")},
@@ -156,8 +156,9 @@ def persons(request):
     if query:
         people = names.search(people, query, "display_name")
     page = Paginator(people, 60).get_page(request.GET.get("page"))
+    avatars = presenters.person_avatars([person.pk for person in page])
     for person in page:
-        person.avatar = person.faces.filter(status=Face.Status.ACTIVE).order_by("-w").first()
+        person.avatar_id = avatars.get(person.pk)
     return render(request, "catalog/persons.html", {"page": page, "query": query})
 
 
@@ -179,22 +180,48 @@ def person_detail(request, pk):
             "person": person,
             "page": page,
             "candidates": similarity.candidate_faces_for_person(person),
+            "avatar_id": avatars.avatar_face_id(person),
+            "avatar_choices": avatars.selectable_faces(person),
         },
     )
+
+
+@require_POST
+def person_avatar(request, pk):
+    person = get_object_or_404(Person, pk=pk, merged_into__isnull=True)
+    try:
+        avatars.set_avatar(request.user, person, request.POST.get("face"))
+    except (ValueError, TypeError):
+        messages.error(request, _("Esa cara no es de esta persona."))
+    else:
+        messages.success(request, _("Foto principal actualizada."))
+    return redirect("person_detail", pk=person.pk)
 
 
 def my_activity(request):
     proposals = presenters.with_tally(
         Proposal.objects.filter(author=request.user), request.user
     ).select_related("photo")
-    status = request.GET.get("status")
+    params = request.GET
+    status, kind = params.get("status", ""), params.get("kind", "")
     if status in Proposal.Status.values:
         proposals = proposals.filter(status=status)
-    page = Paginator(proposals.order_by("-created_at"), 30).get_page(request.GET.get("page"))
+    if kind in Proposal.Kind.values:
+        proposals = proposals.filter(kind=kind)
+    page = Paginator(proposals.order_by("-created_at"), 30).get_page(params.get("page"))
     return render(
         request,
         "catalog/my_activity.html",
-        {"page": page, "statuses": Proposal.Status.choices, "status": status},
+        {
+            "page": page,
+            "params": params,
+            "statuses": Proposal.Status.choices,
+            "kinds": Proposal.Kind.choices,
+            "selected_status": Proposal.Status(status).label
+            if status in Proposal.Status.values
+            else None,
+            "selected_kind": Proposal.Kind(kind).label if kind in Proposal.Kind.values else None,
+        },
     )
 
 

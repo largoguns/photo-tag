@@ -98,13 +98,7 @@ def group_photos(photos, last_group=""):
 
 
 def person_avatars(person_ids):
-    """{person_id: face_id} with the largest accepted face of each person."""
-    avatars = {}
-    faces = (
-        Face.objects.filter(person_id__in=person_ids, status=Face.Status.ACTIVE)
-        .order_by("person_id", "-w")
-        .values_list("person_id", "pk")
-    )
-    for person_id, face_id in faces:
-        avatars.setdefault(person_id, face_id)
-    return avatars
+    """{person_id: face_id} with the main photo of each person."""
+    from catalog.services.avatars import avatar_faces
+
+    return avatar_faces(person_ids)
