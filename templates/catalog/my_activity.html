@@ -1,39 +1,6 @@
-{% extends "base.html" %}{% load i18n catalog_tags %}
+{% extends "base.html" %}{% load i18n %}
 {% block title %}{% translate "Mi actividad" %}{% endblock %}
 {% block content %}
 <h1>{% translate "Mi actividad" %}</h1>
-<nav class="filter-bar" aria-label="{% translate 'Filtros' %}">
-  <button type="button" class="chip{% if selected_status %} selected{% endif %}" data-open-sheet="sheet-status" aria-haspopup="dialog">
-    {% if selected_status %}{% icon "check" %}{{ selected_status }}{% else %}{% translate "Estado" %}{% endif %}{% icon "keyboard_arrow_down" %}
-  </button>
-  <button type="button" class="chip{% if selected_kind %} selected{% endif %}" data-open-sheet="sheet-kind" aria-haspopup="dialog">
-    {% if selected_kind %}{% icon "check" %}{{ selected_kind }}{% else %}{% translate "Tipo" %}{% endif %}{% icon "keyboard_arrow_down" %}
-  </button>
-  {% if selected_status or selected_kind %}<a class="chip" href="{% url 'my_activity' %}">{% icon "close" %}{% translate "Borrar filtros" %}</a>{% endif %}
-</nav>
-<p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} propuesta{% plural %}{{ counter }} propuestas{% endblocktranslate %}</p>
-<ul class="list">
-  {% for proposal in page %}
-  <li class="list-item">
-    <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}{% if proposal.face_id %}?face={{ proposal.face_id }}{% endif %}">
-      <img src="{% url 'photo_image' proposal.photo_id 400 %}?v={{ proposal.photo.image_version }}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60">
-    </a>
-    <div class="list-main">
-      <strong>{{ proposal.get_kind_display }}</strong>: {{ proposal.label }}
-      <div class="meta">
-        <span class="badge proposal-{{ proposal.status }}">{{ proposal.get_status_display }}</span>
-        <span class="muted">{{ proposal.created_at|date:"SHORT_DATETIME_FORMAT" }} · 👍 {{ proposal.ups }} · 👎 {{ proposal.downs }}{% if proposal.decided_by %} · {% blocktranslate with admin=proposal.decided_by %}decidida por {{ admin }}{% endblocktranslate %}{% endif %}</span>
-      </div>
-    </div>
-  </li>
-  {% empty %}
-  <li class="empty">{% if selected_status or selected_kind %}{% translate "Ninguna propuesta con estos filtros." %}{% else %}{% translate "Aún no has hecho propuestas." %}{% endif %}</li>
-  {% endfor %}
-</ul>
-{% include "_pagination.html" %}
-{% translate "Estado" as t_status %}{% translate "Tipo" as t_kind %}{% translate "Todas" as t_all %}{% translate "Todos" as t_all_m %}
-{% sheet_options statuses as status_options %}
-{% include "catalog/_filter_sheet.html" with key="status" title=t_status all_label=t_all_m options=status_options current=params.status searchable=False %}
-{% sheet_options kinds as kind_options %}
-{% include "catalog/_filter_sheet.html" with key="kind" title=t_kind all_label=t_all_m options=kind_options current=params.kind searchable=False %}
+{% include "catalog/_proposal_activity.html" %}
 {% endblock %}

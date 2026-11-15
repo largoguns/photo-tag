@@ -192,6 +192,21 @@ def person_detail(request, pk):
     )
 
 
+@admin_required
+@require_POST
+def person_rename(request, pk):
+    from catalog.services.persons import rename_person
+
+    person = get_object_or_404(Person, pk=pk, merged_into__isnull=True)
+    try:
+        rename_person(request.user, person, request.POST.get("display_name", ""))
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(request, _("Nombre actualizado."))
+    return redirect("person_detail", pk=person.pk)
+
+
 @require_POST
 def person_avatar(request, pk):
     person = get_object_or_404(Person, pk=pk, merged_into__isnull=True)
@@ -205,30 +220,11 @@ def person_avatar(request, pk):
 
 
 def my_activity(request):
-    proposals = presenters.with_tally(
-        Proposal.objects.filter(author=request.user), request.user
-    ).select_related("photo")
-    params = request.GET
-    status, kind = params.get("status", ""), params.get("kind", "")
-    if status in Proposal.Status.values:
-        proposals = proposals.filter(status=status)
-    if kind in Proposal.Kind.values:
-        proposals = proposals.filter(kind=kind)
-    page = Paginator(proposals.order_by("-created_at"), 30).get_page(params.get("page"))
-    return render(
-        request,
-        "catalog/my_activity.html",
-        {
-            "page": page,
-            "params": params,
-            "statuses": Proposal.Status.choices,
-            "kinds": Proposal.Kind.choices,
-            "selected_status": Proposal.Status(status).label
-            if status in Proposal.Status.values
-            else None,
-            "selected_kind": Proposal.Kind(kind).label if kind in Proposal.Kind.values else None,
-        },
+    context = presenters.proposal_activity(
+        Proposal.objects.filter(author=request.user), request.GET, request.user
     )
+    context["clear_url"] = reverse("my_activity")
+    return render(request, "catalog/my_activity.html", context)
 
 
 # ---------------------------------------------------------------------------

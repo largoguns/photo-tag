@@ -36,6 +36,14 @@ def icon(name, label=""):
 
 
 @register.simple_tag
+def page_qs(params, number):
+    """Query string for page `number`, keeping every other parameter (filters, tabs)."""
+    query = params.copy()
+    query["page"] = number
+    return f"?{query.urlencode()}"
+
+
+@register.simple_tag
 def qs(params, key, value=None):
     """Query string with `key` set to `value` (or removed when None); paging is reset."""
     query = params.copy()

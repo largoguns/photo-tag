@@ -102,3 +102,28 @@ def person_avatars(person_ids):
     from catalog.services.avatars import avatar_faces
 
     return avatar_faces(person_ids)
+
+
+def proposal_activity(proposals, params, viewer):
+    """Context for a filterable, paginated list of proposals (Mi actividad, audit screen)."""
+    from django.core.paginator import Paginator
+
+    from catalog.models import Proposal
+
+    proposals = with_tally(proposals, viewer).select_related("photo")
+    status, kind = params.get("status", ""), params.get("kind", "")
+    if status in Proposal.Status.values:
+        proposals = proposals.filter(status=status)
+    if kind in Proposal.Kind.values:
+        proposals = proposals.filter(kind=kind)
+    page = Paginator(proposals.order_by("-created_at"), 30).get_page(params.get("page"))
+    return {
+        "page": page,
+        "params": params,
+        "statuses": Proposal.Status.choices,
+        "kinds": Proposal.Kind.choices,
+        "selected_status": Proposal.Status(status).label
+        if status in Proposal.Status.values
+        else None,
+        "selected_kind": Proposal.Kind(kind).label if kind in Proposal.Kind.values else None,
+    }

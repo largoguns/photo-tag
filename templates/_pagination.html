@@ -1,7 +1,7 @@
-{% load i18n %}{% if page.has_other_pages %}
+{% load i18n catalog_tags %}{% if page.has_other_pages %}
 <nav class="pagination" aria-label="{% translate 'Paginación' %}">
-  {% if page.has_previous %}<a class="button small" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page.previous_page_number }}">← {% translate "Anterior" %}</a>{% endif %}
+  {% if page.has_previous %}<a class="button small" href="{% if params %}{% page_qs params page.previous_page_number %}{% else %}?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page.previous_page_number }}{% endif %}">← {% translate "Anterior" %}</a>{% endif %}
   <span class="muted">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Página {{ number }} de {{ total }}{% endblocktranslate %}</span>
-  {% if page.has_next %}<a class="button small" href="?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page.next_page_number }}">{% translate "Siguiente" %} →</a>{% endif %}
+  {% if page.has_next %}<a class="button small" href="{% if params %}{% page_qs params page.next_page_number %}{% else %}?{% if query %}q={{ query|urlencode }}&{% endif %}{% if status %}status={{ status }}&{% endif %}page={{ page.next_page_number }}{% endif %}">{% translate "Siguiente" %} →</a>{% endif %}
 </nav>
 {% endif %}
