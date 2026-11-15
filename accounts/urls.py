@@ -9,6 +9,7 @@ urlpatterns = [
     path("password/", views.password_change_forced, name="password_change_forced"),
     path("profile/", views.profile, name="profile"),
     path("users/", views.user_list, name="user_list"),
+    path("audit/", views.audit, name="audit"),
     path("users/new/", views.user_create, name="user_create"),
     path("users/<int:pk>/", views.user_edit, name="user_edit"),
     path("users/<int:pk>/toggle-active/", views.user_toggle_active, name="user_toggle_active"),

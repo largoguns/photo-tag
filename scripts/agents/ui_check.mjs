@@ -23,7 +23,7 @@ const variants = [
   { name: "light-es", scheme: "light", locale: "es-ES" },
   { name: "dark-en", scheme: "dark", locale: "en-GB" },
 ];
-const pages = ["/", "/gallery/", "/persons/", "/activity/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/admin/export/"];
+const pages = ["/", "/gallery/", "/persons/", "/activity/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/accounts/audit/", "/admin/export/"];
 
 fs.mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch();

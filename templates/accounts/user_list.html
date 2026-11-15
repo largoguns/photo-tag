@@ -24,6 +24,7 @@
       </div>
     </div>
     <div class="actions">
+      <a class="button small" href="{% url 'audit' %}?user={{ u.pk }}">{% icon "history" %}{% translate "Actividad" %}</a>
       <a class="button small" href="{% url 'user_edit' u.pk %}">{% translate "Editar" %}</a>
       <form method="post" action="{% url 'user_reset_password' u.pk %}"
             data-confirm="{% blocktranslate with username=u.username %}¿Restablecer la contraseña de {{ username }} a la genérica? Tendrá que cambiarla en su próximo acceso.{% endblocktranslate %}"

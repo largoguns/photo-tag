@@ -1,0 +1,118 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Auditoría" %}{% endblock %}
+{% block content %}
+{% translate "Auditoría" as page_title %}{% translate "Volver a Usuarios" as back_label %}{% url 'user_list' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+
+<nav class="filter-bar" aria-label="{% translate 'Filtros' %}">
+  <button type="button" class="chip{% if person %} selected{% endif %}" data-open-sheet="sheet-user" aria-haspopup="dialog">
+    {% if person %}{% icon "check" %}{{ person.get_display_name }}{% else %}{% translate "Usuario" %}{% endif %}{% icon "keyboard_arrow_down" %}
+  </button>
+  {% if tab == "history" %}
+  <button type="button" class="chip{% if selected_event %} selected{% endif %}" data-open-sheet="sheet-event" aria-haspopup="dialog">
+    {% if selected_event %}{% icon "check" %}{{ selected_event }}{% else %}{% translate "Evento" %}{% endif %}{% icon "keyboard_arrow_down" %}
+  </button>
+  <button type="button" class="chip{% if selected_period %} selected{% endif %}" data-open-sheet="sheet-period" aria-haspopup="dialog">
+    {% if selected_period %}{% icon "check" %}{{ selected_period }}{% else %}{% translate "Periodo" %}{% endif %}{% icon "keyboard_arrow_down" %}
+  </button>
+  {% endif %}
+  {% if has_filters %}<a class="chip" href="{% url 'audit' %}">{% icon "close" %}{% translate "Borrar filtros" %}</a>{% endif %}
+</nav>
+
+{% if person %}
+<section class="card audit-summary" aria-label="{% translate 'Resumen' %}">
+  <div class="audit-person">
+    <span class="profile-avatar" aria-hidden="true">{{ person.get_display_name|first|upper }}</span>
+    <div class="profile-identity">
+      <strong>{{ person.get_display_name }}</strong>
+      <span class="muted">@{{ person.username }} · {{ person.get_role_display }} · {% if person.is_active %}{% translate "Activo" %}{% else %}{% translate "Inactivo" %}{% endif %}</span>
+      <span class="muted">{% translate "Alta:" %} {{ person.date_joined|date:"SHORT_DATE_FORMAT" }} · {% translate "Último acceso:" %} {% if person.last_login %}{{ person.last_login|date:"SHORT_DATETIME_FORMAT" }}{% else %}{% translate "nunca" %}{% endif %}</span>
+    </div>
+    <a class="button small" href="{% url 'user_edit' person.pk %}">{% translate "Editar" %}</a>
+  </div>
+  <dl class="audit-stats">
+    <div><dt>{% translate "Propuestas" %}</dt><dd>{{ summary.proposals.total }}</dd><dd class="muted">{% blocktranslate with open=summary.proposals.open accepted=summary.proposals.accepted rejected=summary.proposals.rejected %}{{ open }} abiertas · {{ accepted }} aceptadas · {{ rejected }} rechazadas{% endblocktranslate %}</dd></div>
+    <div><dt>{% translate "Votos" %}</dt><dd>{{ summary.votes.up|add:summary.votes.down }}</dd><dd class="muted">👍 {{ summary.votes.up }} · 👎 {{ summary.votes.down }}</dd></div>
+    <div><dt>{% translate "Subidas" %}</dt><dd>{{ summary.uploads }}</dd><dd class="muted">{% blocktranslate with scans=summary.scans %}{{ scans }} escaneos pedidos{% endblocktranslate %}</dd></div>
+    <div><dt>{% translate "Acciones" %}</dt><dd>{{ summary.actions }}</dd><dd class="muted">{% blocktranslate with logins=summary.logins %}{{ logins }} inicios de sesión{% endblocktranslate %}</dd></div>
+  </dl>
+</section>
+<nav class="segmented audit-tabs" aria-label="{% translate 'Secciones' %}">
+  <a href="{{ tab_urls.history }}" {% if tab == "history" %}aria-current="page"{% endif %}><span><span>{% translate "Historial" %}</span></span></a>
+  <a href="{{ tab_urls.proposals }}" {% if tab == "proposals" %}aria-current="page"{% endif %}><span><span>{% translate "Propuestas" %}</span></span></a>
+  <a href="{{ tab_urls.votes }}" {% if tab == "votes" %}aria-current="page"{% endif %}><span><span>{% translate "Votos" %}</span></span></a>
+</nav>
+{% endif %}
+
+{% if tab == "proposals" %}
+{% include "catalog/_proposal_activity.html" %}
+{% elif tab == "votes" %}
+<p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} voto{% plural %}{{ counter }} votos{% endblocktranslate %}</p>
+<ul class="list">
+  {% for vote in page %}{% with proposal=vote.proposal %}
+  <li class="list-item">
+    <a class="thumb-link" href="{% url 'photo_detail' proposal.photo_id %}"><img src="{% url 'photo_image' proposal.photo_id 400 %}?v={{ proposal.photo.image_version }}" alt="{% blocktranslate with id=proposal.photo_id %}Foto {{ id }}{% endblocktranslate %}" loading="lazy" width="80" height="60"></a>
+    <div class="list-main">
+      <strong>{% if vote.value > 0 %}👍{% else %}👎{% endif %} {{ proposal.get_kind_display }}</strong>: {{ proposal.label }}
+      <div class="meta"><span class="badge proposal-{{ proposal.status }}">{{ proposal.get_status_display }}</span> <span class="muted">{{ vote.created_at|date:"SHORT_DATETIME_FORMAT" }}</span></div>
+    </div>
+  </li>
+  {% endwith %}{% empty %}<li class="empty">{% translate "No ha votado nada." %}</li>{% endfor %}
+</ul>
+{% include "_pagination.html" %}
+{% else %}
+<p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} registro{% plural %}{{ counter }} registros{% endblocktranslate %}</p>
+<ul class="list audit-list">
+  {% for entry in entries %}
+  <li class="list-item audit-entry audit-{{ entry.category }}">
+    <span class="audit-icon" aria-hidden="true">{% icon entry.icon %}</span>
+    <div class="list-main">
+      <strong>{{ entry.label }}</strong>{% if entry.target %} · {% if entry.url %}<a href="{{ entry.url }}">{{ entry.target }}</a>{% else %}{{ entry.target }}{% endif %}{% endif %}
+      <div class="meta">
+        {% if not person %}<span>{% if entry.user.username %}<a href="{% url 'audit' %}?user={{ entry.user.pk }}">{{ entry.user.get_display_name }}</a>{% elif entry.user %}{{ entry.user }}{% else %}{% translate "sistema" %}{% endif %}</span> ·{% endif %}
+        <time class="muted" datetime="{{ entry.time|date:'c' }}">{{ entry.time|date:"SHORT_DATETIME_FORMAT" }}</time>
+        <span class="muted audit-code">{{ entry.action }}</span>
+      </div>
+      {% if entry.details %}
+      <details class="audit-details">
+        <summary>{% translate "Detalles" %}</summary>
+        <dl>{% for key, value in entry.details %}<dt>{{ key }}</dt><dd>{{ value }}</dd>{% endfor %}</dl>
+      </details>
+      {% endif %}
+    </div>
+  </li>
+  {% empty %}<li class="empty">{% translate "No hay registros con estos filtros." %}</li>{% endfor %}
+</ul>
+{% include "_pagination.html" %}
+{% endif %}
+
+{% translate "Usuario" as t_user %}{% translate "Todos" as t_all %}{% translate "Periodo" as t_period %}
+{% sheet_options user_options as user_sheet %}
+{% include "catalog/_filter_sheet.html" with key="user" title=t_user all_label=t_all options=user_sheet current=params.user searchable=True %}
+{% sheet_options period_options as period_sheet %}
+{% include "catalog/_filter_sheet.html" with key="period" title=t_period all_label=t_all options=period_sheet current=params.period searchable=False %}
+<dialog class="sheet" id="sheet-event" aria-labelledby="sheet-event-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-header">
+    <h2 id="sheet-event-title">{% translate "Evento" %}</h2>
+    <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
+  </div>
+  <div class="sheet-body">
+    <ul class="option-list">
+      <li><a class="option" href="{% qs params 'event' %}" {% if not params.event %}aria-current="true"{% endif %}><span>{% translate "Todos" %}</span>{% if not params.event %}{% icon "check" %}{% endif %}</a></li>
+      {% for key, label, icon_name, events in event_groups %}
+      <li class="option-group">
+        {% with value="cat:"|add:key %}
+        <a class="option" href="{% qs params 'event' value %}" {% if params.event == value %}aria-current="true"{% endif %}>{% icon icon_name %}<strong>{{ label }}</strong>{% if params.event == value %}{% icon "check" %}{% endif %}</a>
+        {% endwith %}
+        <ul class="option-list">
+          {% for action, name in events %}
+          <li><a class="option option-child" href="{% qs params 'event' action %}" {% if params.event == action %}aria-current="true"{% endif %}><span>{{ name }}</span>{% if params.event == action %}{% icon "check" %}{% endif %}</a></li>
+          {% endfor %}
+        </ul>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</dialog>
+{% endblock %}

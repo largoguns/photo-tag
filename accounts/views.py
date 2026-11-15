@@ -5,12 +5,14 @@ from django.contrib.auth import views as auth_views
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from accounts.forms import NewPasswordForm, ProfileForm, UserCreateForm, UserEditForm
 from accounts.models import User
 from accounts.permissions import superadmin_required
+from accounts.services import audit_catalog
 from accounts.services import users as user_service
 from catalog.services import names
 from notifications.forms import NotificationSettingsForm
@@ -168,3 +170,63 @@ def user_reset_password(request, pk):
             % {"username": target.username},
         )
     return redirect("user_list")
+
+
+@superadmin_required
+def audit(request):
+    """Everything recorded, filterable by person, event and period (spec 5.7)."""
+    from catalog import presenters
+    from catalog.models import Proposal, Vote
+
+    params = request.GET
+    selected = params.get("user", "")
+    person = User.objects.filter(pk=selected).first() if selected.isdigit() else None
+    event = params.get("event", "")
+    if event and audit_catalog.event_label(event) is None:
+        event = ""
+    period = params.get("period", "")
+    if period not in audit_catalog.PERIODS:
+        period = ""
+    tab = params.get("tab", "history") if person else "history"
+    if tab not in ("history", "proposals", "votes"):
+        tab = "history"
+
+    users = list(User.objects.order_by("username"))
+    context = {
+        "params": params,
+        "person": person,
+        "tab": tab,
+        "user_options": [(u.pk, f"{u.get_display_name()} (@{u.username})") for u in users],
+        "period_options": [(key, label) for key, (label, _days) in audit_catalog.PERIODS.items()],
+        "event_groups": audit_catalog.event_choices(),
+        "selected_event": audit_catalog.event_label(event) if event else None,
+        "selected_period": audit_catalog.PERIODS[period][0] if period else None,
+        "has_filters": bool(person or event or period),
+    }
+    if person:
+        context["summary"] = audit_catalog.summary(person)
+        context["tab_urls"] = {
+            name: f"{reverse('audit')}?user={person.pk}&tab={name}"
+            for name in ("history", "proposals", "votes")
+        }
+    if tab == "proposals":
+        context.update(
+            presenters.proposal_activity(
+                Proposal.objects.filter(author=person), params, request.user
+            )
+        )
+        context["clear_url"] = context["tab_urls"]["proposals"]
+        context["empty_text"] = _("No ha hecho propuestas.")
+    elif tab == "votes":
+        votes = (
+            Vote.objects.filter(user=person)
+            .select_related("proposal__photo")
+            .order_by("-created_at")
+        )
+        context["page"] = Paginator(votes, 50).get_page(params.get("page"))
+    else:
+        keys = audit_catalog.timeline_keys(person, event, period)
+        page = Paginator(keys, 50).get_page(params.get("page"))
+        context["page"] = page
+        context["entries"] = audit_catalog.build_entries(page.object_list)
+    return render(request, "accounts/audit.html", context)

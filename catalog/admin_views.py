@@ -9,9 +9,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from accounts.models import AuditLog
 from accounts.permissions import admin_required
-from accounts.services import audit
+from accounts.services import audit, audit_catalog
 from catalog.forms import EventTypeForm, MergePersonsForm, ThresholdsForm
 from catalog.models import CatalogSettings, EventType, Photo, Scan
 from catalog.services.persons import merge_persons
@@ -25,7 +24,7 @@ def admin_home(request):
         {
             "review_count": Scan.objects.filter(needs_review=True, reviewed=False).count(),
             "settings": CatalogSettings.load(),
-            "recent_audit": AuditLog.objects.select_related("user")[:15],
+            "recent_audit": audit_catalog.recent(15),
             "scanner_configured": bool(settings.SCANNER_URL),
         },
     )

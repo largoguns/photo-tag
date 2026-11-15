@@ -124,6 +124,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 0.5  # hours
 AXES_RESET_ON_SUCCESS = True
+AXES_ENABLE_ACCESS_FAILURE_LOG = True  # keep failed sign-ins for the audit screen
 AXES_LOCKOUT_PARAMETERS = ["username", "ip_address"]
 AXES_LOCKOUT_TEMPLATE = "accounts/lockout.html"
 # Tailscale Funnel overwrites X-Forwarded-For with the client address.
