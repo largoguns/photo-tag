@@ -247,6 +247,8 @@ VAPID_SUBJECT = env("VAPID_SUBJECT", "mailto:admin@example.com")
 NOTIFY_POLL_MINUTES = int(env("NOTIFY_POLL_MINUTES", "10"))
 NOTIFY_MIN_INTERVAL_MINUTES = int(env("NOTIFY_MIN_INTERVAL_MINUTES", "60"))
 NOTIFY_QUIET_HOURS = env("NOTIFY_QUIET_HOURS", "22-9")
+# «Retos para subir de nivel»: at most one every N days, to collaborators idle for 2 days.
+NOTIFY_CHALLENGE_DAYS = int(env("NOTIFY_CHALLENGE_DAYS", "3"))
 
 # Backups
 BACKUP_RETENTION_DAYS = int(env("BACKUP_RETENTION_DAYS", "14"))

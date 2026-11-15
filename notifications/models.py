@@ -42,10 +42,12 @@ class NotificationSettings(models.Model):
     scans = models.BooleanField(_("Mis escaneos terminados"), default=True)
     # Immediate: a new level or badge (only collaborators earn them).
     achievements = models.BooleanField(_("Mis niveles y logros"), default=True)
+    challenges = models.BooleanField(_("Retos para subir de nivel"), default=True)
     # Start "now" so a new user is not notified about the whole history.
     new_photos_sent_at = models.DateTimeField(default=timezone.now)
     pending_votes_sent_at = models.DateTimeField(default=timezone.now)
     resolved_sent_at = models.DateTimeField(default=timezone.now)
+    challenge_sent_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return str(self.user)

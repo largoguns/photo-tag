@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 17:02+0100\n"
+"POT-Creation-Date: 2026-11-15 17:13+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -850,7 +850,8 @@ msgstr "The proposal is already closed."
 #, python-format
 msgid ""
 "Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil»."
-msgstr "You are now %(name)s in the album. Choose your profile photo in “My profile”."
+msgstr ""
+"You are now %(name)s in the album. Choose your profile photo in “My profile”."
 
 #: catalog/views.py:229
 #, python-format
@@ -1074,6 +1075,11 @@ msgstr "First identification of a person"
 msgid "Voto acertado"
 msgstr "Right vote"
 
+#: gamification/templatetags/gamification_tags.py:16
+#, python-format
+msgid "Nivel %(number)s · %(name)s · %(percent)s %%"
+msgstr "Level %(number)s · %(name)s · %(percent)s %%"
+
 #: notifications/models.py:18
 msgid "dispositivo"
 msgstr "device"
@@ -1098,35 +1104,73 @@ msgstr "My finished scans"
 msgid "Mis niveles y logros"
 msgstr "My levels and badges"
 
-#: notifications/services/digest.py:46
+#: notifications/models.py:45
+msgid "Retos para subir de nivel"
+msgstr "Challenges to level up"
+
+#: notifications/services/digest.py:53
 #, python-format
 msgid "%(count)s foto nueva para catalogar"
 msgid_plural "%(count)s fotos nuevas para catalogar"
 msgstr[0] "%(count)s new photo to catalog"
 msgstr[1] "%(count)s new photos to catalog"
 
-#: notifications/services/digest.py:53
+#: notifications/services/digest.py:60
 #, python-format
 msgid "%(count)s propuesta espera tu voto"
 msgid_plural "%(count)s propuestas esperan tu voto"
 msgstr[0] "%(count)s proposal is waiting for your vote"
 msgstr[1] "%(count)s proposals are waiting for your vote"
 
-#: notifications/services/digest.py:62
+#: notifications/services/digest.py:69
 #, python-format
 msgid "%(count)s propuesta tuya aceptada"
 msgid_plural "%(count)s propuestas tuyas aceptadas"
 msgstr[0] "%(count)s of your proposals accepted"
 msgstr[1] "%(count)s of your proposals accepted"
 
-#: notifications/services/digest.py:72
+#: notifications/services/digest.py:79
 #, python-format
 msgid "%(count)s propuesta tuya rechazada"
 msgid_plural "%(count)s propuestas tuyas rechazadas"
 msgstr[0] "%(count)s of your proposals rejected"
 msgstr[1] "%(count)s of your proposals rejected"
 
-#: notifications/services/digest.py:178
+#: notifications/services/digest.py:96
+#, python-format
+msgid ""
+"Te han adelantado en el ranking de la semana: estás a %(gap)s punto del "
+"puesto %(place)s."
+msgid_plural ""
+"Te han adelantado en el ranking de la semana: estás a %(gap)s puntos del "
+"puesto %(place)s."
+msgstr[0] "Someone overtook you in this week’s ranking: you are %(gap)s point behind place %(place)s."
+msgstr[1] "Someone overtook you in this week’s ranking: you are %(gap)s points behind place %(place)s."
+
+#: notifications/services/digest.py:104
+#, python-format
+msgid "Te faltan %(missing)s puntos para %(next)s"
+msgstr "%(missing)s points to %(next)s"
+
+#: notifications/services/digest.py:109
+msgid "Sigue cuidando el álbum"
+msgstr "Keep looking after the album"
+
+#: notifications/services/digest.py:112
+#, python-format
+msgid "hay %(count)s propuesta esperando tu voto"
+msgid_plural "hay %(count)s propuestas esperando tu voto"
+msgstr[0] "%(count)s proposal is waiting for your vote"
+msgstr[1] "%(count)s proposals are waiting for your vote"
+
+#: notifications/services/digest.py:118
+#, python-format
+msgid "hay %(count)s foto por catalogar"
+msgid_plural "hay %(count)s fotos por catalogar"
+msgstr[0] "%(count)s photo left to catalogue"
+msgstr[1] "%(count)s photos left to catalogue"
+
+#: notifications/services/digest.py:253
 msgid "Los avisos funcionan en este dispositivo."
 msgstr "Notifications work on this device."
 
@@ -1557,7 +1601,9 @@ msgstr "Unidentified"
 msgid ""
 "Eres <a href=\"%(person_url)s\">%(name)s</a>. Elige qué foto tuya se ve en "
 "tu perfil:"
-msgstr "You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you shows on your profile:"
+msgstr ""
+"You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you "
+"shows on your profile:"
 
 #: templates/accounts/profile.html:84 templates/catalog/person_detail.html:94
 #, python-format
@@ -1583,7 +1629,9 @@ msgstr "Not me"
 msgid ""
 "Si sales en las fotos, búscate en Personas y pulsa «Soy yo». Podrás usar "
 "cualquiera de tus fotos como foto de perfil."
-msgstr "If you appear in the photos, find yourself in People and press “That’s me”. You can then use any photo of you as your profile photo."
+msgstr ""
+"If you appear in the photos, find yourself in People and press “That’s me”. "
+"You can then use any photo of you as your profile photo."
 
 #: templates/accounts/profile.html:99
 msgid "Buscar mi persona"
@@ -2603,7 +2651,9 @@ msgstr "You are %(current)s now. Switch to %(name)s?"
 msgid ""
 "¿Eres %(name)s? Te vincularás a esta persona del álbum y podrás usar sus "
 "fotos como foto de perfil."
-msgstr "Are you %(name)s? You will be linked to this person of the album and can use their photos as your profile photo."
+msgstr ""
+"Are you %(name)s? You will be linked to this person of the album and can use "
+"their photos as your profile photo."
 
 #: templates/catalog/person_detail.html:20
 #: templates/catalog/person_detail.html:21
@@ -2799,7 +2849,9 @@ msgstr "No collaborators yet."
 msgid ""
 "Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, "
 "propuestas aceptadas y votos que coinciden con el resultado."
-msgstr "You earn points when your contribution turns out right: uploaded photos, accepted proposals and votes that match the outcome."
+msgstr ""
+"You earn points when your contribution turns out right: uploaded photos, "
+"accepted proposals and votes that match the outcome."
 
 #: templates/notifications/_profile_card.html:7
 msgid "No se ha podido completar. Inténtalo de nuevo."

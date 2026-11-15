@@ -24,7 +24,7 @@ logger = logging.getLogger("notifications")
 
 @dataclass
 class Digest:
-    kind: str  # "new_photos" | "pending_votes" | "resolved"
+    kind: str  # "new_photos" | "pending_votes" | "resolved" | "challenge"
     counts: dict
 
     @property
@@ -32,6 +32,11 @@ class Digest:
         return f"phototag-{self.kind}"
 
     def url(self):
+        if self.kind == "challenge":
+            return {
+                "overtaken": reverse("ranking"),
+                "votes": reverse("gallery") + "?mine=1",
+            }.get(self.counts["variant"], reverse("next_uncataloged"))
         if self.kind == "new_photos":
             return reverse("next_uncataloged")
         if self.kind == "pending_votes":
@@ -40,6 +45,8 @@ class Digest:
 
     def body(self):
         """Generic text in the active language; never includes people's names."""
+        if self.kind == "challenge":
+            return challenge_body(self.counts)
         if self.kind == "new_photos":
             n = self.counts["photos"]
             return ngettext(
@@ -81,6 +88,68 @@ class Digest:
         return {"title": "PhotoTag", "body": self.body(), "url": self.url(), "tag": self.tag}
 
 
+def challenge_body(counts):
+    from gamification.services.levels import level_for
+
+    if counts["variant"] == "overtaken":
+        return ngettext(
+            "Te han adelantado en el ranking de la semana: "
+            "estás a %(gap)s punto del puesto %(place)s.",
+            "Te han adelantado en el ranking de la semana: "
+            "estás a %(gap)s puntos del puesto %(place)s.",
+            counts["gap"],
+        ) % {"gap": counts["gap"], "place": counts["place"]}
+    level = level_for(counts["points"])
+    if level.next_name:
+        goal = gettext("Te faltan %(missing)s puntos para %(next)s") % {
+            "missing": level.missing,
+            "next": level.next_name,
+        }
+    else:
+        goal = gettext("Sigue cuidando el álbum")
+    if counts["variant"] == "votes":
+        task = ngettext(
+            "hay %(count)s propuesta esperando tu voto",
+            "hay %(count)s propuestas esperando tu voto",
+            counts["count"],
+        )
+    else:
+        task = ngettext(
+            "hay %(count)s foto por catalogar",
+            "hay %(count)s fotos por catalogar",
+            counts["count"],
+        )
+    return f"{goal}: {task % {'count': counts['count']}}."
+
+
+def challenge_for(user, now):
+    """The most motivating challenge for an idle collaborator, or None."""
+    from accounts.models import AuditLog
+    from gamification.services import scoring
+
+    if not user.is_player:
+        return None
+    recent = now - datetime.timedelta(days=2)
+    if AuditLog.objects.filter(
+        user=user, action__in=["proposal.create", "vote.cast"], created_at__gte=recent
+    ).exists():
+        return None  # already playing: no need to nudge
+    rows = scoring.ranking("week")
+    position = next((i for i, row in enumerate(rows) if row[0].pk == user.pk), None)
+    if position:  # someone is ahead this week
+        mine, ahead = rows[position][1], rows[position - 1][1]
+        if ahead > mine:
+            return {"variant": "overtaken", "gap": ahead - mine, "place": position}
+    points = scoring.total(user)
+    votes = pending_for_user(user).exclude(author=user).count()
+    if votes:
+        return {"variant": "votes", "count": votes, "points": points}
+    photos = Photo.objects.visible().exclude(status=Photo.Status.CATALOGED).count()
+    if photos:
+        return {"variant": "photos", "count": photos, "points": points}
+    return None
+
+
 def parse_quiet_hours(value):
     """'22-9' → (22, 9). Empty or invalid disables quiet hours."""
     try:
@@ -103,9 +172,13 @@ def in_quiet_hours(now, quiet=None):
     return hour >= start or hour < end  # crosses midnight, e.g. 22-9
 
 
-def collect(user, prefs):
+def collect(user, prefs, now=None):
     """Digests with something new since the last notification of each kind."""
     digests = []
+    if prefs.challenges:
+        challenge = challenge_for(user, now or timezone.now())
+        if challenge:
+            digests.append(Digest("challenge", challenge))
     if prefs.new_photos:
         photos = Photo.objects.visible().filter(created_at__gt=prefs.new_photos_sent_at).count()
         if photos:
@@ -146,6 +219,7 @@ def send_digests(now=None):
     if in_quiet_hours(now):
         return 0
     interval = datetime.timedelta(minutes=settings.NOTIFY_MIN_INTERVAL_MINUTES)
+    challenge_interval = datetime.timedelta(days=settings.NOTIFY_CHALLENGE_DAYS)
     users = (
         get_user_model()
         .objects.filter(is_active=True, must_change_password=False)
@@ -155,9 +229,10 @@ def send_digests(now=None):
     sent = 0
     for user in users:
         prefs = NotificationSettings.for_user(user)
-        for digest in collect(user, prefs):
+        for digest in collect(user, prefs, now):
             field = f"{digest.kind}_sent_at"
-            if now - getattr(prefs, field) < interval:
+            wait = challenge_interval if digest.kind == "challenge" else interval
+            if now - getattr(prefs, field) < wait:
                 continue
             if deliver(user, digest):
                 setattr(prefs, field, now)

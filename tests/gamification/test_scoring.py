@@ -269,3 +269,98 @@ def test_new_players_start_at_zero(db):
     newcomer = make_user("nuevo", Role.COLLABORATOR)
     assert scoring.progress(newcomer)["points"] == 0
     assert Face.objects.count() >= 0 and Person.objects.count() >= 0
+
+
+# --- «Retos para subir de nivel» notifications -----------------------------------------
+
+
+@pytest.fixture
+def push_ready(settings, monkeypatch):
+    from notifications.services import push
+
+    settings.VAPID_PUBLIC_KEY, settings.VAPID_PRIVATE_KEY = push.generate_vapid_keys()
+    settings.NOTIFY_QUIET_HOURS = ""
+    sent = []
+    monkeypatch.setattr(push, "send", lambda sub, payload: sent.append(payload) or True)
+    return sent
+
+
+def subscribe(user):
+    from notifications.models import NotificationSettings, PushSubscription
+
+    PushSubscription.objects.create(
+        user=user, endpoint=f"https://p.example/{user.pk}", p256dh="k", auth="a"
+    )
+    prefs = NotificationSettings.for_user(user)
+    prefs.new_photos = prefs.pending_votes = prefs.resolved = False  # only the challenge
+    prefs.challenge_sent_at = timezone.now() - timedelta(days=10)
+    prefs.save()
+    return prefs
+
+
+def test_idle_player_is_challenged_with_pending_votes(push_ready, alice, bob, photo):
+    from notifications.services import digest
+
+    proposal = identity(bob, photo)
+    AuditLog.objects.filter(user=alice).delete()
+    subscribe(alice)
+
+    assert digest.send_digests() == 1
+    (payload,) = push_ready
+    assert "Te faltan" in payload["body"] and "esperando tu voto" in payload["body"]
+    assert payload["url"].endswith("?mine=1")
+    assert proposal.pk  # still open for alice to vote
+
+    push_ready.clear()
+    assert digest.send_digests() == 0  # not again before NOTIFY_CHALLENGE_DAYS
+
+
+def test_overtaken_player_is_told_the_gap(push_ready, alice, bob, carol, photo):
+    from notifications.services import digest
+
+    ScoreEvent.objects.create(user=bob, reason="seed", points=30, ref_type="x", ref_id="1")
+    ScoreEvent.objects.create(user=alice, reason="seed", points=12, ref_type="x", ref_id="2")
+    subscribe(alice)
+    digest.send_digests()
+    (payload,) = push_ready
+    assert "18 puntos del puesto 1" in payload["body"] and payload["url"] == reverse("ranking")
+
+
+def test_active_players_and_non_players_are_not_challenged(
+    push_ready, alice, bob, superadmin, photo
+):
+    from notifications.services import digest
+
+    identity(alice, photo)  # alice proposed just now: she is playing
+    subscribe(alice)
+    subscribe(superadmin)
+    digest.send_digests()
+    assert push_ready == []
+
+
+def test_challenges_can_be_turned_off(push_ready, alice, photo):
+    from notifications.services import digest
+
+    prefs = subscribe(alice)
+    prefs.challenges = False
+    prefs.save()
+    digest.send_digests()
+    assert push_ready == []
+
+
+def test_belt_ring_around_the_avatar_of_players_only(client, alice, superadmin):
+    ScoreEvent.objects.create(user=alice, reason="seed", points=100, ref_type="x", ref_id="1")
+    client.force_login(alice)
+    content = client.get(reverse("home")).content.decode()
+    # Level 2 (yellow belt) halfway to level 3: the orange arc fills 50 %.
+    assert 'class="level-ring belt-2"' in content
+    assert "--p: 50; --current: var(--belt-2); --next: var(--belt-3)" in content
+    client.force_login(superadmin)
+    assert "level-ring" not in client.get(reverse("home")).content.decode()
+
+
+def test_top_level_ring_is_complete():
+    from gamification.templatetags.gamification_tags import level_ring
+
+    ring = level_ring(levels.level_for(5000))
+    assert "belt-7" in ring and "--p: 0;" in ring and "var(--belt-7)" in ring
