@@ -385,7 +385,10 @@ def _manual_item(image, photo):
     from scanner.services.recrop import cut, inset
 
     rect = photo.crop_rect
-    crop_image = cut(image, rect, inset(photo), 0)
+    if photo.crop_quad:
+        crop_image = cut(image, {"quad": photo.crop_quad}, 0, 0)
+    else:
+        crop_image = cut(image, rect, inset(photo), 0)
     crop = cropping.Crop(
         image=crop_image,
         center=(rect["cx"], rect["cy"]),

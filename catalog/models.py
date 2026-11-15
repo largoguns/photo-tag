@@ -49,6 +49,8 @@ def review_reason_label(reason):
         return gettext("Recortes solapados")
     if code == "orientation":
         return gettext("Orientación dudosa: comprueba si alguna foto está girada")
+    if code == "split":
+        return gettext("Fotos pegadas separadas automáticamente: comprueba los recortes")
     if code == "duplicate":
         return gettext("Posible duplicado de la foto %(photo)s") % {"photo": reason.get("photo")}
     return str(code)
@@ -89,6 +91,8 @@ class Photo(models.Model):
     # the worker. Once applied, crop_manual keeps it when the scan is reprocessed.
     pending_crop = models.JSONField(null=True, blank=True)
     crop_manual = models.BooleanField(_("recorte manual"), default=False)
+    # Perspective crop: 4 scan points (TL, TR, BR, BL of the unturned photo), or None.
+    crop_quad = models.JSONField(null=True, blank=True)
     # Bumped whenever the image file changes (rotation, crop): busts browser caches.
     image_version = models.PositiveIntegerField(default=0)
     # Perceptual hash (dHash, 64 bits as hex) to spot re-scans and recompressed copies.

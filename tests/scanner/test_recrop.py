@@ -1,5 +1,7 @@
 """Manual crop adjustment: geometry, worker application, reprocessing and views."""
 
+import re
+
 import cv2
 import numpy as np
 import pytest
@@ -229,3 +231,162 @@ def test_editor_waits_for_the_preview(client, scanned, admin_user):
     client.force_login(admin_user)
     content = client.get(reverse("crop_photo", args=[scanned.pk])).content.decode()
     assert "data-crop-editor" not in content and "Vuelve a intentarlo en un minuto" in content
+
+
+def test_single_upload_can_be_cropped_inwards_and_straightened(
+    db, data_dirs, settings, alice, admin_user
+):
+    # A phone photo of a paper print: trim the table around it and level it.
+    from catalog.models import Upload
+    from scanner.services.uploads import save_upload
+    from tests.scanner.test_uploads import image_file, settle_inbox
+
+    save_upload(alice, image_file(size=(1200, 900)), Upload.Kind.SINGLE)
+    settle_inbox(settings)
+    pipeline.process_inbox()
+    photo = Photo.objects.get()
+    assert recrop.editor_ready(photo) and recrop.inset(photo) == 0
+
+    with pytest.raises(recrop.CropError):  # nothing to recover beyond the picture itself
+        recrop.new_rect(photo, (-20, 0, photo.width, photo.height), 0)
+    recrop.request_crop(admin_user, photo, (100, 80, 1100, 820), 3.0)
+    assert recrop.apply_pending_crops() == 1
+
+    photo.refresh_from_db()
+    assert (photo.width, photo.height) == pytest.approx((1000, 740), abs=2)
+    assert photo.crop_manual and photo.crop_rect["angle"] == 3.0
+
+
+# --- Perspective (four corners) -------------------------------------------------------
+
+
+@pytest.mark.parametrize("turn", [0, 90, 180, 270])
+def test_corner_order_follows_the_turn(turn):
+    points = [[0, 0], [10, 0], [10, 10], [0, 10]]
+    photo_order = recrop.view_order_to_photo(points, turn)
+    assert recrop.photo_order_to_view(photo_order, turn) == points
+    if turn == 90:  # what is seen top-left is the unturned photo's top-right
+        assert photo_order[0] == [10, 0]
+
+
+@pytest.mark.parametrize(
+    "points",
+    [
+        [[100, 100], [900, 100], [500, 300], [900, 900]],  # crossed / concave
+        [[100, 100], [100, 900], [900, 900], [900, 100]],  # anticlockwise
+        [[100, 100], [130, 100], [130, 130], [100, 130]],  # too small
+        [[-500, 100], [900, 100], [900, 900], [100, 900]],  # off the picture
+    ],
+)
+def test_invalid_quads_are_refused(points):
+    with pytest.raises(recrop.CropError):
+        recrop.new_quad(fake_photo(angle=0.0), points)
+
+
+def phone_upload(alice, settings):
+    """A single upload: a phone photo of a print on a table."""
+    from catalog.models import Upload
+    from scanner.services.uploads import save_upload
+    from tests.scanner.test_perspective import CORNERS, phone_photo
+
+    image = phone_photo()
+    ok, data = cv2.imencode(".png", image)
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    save_upload(alice, SimpleUploadedFile("movil.png", data.tobytes()), Upload.Kind.SINGLE)
+    from tests.scanner.test_uploads import settle_inbox
+
+    settle_inbox(settings)
+    pipeline.process_inbox()
+    return Photo.objects.get(), image, CORNERS
+
+
+def test_perspective_crop_flattens_the_print(db, data_dirs, settings, alice, admin_user):
+    photo, original, corners = phone_upload(alice, settings)
+    maria = Person.objects.create(display_name="María")
+    # A named face in the middle of the print, in the uncropped photo.
+    named = Face.objects.create(photo=photo, x=780, y=560, w=60, h=60, person=maria)
+
+    recrop.request_quad(admin_user, photo, corners)
+    assert recrop.apply_pending_crops() == 1
+
+    photo.refresh_from_db()
+    assert photo.crop_quad and photo.crop_manual
+    assert (photo.width, photo.height) == pytest.approx((1113, 822), abs=3)
+    flat = cv2.imread(str(images.photo_path(photo.file_name)))
+    # The cream border now runs along the edges: the print has been flattened.
+    assert flat[5:20, 100:-100].mean() > 200 and flat[-20:-5, 100:-100].mean() > 200
+    named.refresh_from_db()
+    # The face moved with the print: its centre maps through the same homography.
+    quad, size = recrop.photo_geometry(photo)
+    sx, sy = recrop.to_scan(quad, size, 0, named.x + named.w / 2, named.y + named.h / 2)
+    assert (sx, sy) == pytest.approx((810, 590), abs=12)
+
+
+def test_reprocessing_keeps_a_perspective_crop(db, data_dirs, settings, alice, admin_user):
+    photo, _original, corners = phone_upload(alice, settings)
+    recrop.request_quad(admin_user, photo, corners)
+    recrop.apply_pending_crops()
+    photo.refresh_from_db()
+    quad, size = photo.crop_quad, (photo.width, photo.height)
+
+    pipeline.reprocess(photo.scan)
+
+    photo.refresh_from_db()
+    assert photo.crop_quad == quad
+    assert (photo.width, photo.height) == pytest.approx(size, abs=1)
+
+
+def test_a_rectangle_after_a_perspective_clears_it(db, data_dirs, settings, alice, admin_user):
+    photo, _original, corners = phone_upload(alice, settings)
+    recrop.request_quad(admin_user, photo, corners)
+    recrop.apply_pending_crops()
+    photo.refresh_from_db()
+    recrop._queue(admin_user, photo, {**photo.crop_rect})
+    recrop.apply_pending_crops()
+    photo.refresh_from_db()
+    assert photo.crop_quad is None
+
+
+def test_editor_suggests_the_corners_of_a_phone_photo(
+    client, db, data_dirs, settings, alice, admin_user
+):
+    import json
+
+    photo, _original, corners = phone_upload(alice, settings)
+    client.force_login(admin_user)
+    content = client.get(reverse("crop_photo", args=[photo.pk])).content.decode()
+    data = json.loads(
+        content.split('id="crop-data" type="application/json">')[1].split("</script>")[0]
+    )
+    for (x, y), (ex, ey) in zip(data["quad"], corners, strict=True):
+        assert abs(x - ex) < 40 and abs(y - ey) < 40
+
+    detected = client.get(reverse("crop_detect", args=[photo.pk])).json()["quad"]
+    assert detected and abs(detected[0][0] - corners[0][0]) < 40
+
+    response = client.post(
+        reverse("crop_photo", args=[photo.pk]),
+        {
+            "mode": "quad",
+            **{f"q{i}{a}": v for i, p in enumerate(corners) for a, v in zip("xy", p, strict=True)},
+        },
+    )
+    assert response.status_code == 302
+    photo.refresh_from_db()
+    assert photo.pending_crop["quad"][0] == [310.0, 180.0]
+
+
+def test_crop_detect_is_for_admins_only(client, scanned, alice):
+    client.force_login(alice)
+    assert client.get(reverse("crop_detect", args=[scanned.pk])).status_code == 403
+
+
+def test_editor_opens_in_perspective_mode_for_a_perspective_crop(client, scanned, admin_user):
+    Photo.objects.filter(pk=scanned.pk).update(
+        crop_quad=[[300, 600], [930, 600], [930, 1060], [300, 1060]], crop_manual=True
+    )
+    client.force_login(admin_user)
+    content = client.get(reverse("crop_photo", args=[scanned.pk])).content.decode()
+    assert 'data-mode="quad"' in content
+    assert re.search(r'value="box" data-crop-mode\s+disabled', content)
