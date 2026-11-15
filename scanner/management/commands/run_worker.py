@@ -11,7 +11,7 @@ from django.db import close_old_connections
 from exporter.services import backup, export
 from notifications.services import digest
 from scanner.management.commands.process_scans import watch_inbox
-from scanner.services import embeddings, rotation
+from scanner.services import embeddings, rotation, scanning
 
 logger = logging.getLogger("worker")
 
@@ -48,6 +48,14 @@ def build_scheduler():
             "interval",
             hours=settings.EXPORT_INTERVAL_HOURS,
             id="periodic_export",
+            **common,
+        )
+    if settings.SCANNER_URL:
+        scheduler.add_job(
+            job(scanning.run_pending_scan),
+            "interval",
+            seconds=settings.SCANNER_POLL_SECONDS,
+            id="network_scanner",
             **common,
         )
     scheduler.add_job(

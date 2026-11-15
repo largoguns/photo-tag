@@ -192,6 +192,15 @@ YUNET_MODEL_PATH = Path(
 )
 THUMBNAIL_SIZES = (400, 1600)
 
+# Network scanner (eSCL/AirScan, e.g. HP DeskJet 2700) driven from the web by the worker.
+# Empty SCANNER_URL hides the feature. Example: http://192.168.1.50/eSCL
+SCANNER_URL = env("SCANNER_URL", "")
+SCAN_RESOLUTIONS = (300, 600)
+SCAN_DEFAULT_RESOLUTION = 600
+SCAN_TIMEOUT_SECONDS = int(env("SCAN_TIMEOUT_SECONDS", "300"))
+SCANNER_POLL_SECONDS = int(env("SCANNER_POLL_SECONDS", "2"))
+SANE_CONFIG_DIR = Path(env("SANE_CONFIG_DIR", "/tmp/phototag-sane"))
+
 # Orientation (photos placed sideways/upside down) and near-duplicate detection.
 ORIENTATION_MIN_SCORE = float(env("ORIENTATION_MIN_SCORE", "0.8"))
 ORIENTATION_MARGIN = float(env("ORIENTATION_MARGIN", "1.5"))

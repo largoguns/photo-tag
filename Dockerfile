@@ -25,6 +25,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
         libimage-exiftool-perl postgresql-client tzdata libgl1 libglib2.0-0 \
+        sane-utils sane-airscan \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 1000 phototag \
