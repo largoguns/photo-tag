@@ -17,7 +17,7 @@ from accounts.permissions import admin_required
 from accounts.services import audit
 from catalog import presenters
 from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
-from catalog.services import sharing, similarity, voting
+from catalog.services import names, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
 GALLERY_PAGE_SIZE = 60
@@ -154,7 +154,7 @@ def persons(request):
         .order_by("display_name", "id")
     )
     if query:
-        people = people.filter(display_name__icontains=query)
+        people = names.search(people, query, "display_name")
     page = Paginator(people, 60).get_page(request.GET.get("page"))
     for person in page:
         person.avatar = person.faces.filter(status=Face.Status.ACTIVE).order_by("-w").first()

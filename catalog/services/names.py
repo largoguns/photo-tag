@@ -51,3 +51,23 @@ def normalize_label(text):
     if letters and all(c.isupper() for c in letters):
         text = text.lower()
     return text[0].upper() + text[1:]
+
+
+def matches(query, *texts):
+    """Loose search: every word of `query` appears somewhere in `texts`, ignoring accents
+    and case ("ari" finds "María", "lop mar" finds "María López")."""
+    words = name_key(query).split()
+    haystack = " ".join(name_key(text) for text in texts if text)
+    return all(word in haystack for word in words)
+
+
+def search(queryset, query, *fields):
+    """Filter `queryset` with `matches` over `fields`.
+
+    Done in Python because SQLite and PostgreSQL disagree on accent-insensitive matching;
+    people and users are a few hundred rows at most.
+    """
+    if not name_key(query):
+        return queryset
+    rows = queryset.values_list("pk", *fields)
+    return queryset.filter(pk__in=[pk for pk, *values in rows if matches(query, *values)])

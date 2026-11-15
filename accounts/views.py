@@ -4,7 +4,6 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -13,6 +12,7 @@ from accounts.forms import NewPasswordForm, ProfileForm, UserCreateForm, UserEdi
 from accounts.models import User
 from accounts.permissions import superadmin_required
 from accounts.services import users as user_service
+from catalog.services import names
 from notifications.forms import NotificationSettingsForm
 from notifications.models import NotificationSettings
 from notifications.services import push
@@ -82,7 +82,7 @@ def user_list(request):
     query = request.GET.get("q", "").strip()
     users = User.objects.all().order_by("username")
     if query:
-        users = users.filter(Q(username__icontains=query) | Q(display_name__icontains=query))
+        users = names.search(users, query, "username", "display_name")
     page = Paginator(users, 50).get_page(request.GET.get("page"))
     return render(request, "accounts/user_list.html", {"page": page, "query": query})
 

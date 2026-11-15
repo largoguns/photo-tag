@@ -208,6 +208,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 1. **Login** y **cambio obligatorio de contraseña** en el primer acceso.
 2. **Inicio**: progreso global (fotos catalogadas / total), propuestas abiertas pendientes de mi voto y botón «Siguiente foto sin catalogar».
 3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones; la de persona tiene buscador y caras. Scroll infinito con HTMX.
+   - **Búsquedas laxas**: todos los buscadores (personas, usuarios, autocompletado de nombres y hoja de persona de la galería) ignoran tildes y mayúsculas y buscan cada palabra por separado en cualquier orden: «ari» encuentra «María» y «lop mar», «María López».
    - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara.
    - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
    - **Zoom de la galería**: pellizcar (o Ctrl + rueda en escritorio) cambia el tamaño de las filas, como en Google Photos; cada dispositivo recuerda el tamaño.

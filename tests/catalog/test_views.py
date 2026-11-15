@@ -232,3 +232,11 @@ def test_home_shows_progress(client, alice, photo):
     client.force_login(alice)
     response = client.get(reverse("home"))
     assert response.context["percent"] == 100
+
+
+def test_persons_search_ignores_accents(client, alice, photo):
+    Person.objects.create(display_name="María López")
+    Person.objects.create(display_name="Pedro")
+    client.force_login(alice)
+    names = [p.display_name for p in client.get(reverse("persons"), {"q": "ari"}).context["page"]]
+    assert names == ["María López"]

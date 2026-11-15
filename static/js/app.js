@@ -36,7 +36,13 @@
 
   // Accent- and case-insensitive comparison key (mirrors catalog/services/names.py).
   function nameKey(value) {
-    return String(value).normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+    return String(value).normalize("NFKD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+  }
+
+  // Loose search: every typed word appears somewhere ("ari" → "María", "lop mar" → "María López").
+  function looseMatch(query, text) {
+    const haystack = nameKey(text);
+    return nameKey(query).split(" ").filter(Boolean).every((word) => haystack.includes(word));
   }
 
   const PARTICLES = new Set(["de", "del", "la", "las", "los", "y", "e"]);
@@ -481,7 +487,7 @@
     const query = nameKey(input.value);
     if (!list || !query) { closeCombobox(input); return; }
     const matches = people()
-      .filter((person) => person.key.includes(query))
+      .filter((person) => looseMatch(query, person.name))
       .sort((a, b) => Number(!a.key.startsWith(query)) - Number(!b.key.startsWith(query)) || a.key.localeCompare(b.key))
       .slice(0, 8);
     list.innerHTML = "";
@@ -594,7 +600,7 @@
     if (!event.target.matches("[data-sheet-search]")) return;
     const query = nameKey(event.target.value);
     event.target.closest("dialog").querySelectorAll("[data-option-label]").forEach((item) => {
-      item.hidden = !!query && !nameKey(item.dataset.optionLabel).includes(query);
+      item.hidden = !!query && !looseMatch(query, item.dataset.optionLabel);
     });
   });
 

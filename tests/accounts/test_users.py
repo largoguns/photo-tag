@@ -231,3 +231,10 @@ def test_login_is_locked_after_five_failures(client, alice):
 
     assert response.status_code == 429
     assert "_auth_user_id" not in client.session
+
+
+def test_user_search_ignores_accents(client, superadmin):
+    User.objects.create_user(username="mlopez", password="x" * 12, display_name="María López")
+    client.force_login(superadmin)
+    content = client.get(reverse("user_list"), {"q": "ari lop"}).content.decode()
+    assert "@mlopez" in content and "@root" not in content
