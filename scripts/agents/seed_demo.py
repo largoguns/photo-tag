@@ -102,7 +102,27 @@ def main():
                 face=face,
                 person_name="Un nombre de persona bastante largo para probar desbordes",
             )
-    print(f"Seeded {Photo.objects.count()} photos. Users: demo / maria, password {PASSWORD}")
+    seed_players(maria)
+    print(
+        f"Seeded {Photo.objects.count()} photos. Users: demo / maria / pablo / lucia, "
+        f"password {PASSWORD}"
+    )
+
+
+def seed_players(maria):
+    """Two more collaborators who vote, so the ranking and levels have something to show."""
+    from catalog.models import Proposal
+    from gamification.services import scoring
+
+    pablo = user("pablo", Role.COLLABORATOR, "Pablo")
+    lucia = user("lucia", Role.COLLABORATOR, "Lucía")
+    for index, proposal in enumerate(Proposal.objects.filter(status=Proposal.Status.OPEN)):
+        voter = pablo if index % 2 else lucia
+        try:
+            voting.cast_vote(voter, proposal, 1)
+        except Exception:  # closed meanwhile by a previous vote
+            continue
+    scoring.rebuild()
 
 
 if __name__ == "__main__":
