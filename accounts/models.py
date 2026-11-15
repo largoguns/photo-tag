@@ -25,6 +25,10 @@ class User(AbstractUser):
     )
     must_change_password = models.BooleanField(_("debe cambiar la contraseña"), default=True)
     theme = models.CharField(_("tema"), max_length=10, choices=Theme.choices, default=Theme.AUTO)
+    # Profile photo chosen among the faces of the person the user identified as.
+    avatar_face = models.ForeignKey(
+        "catalog.Face", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
+    )
 
     objects = UserManager()
 
@@ -36,6 +40,11 @@ class User(AbstractUser):
 
     def get_display_name(self):
         return self.display_name or self.username
+
+    @property
+    def is_player(self):
+        """Only collaborators take part in points, levels and the ranking."""
+        return self.role == Role.COLLABORATOR
 
     @property
     def is_superadmin(self):

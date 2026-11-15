@@ -140,6 +140,7 @@
             <form method="post" action="{% url 'propose_identity' face.pk %}" hx-post="{% url 'propose_identity' face.pk %}">
               {% csrf_token %}
               <input type="hidden" name="person_id" value="{{ suggestion.person.pk }}">
+              <input type="hidden" name="suggested" value="1">
               <input type="hidden" name="selected_face" value="{{ face.pk }}">
               <button type="submit" class="button suggestion{% if suggestion.strong %} strong{% endif %}">{% blocktranslate with person=suggestion.person %}¿Es {{ person }}?{% endblocktranslate %} <span class="muted">· {{ suggestion.label }}</span></button>
             </form>

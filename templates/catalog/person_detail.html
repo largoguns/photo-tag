@@ -13,6 +13,14 @@
       <h1>{{ person }}</h1>
       {% if user.is_catalog_admin %}<button type="button" class="button text icon-only" data-rename-toggle aria-controls="rename-form" aria-expanded="false" aria-label="{% translate 'Cambiar nombre' %}" title="{% translate 'Cambiar nombre' %}">{% icon "edit" %}</button>{% endif %}
     </div>
+    {% if person.user_id == user.pk %}<span class="badge ok person-me">{% icon "check" %}{% translate "Eres tú" %}</span>
+    {% elif not person.user_id %}
+    <form method="post" action="{% url 'person_claim' person.pk %}"
+          data-confirm="{% if user.person %}{% blocktranslate with current=user.person name=person %}Ahora eres {{ current }}. ¿Cambiar a {{ name }}?{% endblocktranslate %}{% else %}{% blocktranslate with name=person %}¿Eres {{ name }}? Te vincularás a esta persona del álbum y podrás usar sus fotos como foto de perfil.{% endblocktranslate %}{% endif %}"
+          data-confirm-ok="{% translate 'Soy yo' %}">
+      {% csrf_token %}<button type="submit" class="button small">{% icon "person" %}{% translate "Soy yo" %}</button>
+    </form>
+    {% endif %}
     {% if user.is_catalog_admin %}
     <form method="post" action="{% url 'person_rename' person.pk %}" class="rename-form" id="rename-form" hidden>
       {% csrf_token %}
@@ -23,12 +31,18 @@
     </form>
     {% endif %}
   </div>
-  {% if user.is_catalog_admin %}
+  {% if user.is_catalog_admin or person.user_id == user.pk %}
   <details class="user-menu person-menu">
     <summary class="button text icon-only" aria-label="{% translate 'Más acciones' %}" title="{% translate 'Más acciones' %}">{% icon "more_vert" %}</summary>
     <div class="menu">
       {% if avatar_choices|length > 1 %}<button type="button" class="menu-item" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}<span>{% translate "Cambiar foto principal" %}</span></button>{% endif %}
-      <a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>
+      {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>{% endif %}
+      {% if person.user_id == user.pk %}
+      <form method="post" action="{% url 'person_unclaim' person.pk %}"
+            data-confirm="{% blocktranslate with name=person %}¿Dejar de identificarte como {{ name }}?{% endblocktranslate %}" data-confirm-ok="{% translate 'No soy yo' %}" data-confirm-variant="danger">
+        {% csrf_token %}<button type="submit" class="menu-item">{% icon "close" %}<span>{% translate "No soy yo" %}</span></button>
+      </form>
+      {% endif %}
     </div>
   </details>
   {% endif %}

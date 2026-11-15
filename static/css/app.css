@@ -803,3 +803,37 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .person-name { display: flex; align-items: center; gap: .25rem; min-width: 0; }
 .person-menu { margin-left: auto; flex: none; }
 .person-menu > summary { list-style: none; }
+.person-me { display: inline-flex; align-items: center; gap: .25rem; width: fit-content; } .person-me .icon { width: 16px; height: 16px; }
+
+/* Ranking and progress. */
+.podium { list-style: none; margin: 0 0 1.5rem; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; align-items: end; }
+.podium-step { display: flex; flex-direction: column; align-items: center; gap: .25rem; text-align: center; padding: 1rem .5rem; border-radius: var(--radius);
+  background: var(--md-surface-container-low); border: 1px solid var(--md-outline-variant); min-width: 0; overflow-wrap: anywhere; }
+.podium-1 { order: 2; padding-top: 1.75rem; background: var(--md-primary-container); color: var(--md-on-primary-container); }
+.podium-2 { order: 1; }
+.podium-3 { order: 3; }
+.podium-step.me { outline: 3px solid var(--md-primary); }
+.podium-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; display: grid; place-items: center;
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container); font-size: 1.5rem; }
+.podium-points { font-weight: 600; }
+.podium-place { font-size: 1.5rem; font-weight: 700; }
+.ranking-row { align-items: center; }
+.ranking-row.me { background: var(--md-secondary-container); }
+.ranking-position { width: 2rem; text-align: center; font-weight: 600; flex: none; }
+.ranking-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; display: grid; place-items: center;
+  background: var(--md-primary-container); color: var(--md-on-primary-container); }
+.ranking-points { margin-left: auto; font-weight: 600; flex: none; }
+.level-card { display: flex; flex-direction: column; gap: .5rem; }
+.level-head { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.level-name { font-size: 1.25rem; }
+.badges { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: .5rem; }
+.badge-tile { display: flex; flex-direction: column; align-items: center; text-align: center; gap: .25rem; padding: .75rem .5rem; border-radius: 12px;
+  background: var(--md-secondary-container); color: var(--md-on-secondary-container); min-width: 0; overflow-wrap: anywhere; }
+.badge-tile .icon { width: 28px; height: 28px; }
+.badge-tile.locked { background: var(--md-surface-container); color: var(--md-on-surface-variant); opacity: .7; }
+.badge-tile small { font-size: .75rem; }
+.milestone { font-weight: 500; color: var(--md-primary); }
+.ranking-row { flex-wrap: nowrap; }
+.ranking-row .list-main { min-width: 0; flex: 1; }
+.podium { max-width: 560px; margin-left: auto; margin-right: auto; }
+.ranking-list { max-width: 720px; margin-left: auto; margin-right: auto; }

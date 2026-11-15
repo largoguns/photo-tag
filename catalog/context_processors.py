@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from catalog.services.avatars import avatar_face_id
+from accounts.services.users import avatar_face_id
 
 
 def navigation(request):
@@ -8,10 +8,7 @@ def navigation(request):
     user = getattr(request, "user", None)
     if user is None or not user.is_authenticated:
         return {"nav_shell": False}
-    avatar_face = None
-    person = getattr(user, "person", None)
-    if person is not None:
-        avatar_face = avatar_face_id(person)
+    avatar_face = avatar_face_id(user)
     push_key = settings.VAPID_PUBLIC_KEY if settings.VAPID_PRIVATE_KEY else ""
     return {
         # Navigation is hidden until the generic password has been replaced.

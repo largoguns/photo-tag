@@ -16,6 +16,8 @@
       </header>
       <nav class="settings-nav" aria-label="{% translate 'Secciones del perfil' %}">
         <a href="#setting-name" data-settings-link>{% icon "badge" %}<span>{% translate "Nombre a mostrar" %}</span></a>
+        {% if progress %}<a href="#setting-progress" data-settings-link>{% icon "how_to_vote" %}<span>{% translate "Tu progreso" %}</span></a>{% endif %}
+        <a href="#setting-album" data-settings-link>{% icon "face" %}<span>{% translate "Tú en el álbum" %}</span></a>
         <a href="#setting-theme" data-settings-link>{% icon "palette" %}<span>{% translate "Tema" %}</span></a>
         <a href="#setting-language" data-settings-link>{% icon "translate" %}<span>{% translate "Idioma" %}</span></a>
         {% if push_enabled %}<a href="#push-card" data-settings-link>{% icon "notifications" %}<span>{% translate "Avisos" %}</span></a>{% endif %}
@@ -36,6 +38,67 @@
         {{ profile_form.theme.as_hidden }}
         <div class="actions"><button type="submit" name="save_profile" class="button primary">{% translate "Guardar" %}</button></div>
       </form>
+    </details>
+
+    {% if progress %}
+    <details class="setting" id="setting-progress">
+      <summary>
+        {% icon "how_to_vote" %}
+        <span class="setting-text"><span class="setting-title">{% translate "Tu progreso" %}</span><span class="setting-value">{{ progress.level.name }} · {% blocktranslate with points=progress.points %}{{ points }} pts{% endblocktranslate %}</span></span>
+        {% icon "keyboard_arrow_down" %}
+      </summary>
+      <div class="setting-body stack">
+        {% include "gamification/_level.html" %}
+        {% if progress.accuracy is not None %}<p class="muted">{% blocktranslate with accuracy=progress.accuracy %}Acierto en tus propuestas: {{ accuracy }} %{% endblocktranslate %}</p>{% endif %}
+        <h3 class="small-title">{% translate "Logros" %}</h3>
+        <ul class="badges">
+          {% for badge, unlocked, value in progress.badges %}
+          <li class="badge-tile{% if not unlocked %} locked{% endif %}" title="{{ badge.requirement }}">
+            {% icon badge.icon %}
+            <strong>{{ badge.name }}</strong>
+            <small>{% if unlocked %}{{ unlocked|date:"SHORT_DATE_FORMAT" }}{% else %}{{ badge.requirement }} · {{ value }}/{{ badge.needed }}{% endif %}</small>
+          </li>
+          {% endfor %}
+        </ul>
+        <div class="actions"><a class="button" href="{% url 'ranking' %}">{% translate "Ver el ranking" %}</a></div>
+      </div>
+    </details>
+    {% endif %}
+
+    <details class="setting" id="setting-album">
+      <summary>
+        {% icon "face" %}
+        <span class="setting-text"><span class="setting-title">{% translate "Tú en el álbum" %}</span><span class="setting-value">{% if my_person %}{{ my_person.display_name }}{% else %}{% translate "Sin identificar" %}{% endif %}</span></span>
+        {% icon "keyboard_arrow_down" %}
+      </summary>
+      <div class="setting-body stack">
+        {% if my_person %}
+        <p>{% url 'person_detail' my_person.pk as person_url %}{% blocktranslate with name=my_person.display_name %}Eres <a href="{{ person_url }}">{{ name }}</a>. Elige qué foto tuya se ve en tu perfil:{% endblocktranslate %}</p>
+        {% if profile_faces %}
+        <form method="post">
+          {% csrf_token %}
+          <ul class="avatar-choices">
+            {% for face in profile_faces %}
+            <li>
+              <button type="submit" name="profile_face" value="{{ face.pk }}" class="avatar-choice" {% if face.pk == profile_face_id %}aria-current="true"{% endif %}
+                      aria-label="{% blocktranslate with id=face.photo_id %}Cara de la foto {{ id }}{% endblocktranslate %}">
+                <img src="{% url 'face_image' face.pk %}" alt="" loading="lazy" width="96" height="96">
+                {% if face.pk == profile_face_id %}<span class="avatar-choice-check">{% icon "check" %}</span>{% endif %}
+              </button>
+            </li>
+            {% endfor %}
+          </ul>
+        </form>
+        {% else %}<p class="muted">{% translate "Aún no hay fotos tuyas identificadas." %}</p>{% endif %}
+        <form method="post" action="{% url 'person_unclaim' my_person.pk %}"
+              data-confirm="{% blocktranslate with name=my_person.display_name %}¿Dejar de identificarte como {{ name }}?{% endblocktranslate %}" data-confirm-ok="{% translate 'No soy yo' %}" data-confirm-variant="danger">
+          {% csrf_token %}<button type="submit" class="button small">{% translate "No soy yo" %}</button>
+        </form>
+        {% else %}
+        <p class="muted">{% translate "Si sales en las fotos, búscate en Personas y pulsa «Soy yo». Podrás usar cualquiera de tus fotos como foto de perfil." %}</p>
+        <div class="actions"><a class="button" href="{% url 'persons' %}">{% icon "search" %}{% translate "Buscar mi persona" %}</a></div>
+        {% endif %}
+      </div>
     </details>
 
     <details class="setting" id="setting-theme" {% if profile_form.theme.errors %}open{% endif %}>

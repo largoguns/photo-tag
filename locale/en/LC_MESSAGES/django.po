@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 16:41+0100\n"
+"POT-Creation-Date: 2026-11-15 17:02+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -11,7 +11,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 #: accounts/apps.py:8 templates/accounts/user_list.html:2
-#: templates/accounts/user_list.html:6 templates/base.html:42
+#: templates/accounts/user_list.html:6 templates/base.html:43
 #: templates/catalog/admin/home.html:12
 msgid "Usuarios"
 msgstr "Users"
@@ -29,7 +29,7 @@ msgid "Solo letras, números y los caracteres @ . + - _"
 msgstr "Only letters, numbers and the characters @ . + - _"
 
 #: accounts/forms.py:38 accounts/forms.py:55 templates/accounts/profile.html:18
-#: templates/accounts/profile.html:30
+#: templates/accounts/profile.html:32
 msgid "Nombre a mostrar"
 msgstr "Display name"
 
@@ -97,7 +97,7 @@ msgstr "must change password"
 msgid "tema"
 msgstr "theme"
 
-#: accounts/models.py:72 accounts/services/users.py:31
+#: accounts/models.py:81 accounts/services/users.py:31
 msgid "Debe existir al menos un superadmin activo."
 msgstr "There must be at least one active superadmin."
 
@@ -107,7 +107,7 @@ msgid "Catalogación"
 msgstr "Cataloging"
 
 #: accounts/services/audit_catalog.py:21
-#: templates/catalog/person_detail.html:59
+#: templates/catalog/person_detail.html:73
 msgid "Fotos"
 msgstr "Photos"
 
@@ -115,7 +115,7 @@ msgstr "Photos"
 msgid "Escaneos y subidas"
 msgstr "Scans and uploads"
 
-#: accounts/services/audit_catalog.py:23 templates/base.html:68
+#: accounts/services/audit_catalog.py:23 templates/base.html:69
 #: templates/catalog/persons.html:2 templates/catalog/persons.html:4
 msgid "Personas"
 msgstr "People"
@@ -125,12 +125,12 @@ msgid "Usuarios y accesos"
 msgstr "Users and sign-ins"
 
 #: accounts/services/audit_catalog.py:25 notifications/apps.py:8
-#: templates/accounts/profile.html:21
+#: templates/accounts/profile.html:23
 #: templates/notifications/_profile_card.html:10
 msgid "Avisos"
 msgstr "Notifications"
 
-#: accounts/services/audit_catalog.py:26 templates/base.html:40
+#: accounts/services/audit_catalog.py:26 templates/base.html:41
 #: templates/catalog/admin/home.html:2 templates/catalog/admin/home.html:4
 msgid "Administración"
 msgstr "Administration"
@@ -183,7 +183,7 @@ msgstr "Photos shared"
 msgid "Fotos descargadas"
 msgstr "Photos downloaded"
 
-#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:74
+#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:77
 msgid "Subida"
 msgstr "Upload"
 
@@ -252,101 +252,125 @@ msgid "Usuario vinculado a una persona"
 msgstr "User linked to a person"
 
 #: accounts/services/audit_catalog.py:60
+msgid "Se identificó como una persona"
+msgstr "Identified as a person"
+
+#: accounts/services/audit_catalog.py:61
+msgid "Dejó de identificarse como una persona"
+msgstr "Stopped identifying as a person"
+
+#: accounts/services/audit_catalog.py:62
+msgid "Foto de perfil cambiada"
+msgstr "Profile photo changed"
+
+#: accounts/services/audit_catalog.py:63
 msgid "Superadministrador inicial creado"
 msgstr "Initial superadmin created"
 
-#: accounts/services/audit_catalog.py:61
+#: accounts/services/audit_catalog.py:64
 msgid "Avisos activados en un dispositivo"
 msgstr "Notifications turned on on a device"
 
-#: accounts/services/audit_catalog.py:62
+#: accounts/services/audit_catalog.py:65
 msgid "Avisos desactivados en un dispositivo"
 msgstr "Notifications turned off on a device"
 
-#: accounts/services/audit_catalog.py:63
+#: accounts/services/audit_catalog.py:66
 msgid "Tipo de evento creado"
 msgstr "Event type created"
 
-#: accounts/services/audit_catalog.py:64
+#: accounts/services/audit_catalog.py:67
 msgid "Tipo de evento modificado"
 msgstr "Event type changed"
 
-#: accounts/services/audit_catalog.py:65
+#: accounts/services/audit_catalog.py:68
 msgid "Umbrales cambiados"
 msgstr "Thresholds changed"
 
-#: accounts/services/audit_catalog.py:66
+#: accounts/services/audit_catalog.py:69
 msgid "Exportación pedida"
 msgstr "Export requested"
 
-#: accounts/services/audit_catalog.py:70
+#: accounts/services/audit_catalog.py:73
 #: templates/catalog/_photo_workspace.html:3
 msgid "Foto"
 msgstr "Photo"
 
-#: accounts/services/audit_catalog.py:71 catalog/models.py:210
+#: accounts/services/audit_catalog.py:74 catalog/models.py:210
 msgid "Propuesta"
 msgstr "Proposed"
 
-#: accounts/services/audit_catalog.py:72 templates/catalog/gallery.html:11
+#: accounts/services/audit_catalog.py:75 templates/catalog/gallery.html:11
 #: templates/catalog/gallery.html:32
 msgid "Persona"
 msgstr "Person"
 
-#: accounts/services/audit_catalog.py:73
+#: accounts/services/audit_catalog.py:76
 msgid "Escaneo"
 msgstr "Scan"
 
-#: accounts/services/audit_catalog.py:75
-#: templates/catalog/_photo_workspace.html:190
+#: accounts/services/audit_catalog.py:78
+#: templates/catalog/_photo_workspace.html:191
 msgid "Tipo de evento"
 msgstr "Event type"
 
-#: accounts/services/audit_catalog.py:76 templates/accounts/audit.html:9
-#: templates/accounts/audit.html:89 templates/accounts/login.html:15
+#: accounts/services/audit_catalog.py:79 templates/accounts/audit.html:9
+#: templates/accounts/audit.html:105 templates/accounts/login.html:15
 msgid "Usuario"
 msgstr "Username"
 
-#: accounts/services/audit_catalog.py:80
+#: accounts/services/audit_catalog.py:83
 msgid "Hoy"
 msgstr "Today"
 
-#: accounts/services/audit_catalog.py:81
+#: accounts/services/audit_catalog.py:84
 msgid "Últimos 7 días"
 msgstr "Last 7 days"
 
-#: accounts/services/audit_catalog.py:82
+#: accounts/services/audit_catalog.py:85
 msgid "Últimos 30 días"
 msgstr "Last 30 days"
 
-#: accounts/services/audit_catalog.py:83
+#: accounts/services/audit_catalog.py:86
 msgid "Este año"
 msgstr "This year"
 
-#: accounts/services/audit_catalog.py:189
+#: accounts/services/audit_catalog.py:192
 #, python-format
 msgid "%(name)s (ya no existe)"
 msgstr "%(name)s (no longer exists)"
 
-#: accounts/services/audit_catalog.py:192 catalog/models.py:133
-#: templates/accounts/audit.html:54 templates/catalog/_justified_item.html:7
+#: accounts/services/audit_catalog.py:195 catalog/models.py:133
+#: templates/accounts/audit.html:70 templates/catalog/_justified_item.html:7
 #: templates/catalog/_photo_card.html:7
 #: templates/catalog/_photo_workspace.html:33
 #: templates/catalog/_photo_workspace.html:48
 #: templates/catalog/_photo_workspace.html:94
 #: templates/catalog/_proposal_activity.html:16
-#: templates/catalog/admin/review_queue.html:37 templates/catalog/home.html:21
+#: templates/catalog/admin/review_queue.html:37 templates/catalog/home.html:32
 #: templates/catalog/photo.html:2 templates/scanner/_scan_panel.html:24
 #, python-format
 msgid "Foto %(id)s"
 msgstr "Photo %(id)s"
 
-#: accounts/services/audit_catalog.py:194
+#: accounts/services/audit_catalog.py:197
 #, python-format
 msgid "«%(label)s» en la foto %(photo)s"
 msgstr "“%(label)s” on photo %(photo)s"
 
-#: accounts/views.py:34 accounts/views.py:66
+#: accounts/services/users.py:115
+msgid "Esa persona ya no existe."
+msgstr "That person no longer exists."
+
+#: accounts/services/users.py:117
+msgid "Esa persona ya está vinculada a otro usuario."
+msgstr "That person is already linked to another user."
+
+#: accounts/services/users.py:158
+msgid "Esa cara no es tuya."
+msgstr "That face is not yours."
+
+#: accounts/views.py:34 accounts/views.py:74
 msgid "Contraseña actualizada."
 msgstr "Password updated."
 
@@ -358,31 +382,35 @@ msgstr "Notification preferences saved."
 msgid "Perfil actualizado."
 msgstr "Profile updated."
 
-#: accounts/views.py:108
+#: accounts/views.py:65
+msgid "Foto de perfil actualizada."
+msgstr "Profile photo updated."
+
+#: accounts/views.py:128
 #, python-format
 msgid "Usuario «%(username)s» creado."
 msgstr "User “%(username)s” created."
 
-#: accounts/views.py:133
+#: accounts/views.py:153
 msgid "Usuario actualizado."
 msgstr "User updated."
 
-#: accounts/views.py:150
+#: accounts/views.py:170
 #, python-format
 msgid "Usuario «%(username)s» reactivado."
 msgstr "User “%(username)s” reactivated."
 
-#: accounts/views.py:152
+#: accounts/views.py:172
 #, python-format
 msgid "Usuario «%(username)s» desactivado."
 msgstr "User “%(username)s” deactivated."
 
-#: accounts/views.py:169
+#: accounts/views.py:189
 #, python-format
 msgid "Contraseña de «%(username)s» restablecida a la contraseña genérica."
 msgstr "Password of “%(username)s” reset to the generic password."
 
-#: accounts/views.py:219
+#: accounts/views.py:240
 msgid "No ha hecho propuestas."
 msgstr "No proposals yet."
 
@@ -404,21 +432,21 @@ msgstr "Thresholds updated."
 msgid "Escaneo «%(name)s» marcado como revisado."
 msgstr "Scan “%(name)s” marked as reviewed."
 
-#: catalog/admin_views.py:124
+#: catalog/admin_views.py:130
 msgid "Foto borrada."
 msgstr "Photo deleted."
 
-#: catalog/admin_views.py:140
+#: catalog/admin_views.py:146
 #, python-format
 msgid "Escaneo «%(name)s» borrado. Puedes volver a escanearlo o subirlo."
 msgstr "Scan “%(name)s” deleted. You can scan or upload it again."
 
-#: catalog/admin_views.py:153
+#: catalog/admin_views.py:159
 #, python-format
 msgid "Reprocesando «%(name)s»: tardará unos segundos."
 msgstr "Reprocessing “%(name)s”: it will take a few seconds."
 
-#: catalog/admin_views.py:181
+#: catalog/admin_views.py:191
 #, python-format
 msgid "Personas fusionadas en «%(name)s»."
 msgstr "People merged into “%(name)s”."
@@ -513,11 +541,11 @@ msgstr "In progress"
 msgid "Catalogada"
 msgstr "Cataloged"
 
-#: catalog/models.py:73 templates/catalog/_photo_workspace.html:225
+#: catalog/models.py:73 templates/catalog/_photo_workspace.html:226
 msgid "Fecha exacta"
 msgstr "Exact date"
 
-#: catalog/models.py:74 templates/catalog/_photo_workspace.html:229
+#: catalog/models.py:74 templates/catalog/_photo_workspace.html:230
 msgid "Año"
 msgstr "Year"
 
@@ -621,13 +649,14 @@ msgid "Identidad de cara"
 msgstr "Face identity"
 
 #: catalog/models.py:298 templates/accounts/audit.html:13
-#: templates/accounts/audit.html:97 templates/catalog/_photo_workspace.html:180
+#: templates/accounts/audit.html:113
+#: templates/catalog/_photo_workspace.html:181
 #: templates/catalog/gallery.html:14 templates/catalog/gallery.html:32
 msgid "Evento"
 msgstr "Event"
 
-#: catalog/models.py:299 templates/catalog/_photo_workspace.html:212
-#: templates/catalog/_photo_workspace.html:233
+#: catalog/models.py:299 templates/catalog/_photo_workspace.html:213
+#: templates/catalog/_photo_workspace.html:234
 msgid "Fecha"
 msgstr "Date"
 
@@ -659,7 +688,7 @@ msgstr "(deleted person)"
 msgid "Añadir esta cara"
 msgstr "Add this face"
 
-#: catalog/models.py:362 templates/catalog/_photo_workspace.html:170
+#: catalog/models.py:362 templates/catalog/_photo_workspace.html:171
 msgid "No es una cara"
 msgstr "Not a face"
 
@@ -714,6 +743,22 @@ msgstr "Processing failed"
 #: catalog/presenters.py:76
 msgid "Sin fecha"
 msgstr "Undated"
+
+#: catalog/presenters.py:137
+msgid "¡La familia ha catalogado todo el álbum!"
+msgstr "The family has catalogued the whole album!"
+
+#: catalog/presenters.py:139
+msgid "¡Ya tenéis tres cuartas partes del álbum catalogadas!"
+msgstr "Three quarters of the album are catalogued!"
+
+#: catalog/presenters.py:141
+msgid "¡La familia ha catalogado la mitad del álbum!"
+msgstr "The family has catalogued half the album!"
+
+#: catalog/presenters.py:143
+msgid "¡Un cuarto del álbum ya está catalogado!"
+msgstr "A quarter of the album is catalogued!"
 
 #: catalog/services/persons.py:14
 msgid "No se puede fusionar una persona consigo misma."
@@ -797,37 +842,48 @@ msgstr "The box is too small."
 msgid "Voto no válido."
 msgstr "Invalid vote."
 
-#: catalog/services/voting.py:213 catalog/services/voting.py:257
+#: catalog/services/voting.py:213 catalog/services/voting.py:263
 msgid "La propuesta ya está cerrada."
 msgstr "The proposal is already closed."
 
-#: catalog/views.py:206
+#: catalog/views.py:216
+#, python-format
+msgid ""
+"Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil»."
+msgstr "You are now %(name)s in the album. Choose your profile photo in “My profile”."
+
+#: catalog/views.py:229
+#, python-format
+msgid "Ya no estás vinculado a %(name)s."
+msgstr "You are no longer linked to %(name)s."
+
+#: catalog/views.py:244
 msgid "Nombre actualizado."
 msgstr "Name updated."
 
-#: catalog/views.py:216
+#: catalog/views.py:254
 msgid "Esa cara no es de esta persona."
 msgstr "That face is not this person."
 
-#: catalog/views.py:218
+#: catalog/views.py:256
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:266
+#: catalog/views.py:304
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:371
+#: catalog/views.py:411
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:435
+#: catalog/views.py:475
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:437
+#: catalog/views.py:477
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -856,6 +912,168 @@ msgstr "An export is already queued."
 msgid "Exportación solicitada. El worker la ejecutará en breve."
 msgstr "Export requested. The worker will run it shortly."
 
+#: gamification/apps.py:8
+msgid "Gamificación"
+msgstr "Gamification"
+
+#: gamification/services/achievements.py:28
+msgid "Primera subida"
+msgstr "First upload"
+
+#: gamification/services/achievements.py:29
+msgid "Sube tu primera foto"
+msgstr "Upload your first photo"
+
+#: gamification/services/achievements.py:36
+msgid "Primera identificación"
+msgstr "First identification"
+
+#: gamification/services/achievements.py:37
+msgid "Consigue que acepten una identidad"
+msgstr "Get an identity accepted"
+
+#: gamification/services/achievements.py:42
+msgid "Detective"
+msgstr "Detective"
+
+#: gamification/services/achievements.py:42
+msgid "10 identidades aceptadas"
+msgstr "10 identities accepted"
+
+#: gamification/services/achievements.py:44
+msgid "Gran detective"
+msgstr "Great detective"
+
+#: gamification/services/achievements.py:44
+msgid "50 identidades aceptadas"
+msgstr "50 identities accepted"
+
+#: gamification/services/achievements.py:48
+msgid "Detective legendario"
+msgstr "Legendary detective"
+
+#: gamification/services/achievements.py:49
+msgid "100 identidades aceptadas"
+msgstr "100 identities accepted"
+
+#: gamification/services/achievements.py:56 gamification/services/levels.py:12
+msgid "Cronista"
+msgstr "Chronicler"
+
+#: gamification/services/achievements.py:57
+msgid "10 fechas aceptadas"
+msgstr "10 dates accepted"
+
+#: gamification/services/achievements.py:64
+msgid "Gran cronista"
+msgstr "Great chronicler"
+
+#: gamification/services/achievements.py:65
+msgid "50 fechas aceptadas"
+msgstr "50 dates accepted"
+
+#: gamification/services/achievements.py:72
+msgid "Ojo de halcón"
+msgstr "Hawk eye"
+
+#: gamification/services/achievements.py:73
+msgid "5 falsos positivos aceptados"
+msgstr "5 false positives accepted"
+
+#: gamification/services/achievements.py:78
+msgid "Rescatista"
+msgstr "Rescuer"
+
+#: gamification/services/achievements.py:78
+msgid "25 fotos subidas"
+msgstr "25 photos uploaded"
+
+#: gamification/services/achievements.py:81 gamification/services/scoring.py:43
+msgid "Desempate"
+msgstr "Tiebreaker"
+
+#: gamification/services/achievements.py:82
+msgid "Tu voto decide una propuesta"
+msgstr "Your vote decides a proposal"
+
+#: gamification/services/achievements.py:87
+msgid "Racha"
+msgstr "Streak"
+
+#: gamification/services/achievements.py:87
+msgid "Propón o vota 7 días seguidos"
+msgstr "Propose or vote 7 days in a row"
+
+#: gamification/services/announcements.py:39
+#, python-format
+msgid "¡Has subido de nivel! Ahora eres %(level)s."
+msgstr "You levelled up! You are now %(level)s."
+
+#: gamification/services/announcements.py:50
+#, python-format
+msgid "Nuevo logro: %(name)s · %(what)s"
+msgstr "New badge: %(name)s · %(what)s"
+
+#: gamification/services/levels.py:8
+msgid "Curioso"
+msgstr "Curious"
+
+#: gamification/services/levels.py:9
+msgid "Aprendiz de archivero"
+msgstr "Apprentice archivist"
+
+#: gamification/services/levels.py:10
+msgid "Archivero"
+msgstr "Archivist"
+
+#: gamification/services/levels.py:11
+msgid "Detective de familia"
+msgstr "Family detective"
+
+#: gamification/services/levels.py:13
+msgid "Memoria de la familia"
+msgstr "Family memory"
+
+#: gamification/services/levels.py:14
+msgid "Guardián del álbum"
+msgstr "Album guardian"
+
+#: gamification/services/scoring.py:34
+msgid "Foto subida"
+msgstr "Photo uploaded"
+
+#: gamification/services/scoring.py:35
+msgid "Identidad aceptada"
+msgstr "Identity accepted"
+
+#: gamification/services/scoring.py:36
+msgid "Sugerencia confirmada"
+msgstr "Suggestion confirmed"
+
+#: gamification/services/scoring.py:37
+msgid "Evento aceptado"
+msgstr "Event accepted"
+
+#: gamification/services/scoring.py:38
+msgid "Fecha aceptada"
+msgstr "Date accepted"
+
+#: gamification/services/scoring.py:39
+msgid "Cara nueva aceptada"
+msgstr "New face accepted"
+
+#: gamification/services/scoring.py:40
+msgid "Falso positivo aceptado"
+msgstr "False positive accepted"
+
+#: gamification/services/scoring.py:41
+msgid "Primera identificación de una persona"
+msgstr "First identification of a person"
+
+#: gamification/services/scoring.py:42
+msgid "Voto acertado"
+msgstr "Right vote"
+
 #: notifications/models.py:18
 msgid "dispositivo"
 msgstr "device"
@@ -875,6 +1093,10 @@ msgstr "My proposals accepted or rejected"
 #: notifications/models.py:42
 msgid "Mis escaneos terminados"
 msgstr "My finished scans"
+
+#: notifications/models.py:44
+msgid "Mis niveles y logros"
+msgstr "My levels and badges"
 
 #: notifications/services/digest.py:46
 #, python-format
@@ -1042,8 +1264,8 @@ msgstr "Not found"
 msgid "La página que buscas no existe."
 msgstr "The page you are looking for does not exist."
 
-#: templates/_language_switch.html:2 templates/accounts/profile.html:20
-#: templates/accounts/profile.html:58 templates/base.html:45
+#: templates/_language_switch.html:2 templates/accounts/profile.html:22
+#: templates/accounts/profile.html:121 templates/base.html:46
 msgid "Idioma"
 msgstr "Language"
 
@@ -1078,7 +1300,8 @@ msgstr "Back to Users"
 msgid "Filtros"
 msgstr "Filters"
 
-#: templates/accounts/audit.html:16 templates/accounts/audit.html:89
+#: templates/accounts/audit.html:16 templates/accounts/audit.html:105
+#: templates/gamification/ranking.html:5
 msgid "Periodo"
 msgstr "Period"
 
@@ -1117,7 +1340,7 @@ msgstr "never"
 msgid "Editar"
 msgstr "Edit"
 
-#: templates/accounts/audit.html:34 templates/accounts/audit.html:42
+#: templates/accounts/audit.html:34 templates/accounts/audit.html:43
 msgid "Propuestas"
 msgstr "Proposals"
 
@@ -1126,7 +1349,7 @@ msgstr "Proposals"
 msgid "%(open)s abiertas · %(accepted)s aceptadas · %(rejected)s rechazadas"
 msgstr "%(open)s open · %(accepted)s accepted · %(rejected)s rejected"
 
-#: templates/accounts/audit.html:35 templates/accounts/audit.html:43
+#: templates/accounts/audit.html:35 templates/accounts/audit.html:44
 msgid "Votos"
 msgstr "Votes"
 
@@ -1140,61 +1363,83 @@ msgid "%(scans)s escaneos pedidos"
 msgstr "%(scans)s scans requested"
 
 #: templates/accounts/audit.html:37
+msgid "Nivel"
+msgstr "Level"
+
+#: templates/accounts/audit.html:37
+#, python-format
+msgid "pts · nivel %(number)s, %(name)s"
+msgstr "pts · level %(number)s, %(name)s"
+
+#: templates/accounts/audit.html:38
 msgid "Acciones"
 msgstr "Actions"
 
-#: templates/accounts/audit.html:37
+#: templates/accounts/audit.html:38
 #, python-format
 msgid "%(logins)s inicios de sesión"
 msgstr "%(logins)s sign-ins"
 
-#: templates/accounts/audit.html:40
+#: templates/accounts/audit.html:41
 msgid "Secciones"
 msgstr "Sections"
 
-#: templates/accounts/audit.html:41
+#: templates/accounts/audit.html:42
 msgid "Historial"
 msgstr "History"
 
-#: templates/accounts/audit.html:50
+#: templates/accounts/audit.html:45
+msgid "Puntos"
+msgstr "Points"
+
+#: templates/accounts/audit.html:52
+#, python-format
+msgid "%(points)s puntos en total"
+msgstr "%(points)s points in total"
+
+#: templates/accounts/audit.html:62
+msgid "Sin puntos todavía."
+msgstr "No points yet."
+
+#: templates/accounts/audit.html:66
 #, python-format
 msgid "%(counter)s voto"
 msgid_plural "%(counter)s votos"
 msgstr[0] "%(counter)s vote"
 msgstr[1] "%(counter)s votes"
 
-#: templates/accounts/audit.html:60
+#: templates/accounts/audit.html:76
 msgid "No ha votado nada."
 msgstr "No votes yet."
 
-#: templates/accounts/audit.html:64
+#: templates/accounts/audit.html:80
 #, python-format
 msgid "%(counter)s registro"
 msgid_plural "%(counter)s registros"
 msgstr[0] "%(counter)s record"
 msgstr[1] "%(counter)s records"
 
-#: templates/accounts/audit.html:72 templates/catalog/admin/home.html:24
+#: templates/accounts/audit.html:88 templates/catalog/admin/home.html:24
 msgid "sistema"
 msgstr "system"
 
-#: templates/accounts/audit.html:78
+#: templates/accounts/audit.html:94
 msgid "Detalles"
 msgstr "Details"
 
-#: templates/accounts/audit.html:84
+#: templates/accounts/audit.html:100
 msgid "No hay registros con estos filtros."
 msgstr "No records match these filters."
 
-#: templates/accounts/audit.html:89 templates/accounts/audit.html:102
+#: templates/accounts/audit.html:105 templates/accounts/audit.html:118
 #: templates/catalog/_proposal_activity.html:31
 #: templates/catalog/gallery.html:31
 msgid "Todos"
 msgstr "All"
 
-#: templates/accounts/audit.html:98 templates/catalog/_filter_sheet.html:6
+#: templates/accounts/audit.html:114 templates/catalog/_filter_sheet.html:6
 #: templates/catalog/_photo_workspace.html:61
-#: templates/catalog/person_detail.html:70
+#: templates/catalog/person_detail.html:84
 msgid "Cerrar"
 msgstr "Close"
 
@@ -1214,8 +1459,8 @@ msgstr "Too many failed attempts. Try again in 30 minutes."
 msgid "Iniciar sesión"
 msgstr "Sign in"
 
-#: templates/accounts/login.html:19 templates/accounts/profile.html:22
-#: templates/accounts/profile.html:72
+#: templates/accounts/login.html:19 templates/accounts/profile.html:24
+#: templates/accounts/profile.html:135
 msgid "Contraseña"
 msgstr "Password"
 
@@ -1224,7 +1469,7 @@ msgid "Entrar"
 msgstr "Sign in"
 
 #: templates/accounts/password_change_forced.html:2
-#: templates/accounts/profile.html:78
+#: templates/accounts/profile.html:141
 msgid "Cambiar contraseña"
 msgstr "Change password"
 
@@ -1244,7 +1489,7 @@ msgstr ""
 msgid "Guardar y continuar"
 msgstr "Save and continue"
 
-#: templates/accounts/password_change_forced.html:15 templates/base.html:50
+#: templates/accounts/password_change_forced.html:15 templates/base.html:51
 msgid "Cerrar sesión"
 msgstr "Sign out"
 
@@ -1262,26 +1507,96 @@ msgstr "You appear in the photos as <a href=\"%(person_url)s\">%(person)s</a>."
 msgid "Secciones del perfil"
 msgstr "Profile sections"
 
-#: templates/accounts/profile.html:19 templates/accounts/profile.html:44
+#: templates/accounts/profile.html:19 templates/accounts/profile.html:47
+msgid "Tu progreso"
+msgstr "Your progress"
+
+#: templates/accounts/profile.html:20 templates/accounts/profile.html:71
+msgid "Tú en el álbum"
+msgstr "You in the album"
+
+#: templates/accounts/profile.html:21 templates/accounts/profile.html:107
 msgid "Tema"
 msgstr "Theme"
 
-#: templates/accounts/profile.html:37 templates/accounts/profile.html:51
+#: templates/accounts/profile.html:39 templates/accounts/profile.html:114
 #: templates/accounts/user_form.html:13
 #: templates/catalog/admin/event_type_form.html:11
 #: templates/catalog/admin/thresholds.html:12
-#: templates/catalog/person_detail.html:21
+#: templates/catalog/person_detail.html:29
 msgid "Guardar"
 msgstr "Save"
 
-#: templates/accounts/profile.html:62
+#: templates/accounts/profile.html:47 templates/gamification/_level.html:5
+#: templates/gamification/ranking.html:17
+#: templates/gamification/ranking.html:32
+#, python-format
+msgid "%(points)s pts"
+msgstr "%(points)s pts"
+
+#: templates/accounts/profile.html:52
+#, python-format
+msgid "Acierto en tus propuestas: %(accuracy)s %%"
+msgstr "Accuracy of your proposals: %(accuracy)s %%"
+
+#: templates/accounts/profile.html:53
+msgid "Logros"
+msgstr "Badges"
+
+#: templates/accounts/profile.html:63
+msgid "Ver el ranking"
+msgstr "See the ranking"
+
+#: templates/accounts/profile.html:71
+#: templates/catalog/_photo_workspace.html:120
+msgid "Sin identificar"
+msgstr "Unidentified"
+
+#: templates/accounts/profile.html:76
+#, python-format
+msgid ""
+"Eres <a href=\"%(person_url)s\">%(name)s</a>. Elige qué foto tuya se ve en "
+"tu perfil:"
+msgstr "You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you shows on your profile:"
+
+#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:94
+#, python-format
+msgid "Cara de la foto %(id)s"
+msgstr "Face from photo %(id)s"
+
+#: templates/accounts/profile.html:92
+msgid "Aún no hay fotos tuyas identificadas."
+msgstr "No photos of you have been identified yet."
+
+#: templates/accounts/profile.html:94 templates/catalog/person_detail.html:42
+#, python-format
+msgid "¿Dejar de identificarte como %(name)s?"
+msgstr "Stop identifying as %(name)s?"
+
+#: templates/accounts/profile.html:94 templates/accounts/profile.html:95
+#: templates/catalog/person_detail.html:42
+#: templates/catalog/person_detail.html:43
+msgid "No soy yo"
+msgstr "Not me"
+
+#: templates/accounts/profile.html:98
+msgid ""
+"Si sales en las fotos, búscate en Personas y pulsa «Soy yo». Podrás usar "
+"cualquiera de tus fotos como foto de perfil."
+msgstr "If you appear in the photos, find yourself in People and press “That’s me”. You can then use any photo of you as your profile photo."
+
+#: templates/accounts/profile.html:99
+msgid "Buscar mi persona"
+msgstr "Find myself"
+
+#: templates/accounts/profile.html:125
 msgid ""
 "Por defecto se usa el idioma del navegador. La elección se guarda en este "
 "dispositivo."
 msgstr ""
 "By default the browser language is used. Your choice is saved on this device."
 
-#: templates/accounts/profile.html:72
+#: templates/accounts/profile.html:135
 msgid "Cambia tu contraseña de acceso"
 msgstr "Change your sign-in password"
 
@@ -1308,12 +1623,12 @@ msgid "El usuario deberá cambiar la contraseña en su primer acceso."
 msgstr ""
 "The user will have to change the password when signing in for the first time."
 
-#: templates/accounts/user_form.html:14 templates/base.html:119
+#: templates/accounts/user_form.html:14 templates/base.html:120
 #: templates/catalog/_photo_workspace.html:77
 #: templates/catalog/admin/event_type_form.html:12
 #: templates/catalog/admin/merge.html:15
 #: templates/catalog/admin/thresholds.html:13 templates/catalog/crop.html:56
-#: templates/catalog/person_detail.html:22
+#: templates/catalog/person_detail.html:30
 msgid "Cancelar"
 msgstr "Cancel"
 
@@ -1343,7 +1658,7 @@ msgstr "Search"
 msgid "Contraseña genérica"
 msgstr "Generic password"
 
-#: templates/accounts/user_list.html:27 templates/base.html:72
+#: templates/accounts/user_list.html:27 templates/base.html:73
 msgid "Actividad"
 msgstr "Activity"
 
@@ -1394,34 +1709,39 @@ msgstr "Skip to content"
 msgid "Menú de %(name)s"
 msgstr "Menu for %(name)s"
 
-#: templates/base.html:41 templates/catalog/admin/home.html:6
+#: templates/base.html:40 templates/catalog/home.html:17
+#: templates/gamification/ranking.html:2 templates/gamification/ranking.html:4
+msgid "Ranking"
+msgstr "Ranking"
+
+#: templates/base.html:42 templates/catalog/admin/home.html:6
 #: templates/scanner/_scan_panel.html:47 templates/scanner/scan.html:2
 #: templates/scanner/scan.html:5
 msgid "Escanear"
 msgstr "Scan"
 
-#: templates/base.html:57
+#: templates/base.html:58
 msgid "Navegación principal"
 msgstr "Main navigation"
 
-#: templates/base.html:60 templates/catalog/home.html:2
+#: templates/base.html:61 templates/catalog/home.html:2
 msgid "Inicio"
 msgstr "Home"
 
-#: templates/base.html:64 templates/catalog/gallery.html:2
+#: templates/base.html:65 templates/catalog/gallery.html:2
 #: templates/catalog/gallery.html:5
 msgid "Galería"
 msgstr "Gallery"
 
-#: templates/base.html:88
+#: templates/base.html:89
 msgid "Instala PhotoTag"
 msgstr "Install PhotoTag"
 
-#: templates/base.html:89
+#: templates/base.html:90
 msgid "Añádela a tu pantalla de inicio y ábrela como una app."
 msgstr "Add it to your home screen and open it like an app."
 
-#: templates/base.html:90
+#: templates/base.html:91
 msgid ""
 "Pulsa <strong>Compartir</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> y elige <strong>Añadir a pantalla de inicio</strong>."
@@ -1429,7 +1749,7 @@ msgstr ""
 "Tap <strong>Share</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> and choose <strong>Add to Home Screen</strong>."
 
-#: templates/base.html:91
+#: templates/base.html:92
 msgid ""
 "Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</"
 "strong> o <strong>Añadir a pantalla de inicio</strong>."
@@ -1437,19 +1757,19 @@ msgstr ""
 "Open the browser menu <strong>⋮</strong> and choose <strong>Install app</"
 "strong> or <strong>Add to Home screen</strong>."
 
-#: templates/base.html:94 templates/base.html:108
+#: templates/base.html:95 templates/base.html:109
 msgid "Ahora no"
 msgstr "Not now"
 
-#: templates/base.html:95
+#: templates/base.html:96
 msgid "Instalar"
 msgstr "Install"
 
-#: templates/base.html:103
+#: templates/base.html:104
 msgid "Activa los avisos"
 msgstr "Turn on notifications"
 
-#: templates/base.html:104
+#: templates/base.html:105
 msgid ""
 "Te avisaremos de fotos nuevas y de propuestas que esperan tu voto. Como "
 "mucho uno por hora y nunca de noche."
@@ -1457,19 +1777,19 @@ msgstr ""
 "We'll let you know about new photos and proposals waiting for your vote. At "
 "most one per hour, never at night."
 
-#: templates/base.html:105
+#: templates/base.html:106
 msgid "No se han podido activar. Puedes intentarlo desde Mi perfil."
 msgstr "They could not be turned on. You can try again from My profile."
 
-#: templates/base.html:109
+#: templates/base.html:110
 msgid "Activar"
 msgstr "Turn on"
 
-#: templates/base.html:116
+#: templates/base.html:117
 msgid "¿Confirmar?"
 msgstr "Confirm?"
 
-#: templates/base.html:120
+#: templates/base.html:121
 msgid "Confirmar"
 msgstr "Confirm"
 
@@ -1614,10 +1934,6 @@ msgstr "Delete photo"
 msgid "Cara propuesta"
 msgstr "Proposed face"
 
-#: templates/catalog/_photo_workspace.html:120
-msgid "Sin identificar"
-msgstr "Unidentified"
-
 #: templates/catalog/_photo_workspace.html:126
 msgid "Persona aceptada:"
 msgstr "Accepted person:"
@@ -1630,34 +1946,34 @@ msgstr "Name proposals"
 msgid "Sugerencias automáticas"
 msgstr "Automatic suggestions"
 
-#: templates/catalog/_photo_workspace.html:144
+#: templates/catalog/_photo_workspace.html:145
 #, python-format
 msgid "¿Es %(person)s?"
 msgstr "Is it %(person)s?"
 
-#: templates/catalog/_photo_workspace.html:148
+#: templates/catalog/_photo_workspace.html:149
 msgid ""
 "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
 
-#: templates/catalog/_photo_workspace.html:154
+#: templates/catalog/_photo_workspace.html:155
 msgid "Proponer otro nombre"
 msgstr "Propose another name"
 
-#: templates/catalog/_photo_workspace.html:154
+#: templates/catalog/_photo_workspace.html:155
 msgid "¿Quién es?"
 msgstr "Who is it?"
 
-#: templates/catalog/_photo_workspace.html:159
+#: templates/catalog/_photo_workspace.html:160
 msgid "Nombre y apellidos"
 msgstr "Full name"
 
-#: templates/catalog/_photo_workspace.html:162
-#: templates/catalog/_photo_workspace.html:168
+#: templates/catalog/_photo_workspace.html:163
+#: templates/catalog/_photo_workspace.html:169
 msgid "Proponer"
 msgstr "Propose"
 
-#: templates/catalog/_photo_workspace.html:167
+#: templates/catalog/_photo_workspace.html:168
 #, python-format
 msgid ""
 "¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
@@ -1666,31 +1982,31 @@ msgstr ""
 "Propose that box %(number)s is not a face? It will be voted like any other "
 "proposal."
 
-#: templates/catalog/_photo_workspace.html:176
+#: templates/catalog/_photo_workspace.html:177
 msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
 msgstr "No faces were detected. Use “Draw face” if one is missing."
 
-#: templates/catalog/_photo_workspace.html:185
+#: templates/catalog/_photo_workspace.html:186
 msgid "Aceptado:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:192
+#: templates/catalog/_photo_workspace.html:193
 msgid "— Elige —"
 msgstr "— Choose —"
 
-#: templates/catalog/_photo_workspace.html:194
+#: templates/catalog/_photo_workspace.html:195
 msgid "Otro…"
 msgstr "Other…"
 
-#: templates/catalog/_photo_workspace.html:198
+#: templates/catalog/_photo_workspace.html:199
 msgid "¿Qué evento es?"
 msgstr "Which event is it?"
 
-#: templates/catalog/_photo_workspace.html:199
+#: templates/catalog/_photo_workspace.html:200
 msgid "Graduación"
 msgstr "Graduation"
 
-#: templates/catalog/_photo_workspace.html:200
+#: templates/catalog/_photo_workspace.html:201
 msgid ""
 "Si no está en la lista. Quedará disponible para todos cuando se acepte por "
 "votación."
@@ -1698,42 +2014,42 @@ msgstr ""
 "If it is not in the list. It becomes available to everyone once accepted by "
 "vote."
 
-#: templates/catalog/_photo_workspace.html:203
+#: templates/catalog/_photo_workspace.html:204
 msgid "Descripción (opcional)"
 msgstr "Description (optional)"
 
-#: templates/catalog/_photo_workspace.html:204
+#: templates/catalog/_photo_workspace.html:205
 msgid "Boda de Luis y Ana"
 msgstr "Luis and Ana's wedding"
 
-#: templates/catalog/_photo_workspace.html:206
+#: templates/catalog/_photo_workspace.html:207
 msgid "Proponer evento"
 msgstr "Propose event"
 
-#: templates/catalog/_photo_workspace.html:217
+#: templates/catalog/_photo_workspace.html:218
 msgid "Aceptada:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:222
+#: templates/catalog/_photo_workspace.html:223
 msgid "Precisión"
 msgstr "Precision"
 
-#: templates/catalog/_photo_workspace.html:236
+#: templates/catalog/_photo_workspace.html:237
 msgid "Proponer fecha"
 msgstr "Propose date"
 
-#: templates/catalog/_photo_workspace.html:243
+#: templates/catalog/_photo_workspace.html:244
 msgid "Escaneo de origen"
 msgstr "Source scan"
 
-#: templates/catalog/_photo_workspace.html:245
+#: templates/catalog/_photo_workspace.html:246
 #, python-format
 msgid "%(name)s · %(counter)s foto"
 msgid_plural "%(name)s · %(counter)s fotos"
 msgstr[0] "%(name)s · %(counter)s photo"
 msgstr[1] "%(name)s · %(counter)s photos"
 
-#: templates/catalog/_photo_workspace.html:246
+#: templates/catalog/_photo_workspace.html:247
 msgid ""
 "Reprocesar vuelve a recortar el original con el algoritmo actual y conserva "
 "los votos y los recortes manuales."
@@ -1741,7 +2057,7 @@ msgstr ""
 "Reprocessing crops the original again with the current algorithm and keeps "
 "votes and manual crops."
 
-#: templates/catalog/_photo_workspace.html:249
+#: templates/catalog/_photo_workspace.html:250
 msgid ""
 "¿Reprocesar el escaneo? Los recortes automáticos se rehacen; las fotos que "
 "ya no aparezcan se borrarán."
@@ -1749,16 +2065,16 @@ msgstr ""
 "Reprocess the scan? Automatic crops are redone; photos that no longer appear "
 "will be deleted."
 
-#: templates/catalog/_photo_workspace.html:250
+#: templates/catalog/_photo_workspace.html:251
 #: templates/catalog/admin/review_queue.html:13
 msgid "Reprocesar"
 msgstr "Reprocess"
 
-#: templates/catalog/_photo_workspace.html:252
+#: templates/catalog/_photo_workspace.html:253
 msgid "Reprocesar escaneo"
 msgstr "Reprocess scan"
 
-#: templates/catalog/_photo_workspace.html:255
+#: templates/catalog/_photo_workspace.html:256
 #: templates/catalog/admin/review_queue.html:16
 msgid ""
 "¿Borrar el escaneo completo? Se borran todas sus fotos con sus caras, "
@@ -1767,13 +2083,13 @@ msgstr ""
 "Delete the whole scan? All its photos are deleted with their faces, "
 "proposals and votes. The original is set aside in scans/deleted."
 
-#: templates/catalog/_photo_workspace.html:256
+#: templates/catalog/_photo_workspace.html:257
 #: templates/catalog/admin/review_queue.html:17
 #: templates/catalog/admin/review_queue.html:19
 msgid "Borrar escaneo"
 msgstr "Delete scan"
 
-#: templates/catalog/_photo_workspace.html:258
+#: templates/catalog/_photo_workspace.html:259
 msgid "Borrar escaneo completo"
 msgstr "Delete whole scan"
 
@@ -2165,7 +2481,7 @@ msgstr "Waiting for my vote"
 msgid "Seleccionar"
 msgstr "Select"
 
-#: templates/catalog/gallery.html:26 templates/catalog/person_detail.html:38
+#: templates/catalog/gallery.html:26 templates/catalog/person_detail.html:52
 #: templates/catalog/persons.html:20
 #, python-format
 msgid "%(counter)s foto"
@@ -2203,7 +2519,7 @@ msgstr "Share"
 msgid "Descargar"
 msgstr "Download"
 
-#: templates/catalog/gallery.html:53 templates/catalog/home.html:35
+#: templates/catalog/gallery.html:53 templates/catalog/home.html:46
 #: templates/scanner/upload.html:36
 msgid "Subir"
 msgstr "Upload"
@@ -2230,29 +2546,33 @@ msgstr ""
 msgid "Fotos catalogadas"
 msgstr "Cataloged photos"
 
-#: templates/catalog/home.html:9
+#: templates/catalog/home.html:10
 msgid "Siguiente foto sin catalogar"
 msgstr "Next uncataloged photo"
 
-#: templates/catalog/home.html:14
+#: templates/catalog/home.html:16
+msgid "Tu nivel"
+msgstr "Your level"
+
+#: templates/catalog/home.html:25
 #, python-format
 msgid "Pendientes de mi voto (%(pending_count)s)"
 msgstr "Waiting for my vote (%(pending_count)s)"
 
-#: templates/catalog/home.html:15
+#: templates/catalog/home.html:26
 msgid "Ver todas"
 msgstr "See all"
 
-#: templates/catalog/home.html:25
+#: templates/catalog/home.html:36
 #, python-format
 msgid "por %(author)s"
 msgstr "by %(author)s"
 
-#: templates/catalog/home.html:27
+#: templates/catalog/home.html:38
 msgid "Votar"
 msgstr "Vote"
 
-#: templates/catalog/home.html:30
+#: templates/catalog/home.html:41
 msgid "No tienes propuestas pendientes de votar."
 msgstr "You have no proposals waiting for your vote."
 
@@ -2261,7 +2581,7 @@ msgid "Mi actividad"
 msgstr "My activity"
 
 #: templates/catalog/person_detail.html:6
-#: templates/catalog/person_detail.html:30
+#: templates/catalog/person_detail.html:38
 msgid "Cambiar foto principal"
 msgstr "Change main photo"
 
@@ -2269,32 +2589,53 @@ msgstr "Change main photo"
 msgid "Cambiar nombre"
 msgstr "Rename"
 
+#: templates/catalog/person_detail.html:16
+msgid "Eres tú"
+msgstr "That’s you"
+
 #: templates/catalog/person_detail.html:19
+#, python-format
+msgid "Ahora eres %(current)s. ¿Cambiar a %(name)s?"
+msgstr "You are %(current)s now. Switch to %(name)s?"
+
+#: templates/catalog/person_detail.html:19
+#, python-format
+msgid ""
+"¿Eres %(name)s? Te vincularás a esta persona del álbum y podrás usar sus "
+"fotos como foto de perfil."
+msgstr "Are you %(name)s? You will be linked to this person of the album and can use their photos as your profile photo."
+
+#: templates/catalog/person_detail.html:20
+#: templates/catalog/person_detail.html:21
+msgid "Soy yo"
+msgstr "That’s me"
+
+#: templates/catalog/person_detail.html:27
 msgid "Nombre"
 msgstr "Name"
 
-#: templates/catalog/person_detail.html:28
+#: templates/catalog/person_detail.html:36
 msgid "Más acciones"
 msgstr "More actions"
 
-#: templates/catalog/person_detail.html:31
+#: templates/catalog/person_detail.html:39
 msgid "Fusionar con otra persona"
 msgstr "Merge with another person"
 
-#: templates/catalog/person_detail.html:36
+#: templates/catalog/person_detail.html:50
 #, python-format
 msgid "Usuario vinculado: %(linked)s"
 msgstr "Linked user: %(linked)s"
 
-#: templates/catalog/person_detail.html:38
+#: templates/catalog/person_detail.html:52
 msgid "Ver en la galería"
 msgstr "See in gallery"
 
-#: templates/catalog/person_detail.html:41
+#: templates/catalog/person_detail.html:55
 msgid "Puede que aparezca en"
 msgstr "May appear in"
 
-#: templates/catalog/person_detail.html:42
+#: templates/catalog/person_detail.html:56
 #, python-format
 msgid ""
 "Caras sin identificar que se parecen a %(person)s. Confirmar crea una "
@@ -2303,33 +2644,28 @@ msgstr ""
 "Unidentified faces that look like %(person)s. Confirming creates a proposal "
 "for everyone else to vote on."
 
-#: templates/catalog/person_detail.html:47
+#: templates/catalog/person_detail.html:61
 #, python-format
 msgid "Cara sin identificar en la foto %(id)s"
 msgstr "Unidentified face in photo %(id)s"
 
-#: templates/catalog/person_detail.html:53
+#: templates/catalog/person_detail.html:67
 #, python-format
 msgid "Es %(person)s"
 msgstr "It's %(person)s"
 
-#: templates/catalog/person_detail.html:62
+#: templates/catalog/person_detail.html:76
 msgid "Sin fotos."
 msgstr "No photos."
 
-#: templates/catalog/person_detail.html:69
+#: templates/catalog/person_detail.html:83
 msgid "Foto principal"
 msgstr "Main photo"
 
-#: templates/catalog/person_detail.html:73
+#: templates/catalog/person_detail.html:87
 #, python-format
 msgid "Elige la cara que identifica a %(person)s en toda la app."
 msgstr "Choose the face that identifies %(person)s across the app."
-
-#: templates/catalog/person_detail.html:80
-#, python-format
-msgid "Cara de la foto %(id)s"
-msgstr "Face from photo %(id)s"
 
 #: templates/catalog/persons.html:6
 msgid "Buscar personas"
@@ -2406,6 +2742,64 @@ msgstr[1] "%(counter)s photos could not be exported; check the worker logs."
 #: templates/exporter/export.html:27
 msgid "Todavía no se ha exportado nada."
 msgstr "Nothing has been exported yet."
+
+#: templates/gamification/_level.html:4
+#, python-format
+msgid "Nivel %(number)s"
+msgstr "Level %(number)s"
+
+#: templates/gamification/_level.html:7
+msgid "Progreso hasta el siguiente nivel"
+msgstr "Progress to the next level"
+
+#: templates/gamification/_level.html:8
+#, python-format
+msgid "Te faltan %(missing)s puntos para %(next)s."
+msgstr "%(missing)s points to %(next)s."
+
+#: templates/gamification/_level.html:8
+msgid "Has alcanzado el nivel más alto. ¡Gracias por cuidar el álbum!"
+msgstr "You reached the highest level. Thanks for looking after the album!"
+
+#: templates/gamification/ranking.html:6
+msgid "Esta semana"
+msgstr "This week"
+
+#: templates/gamification/ranking.html:7
+msgid "Este mes"
+msgstr "This month"
+
+#: templates/gamification/ranking.html:8
+msgid "Total"
+msgstr "Total"
+
+#: templates/gamification/ranking.html:11
+msgid "Podio"
+msgstr "Podium"
+
+#: templates/gamification/ranking.html:18
+#, python-format
+msgid "Puesto %(n)s"
+msgstr "Place %(n)s"
+
+#: templates/gamification/ranking.html:29
+msgid "Tú"
+msgstr "You"
+
+#: templates/gamification/ranking.html:30
+#, python-format
+msgid "Nivel %(number)s · %(level)s"
+msgstr "Level %(number)s · %(level)s"
+
+#: templates/gamification/ranking.html:35
+msgid "Todavía no hay colaboradores."
+msgstr "No collaborators yet."
+
+#: templates/gamification/ranking.html:38
+msgid ""
+"Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, "
+"propuestas aceptadas y votos que coinciden con el resultado."
+msgstr "You earn points when your contribution turns out right: uploaded photos, accepted proposals and votes that match the outcome."
 
 #: templates/notifications/_profile_card.html:7
 msgid "No se ha podido completar. Inténtalo de nuevo."

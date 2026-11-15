@@ -34,6 +34,7 @@
     <div><dt>{% translate "Propuestas" %}</dt><dd>{{ summary.proposals.total }}</dd><dd class="muted">{% blocktranslate with open=summary.proposals.open accepted=summary.proposals.accepted rejected=summary.proposals.rejected %}{{ open }} abiertas · {{ accepted }} aceptadas · {{ rejected }} rechazadas{% endblocktranslate %}</dd></div>
     <div><dt>{% translate "Votos" %}</dt><dd>{{ summary.votes.up|add:summary.votes.down }}</dd><dd class="muted">👍 {{ summary.votes.up }} · 👎 {{ summary.votes.down }}</dd></div>
     <div><dt>{% translate "Subidas" %}</dt><dd>{{ summary.uploads }}</dd><dd class="muted">{% blocktranslate with scans=summary.scans %}{{ scans }} escaneos pedidos{% endblocktranslate %}</dd></div>
+    {% if progress %}<div><dt>{% translate "Nivel" %}</dt><dd>{{ progress.points }}</dd><dd class="muted">{% blocktranslate with number=progress.level.number name=progress.level.name %}pts · nivel {{ number }}, {{ name }}{% endblocktranslate %}</dd></div>{% endif %}
     <div><dt>{% translate "Acciones" %}</dt><dd>{{ summary.actions }}</dd><dd class="muted">{% blocktranslate with logins=summary.logins %}{{ logins }} inicios de sesión{% endblocktranslate %}</dd></div>
   </dl>
 </section>
@@ -41,11 +42,26 @@
   <a href="{{ tab_urls.history }}" {% if tab == "history" %}aria-current="page"{% endif %}><span><span>{% translate "Historial" %}</span></span></a>
   <a href="{{ tab_urls.proposals }}" {% if tab == "proposals" %}aria-current="page"{% endif %}><span><span>{% translate "Propuestas" %}</span></span></a>
   <a href="{{ tab_urls.votes }}" {% if tab == "votes" %}aria-current="page"{% endif %}><span><span>{% translate "Votos" %}</span></span></a>
+  {% if progress %}<a href="{{ tab_urls.points }}" {% if tab == "points" %}aria-current="page"{% endif %}><span><span>{% translate "Puntos" %}</span></span></a>{% endif %}
 </nav>
 {% endif %}
 
 {% if tab == "proposals" %}
 {% include "catalog/_proposal_activity.html" %}
+{% elif tab == "points" %}
+<p class="muted gallery-count">{% blocktranslate with points=progress.points %}{{ points }} puntos en total{% endblocktranslate %}</p>
+<ul class="list">
+  {% for event in page %}
+  <li class="list-item">
+    <div class="list-main">
+      <strong>{{ event.label }}</strong> <span class="muted audit-code">{{ event.ref_type }} #{{ event.ref_id }}</span>
+      <div class="meta muted">{{ event.created_at|date:"SHORT_DATETIME_FORMAT" }}</div>
+    </div>
+    <span class="ranking-points">{% if event.points >= 0 %}+{% endif %}{{ event.points }}</span>
+  </li>
+  {% empty %}<li class="empty">{% translate "Sin puntos todavía." %}</li>{% endfor %}
+</ul>
+{% include "_pagination.html" %}
 {% elif tab == "votes" %}
 <p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} voto{% plural %}{{ counter }} votos{% endblocktranslate %}</p>
 <ul class="list">

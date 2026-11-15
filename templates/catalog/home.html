@@ -6,8 +6,19 @@
   <h2 id="progress-title">{% translate "Progreso" %}</h2>
   <p>{% blocktranslate %}<strong>{{ cataloged }}</strong> de <strong>{{ total }}</strong> fotos catalogadas ({{ percent }} %){% endblocktranslate %}</p>
   <progress max="100" value="{{ percent }}" aria-label="{% translate 'Fotos catalogadas' %}">{{ percent }} %</progress>
+  {% if milestone %}<p class="milestone">{{ milestone }}</p>{% endif %}
   <a class="button primary big" href="{% url 'next_uncataloged' %}">{% translate "Siguiente foto sin catalogar" %} →</a>
 </section>
+
+{% if progress %}
+<section class="card stack" aria-labelledby="level-title">
+  <div class="page-header">
+    <h2 id="level-title">{% translate "Tu nivel" %}</h2>
+    <a class="button small" href="{% url 'ranking' %}">{% icon "how_to_vote" %}{% translate "Ranking" %}</a>
+  </div>
+  {% include "gamification/_level.html" %}
+</section>
+{% endif %}
 
 <section class="stack" aria-labelledby="pending-title">
   <div class="page-header">

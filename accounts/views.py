@@ -56,6 +56,14 @@ def profile(request):
                 profile_form.save()
                 messages.success(request, _("Perfil actualizado."))
                 return redirect("profile")
+        elif "profile_face" in request.POST:
+            try:
+                user_service.set_profile_face(request.user, request.POST.get("profile_face"))
+            except ValidationError as exc:
+                messages.error(request, exc.messages[0])
+            else:
+                messages.success(request, _("Foto de perfil actualizada."))
+            return redirect("profile")
         elif "change_password" in request.POST:
             password_form = NewPasswordForm(request.user, request.POST)
             if password_form.is_valid():
@@ -75,8 +83,20 @@ def profile(request):
             "push_enabled": push.is_enabled(),
             "vapid_public_key": settings.VAPID_PUBLIC_KEY,
             "push_devices": request.user.push_subscriptions.all(),
+            "progress": _progress(request.user),
+            "my_person": getattr(request.user, "person", None),
+            "profile_faces": user_service.profile_faces(request.user),
+            "profile_face_id": user_service.avatar_face_id(request.user),
         },
     )
+
+
+def _progress(user):
+    if not user.is_player:
+        return None
+    from gamification.services import scoring
+
+    return scoring.progress(user)
 
 
 @superadmin_required
@@ -188,7 +208,7 @@ def audit(request):
     if period not in audit_catalog.PERIODS:
         period = ""
     tab = params.get("tab", "history") if person else "history"
-    if tab not in ("history", "proposals", "votes"):
+    if tab not in ("history", "proposals", "votes", "points"):
         tab = "history"
 
     users = list(User.objects.order_by("username"))
@@ -207,8 +227,9 @@ def audit(request):
         context["summary"] = audit_catalog.summary(person)
         context["tab_urls"] = {
             name: f"{reverse('audit')}?user={person.pk}&tab={name}"
-            for name in ("history", "proposals", "votes")
+            for name in ("history", "proposals", "votes", "points")
         }
+        context["progress"] = _progress(person)
     if tab == "proposals":
         context.update(
             presenters.proposal_activity(
@@ -217,6 +238,15 @@ def audit(request):
         )
         context["clear_url"] = context["tab_urls"]["proposals"]
         context["empty_text"] = _("No ha hecho propuestas.")
+    elif tab == "points":
+        from gamification.models import ScoreEvent
+        from gamification.services.scoring import REASONS
+
+        events = ScoreEvent.objects.filter(user=person)
+        page = Paginator(events, 50).get_page(params.get("page"))
+        for event in page:
+            event.label = REASONS.get(event.reason, event.reason)
+        context["page"] = page
     elif tab == "votes":
         votes = (
             Vote.objects.filter(user=person)

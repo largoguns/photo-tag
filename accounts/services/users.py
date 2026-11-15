@@ -105,6 +105,101 @@ def link_person(actor, user, person):
     audit.log(actor, "user.link_person", user, person_id=getattr(person, "pk", None))
 
 
+@transaction.atomic
+def claim_person(user, person):
+    """«Soy yo»: the user identifies as a person of the album (instant, audited)."""
+    from catalog.models import Person
+
+    person = Person.objects.select_for_update().get(pk=person.pk)
+    if person.merged_into_id:
+        raise ValidationError(_("Esa persona ya no existe."))
+    if person.user_id and person.user_id != user.pk:
+        raise ValidationError(_("Esa persona ya está vinculada a otro usuario."))
+    Person.objects.filter(user=user).exclude(pk=person.pk).update(user=None)
+    person.user = user
+    person.save(update_fields=["user"])
+    user.avatar_face = None
+    user.save(update_fields=["avatar_face"])
+    audit.log(user, "user.claim_person", person)
+    return person
+
+
+@transaction.atomic
+def unclaim_person(user):
+    from catalog.models import Person
+
+    person = Person.objects.filter(user=user).first()
+    if person is None:
+        return
+    person.user = None
+    person.save(update_fields=["user"])
+    user.avatar_face = None
+    user.save(update_fields=["avatar_face"])
+    audit.log(user, "user.unclaim_person", person)
+
+
+def profile_faces(user):
+    """Faces the user may choose as profile photo: the active faces of their person."""
+    from catalog.models import Face
+
+    person = getattr(user, "person", None)
+    if person is None:
+        return Face.objects.none()
+    return (
+        Face.objects.filter(person=person, status=Face.Status.ACTIVE, photo__discarded=False)
+        .select_related("photo")
+        .order_by("-w", "pk")
+    )
+
+
+def set_profile_face(user, face_id):
+    face = profile_faces(user).filter(pk=face_id).first()
+    if face is None:
+        raise ValidationError(_("Esa cara no es tuya."))
+    user.avatar_face = face
+    user.save(update_fields=["avatar_face"])
+    audit.log(user, "user.profile_photo", user, face=face.pk)
+    return face
+
+
+def avatar_face_id(user):
+    """The user's avatar: their chosen face while valid, else their person's main photo."""
+    from catalog.services.avatars import avatar_face_id as person_avatar
+
+    person = getattr(user, "person", None)
+    if person is None:
+        return None
+    if user.avatar_face_id and profile_faces(user).filter(pk=user.avatar_face_id).exists():
+        return user.avatar_face_id
+    return person_avatar(person)
+
+
+def avatar_ids(users):
+    """{user_id: face_id} for many users at once (ranking, lists)."""
+    from catalog.models import Face, Person
+    from catalog.services.avatars import avatar_faces
+
+    people = dict(Person.objects.filter(user__in=users).values_list("user_id", "pk"))
+    main = avatar_faces(people.values())
+    chosen = {u.pk: u.avatar_face_id for u in users if u.avatar_face_id}
+    valid = set(
+        Face.objects.filter(
+            pk__in=chosen.values(),
+            status=Face.Status.ACTIVE,
+            person_id__in=people.values(),
+            photo__discarded=False,
+        ).values_list("pk", "person_id")
+    )
+    result = {}
+    for user_id, person_id in people.items():
+        face = chosen.get(user_id)
+        if face and (face, person_id) in valid:
+            result[user_id] = face
+        elif person_id in main:
+            result[user_id] = main[person_id]
+    return result
+
+
 def ensure_superadmin():
     """Create the initial superadmin from the environment if none exists. Returns it or None."""
     if User.objects.filter(role=Role.SUPERADMIN).exists():

@@ -40,15 +40,23 @@ def home(request):
     total = photos.count()
     cataloged = photos.filter(status=Photo.Status.CATALOGED).count()
     pending = presenters.with_tally(voting.pending_for_user(request.user), request.user)
+    percent = round(100 * cataloged / total) if total else 0
+    progress = None
+    if request.user.is_player:
+        from gamification.services import scoring
+
+        progress = scoring.progress(request.user)
     return render(
         request,
         "catalog/home.html",
         {
             "total": total,
             "cataloged": cataloged,
-            "percent": round(100 * cataloged / total) if total else 0,
+            "percent": percent,
+            "milestone": presenters.family_milestone(percent),
             "pending_count": pending.count(),
             "pending": pending.order_by("created_at")[:10],
+            "progress": progress,
         },
     )
 
@@ -192,6 +200,36 @@ def person_detail(request, pk):
     )
 
 
+@require_POST
+def person_claim(request, pk):
+    """«Soy yo»: the signed-in user identifies as this person."""
+    from accounts.services.users import claim_person
+
+    person = get_object_or_404(Person, pk=pk, merged_into__isnull=True)
+    try:
+        claim_person(request.user, person)
+    except ValidationError as exc:
+        messages.error(request, exc.messages[0])
+    else:
+        messages.success(
+            request,
+            _("Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil».")
+            % {"name": person.display_name},
+        )
+    return redirect("person_detail", pk=person.pk)
+
+
+@require_POST
+def person_unclaim(request, pk):
+    from accounts.services.users import unclaim_person
+
+    person = get_object_or_404(Person, pk=pk)
+    if person.user_id == request.user.pk:
+        unclaim_person(request.user)
+        messages.success(request, _("Ya no estás vinculado a %(name)s.") % {"name": person})
+    return redirect("person_detail", pk=person.pk)
+
+
 @admin_required
 @require_POST
 def person_rename(request, pk):
@@ -308,6 +346,8 @@ def propose_identity(request, face_pk):
             face=face,
             person=person,
             person_name=request.POST.get("name", ""),
+            # Chosen among the automatic suggestions: scores less (the AI helped).
+            value={"suggested": True} if request.POST.get("suggested") else None,
         ),
     )
 

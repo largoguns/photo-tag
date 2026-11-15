@@ -37,6 +37,7 @@
           <span>{{ user.get_role_display }}</span>
         </div>
         <a class="menu-item" href="{% url 'profile' %}">{% icon "person" %}<span>{% translate "Mi perfil" %}</span></a>
+        <a class="menu-item" href="{% url 'ranking' %}">{% icon "how_to_vote" %}<span>{% translate "Ranking" %}</span></a>
         {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_home' %}">{% icon "admin_panel_settings" %}<span>{% translate "Administración" %}</span></a>{% endif %}
         {% if user.is_catalog_admin and nav_scanner %}<a class="menu-item" href="{% url 'scan' %}">{% icon "photo_library" %}<span>{% translate "Escanear" %}</span></a>{% endif %}
         {% if user.is_superadmin %}<a class="menu-item" href="{% url 'user_list' %}">{% icon "manage_accounts" %}<span>{% translate "Usuarios" %}</span></a>{% endif %}
