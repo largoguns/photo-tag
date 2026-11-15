@@ -182,11 +182,25 @@ def process_file(path):
     sha = sha256_of(data)
     upload = uploads.pending_upload_for(sha)
     try:
-        return _process(path, data, sha, upload)
+        scan = _process(path, data, sha, upload)
     except Exception:
         if upload is not None:
             Upload.objects.filter(pk=upload.pk).update(status=Upload.Status.FAILED)
+            _notify_upload(upload)
         raise
+    if upload is not None:
+        _notify_upload(upload)
+    return scan
+
+
+def _notify_upload(upload):
+    """Tell whoever scanned it from the web that the result is ready (never fails)."""
+    from notifications.services.scans import notify_upload_finished
+
+    try:
+        notify_upload_finished(upload)
+    except Exception:
+        logger.exception("event=upload_notification_failed upload=%s", upload.pk)
 
 
 def _process(path, data, sha, upload):

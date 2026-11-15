@@ -59,6 +59,13 @@ self.addEventListener("fetch", (event) => {
 
 // --- Push notifications ----------------------------------------------------
 // Payload: {title, body, url, tag}. The text never contains people's names.
+// The scan screen already shows the result: skip the scan notification while it is on view.
+async function scanScreenVisible() {
+  const windows = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+  return windows.some((client) => client.visibilityState === "visible"
+    && new URL(client.url).pathname.startsWith("/admin/scan/"));
+}
+
 self.addEventListener("push", (event) => {
   let data = {};
   try {
@@ -66,16 +73,17 @@ self.addEventListener("push", (event) => {
   } catch (error) {
     data = { body: event.data ? event.data.text() : "" };
   }
-  event.waitUntil(
-    self.registration.showNotification(data.title || "PhotoTag", {
+  event.waitUntil((async () => {
+    if (data.tag === "phototag-scan" && await scanScreenVisible()) return;
+    await self.registration.showNotification(data.title || "PhotoTag", {
       body: data.body || "",
       icon: "{{ icon_url|escapejs }}",
       badge: "{{ badge_url|escapejs }}",
       tag: data.tag || "phototag",
       renotify: true,
       data: { url: data.url || "/" },
-    })
-  );
+    });
+  })());
 });
 
 self.addEventListener("notificationclick", (event) => {

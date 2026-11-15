@@ -38,6 +38,8 @@ class NotificationSettings(models.Model):
     new_photos = models.BooleanField(_("Fotos nuevas para catalogar"), default=True)
     pending_votes = models.BooleanField(_("Propuestas pendientes de mi voto"), default=True)
     resolved = models.BooleanField(_("Mis propuestas aceptadas o rechazadas"), default=True)
+    # Sent right away (no digest, no quiet hours): the user just asked for the scan.
+    scans = models.BooleanField(_("Mis escaneos terminados"), default=True)
     # Start "now" so a new user is not notified about the whole history.
     new_photos_sent_at = models.DateTimeField(default=timezone.now)
     pending_votes_sent_at = models.DateTimeField(default=timezone.now)
