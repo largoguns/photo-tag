@@ -15,6 +15,8 @@ x-app: &app
     VAPID_PUBLIC_KEY: ${VAPID_PUBLIC_KEY:-}
     VAPID_PRIVATE_KEY: ${VAPID_PRIVATE_KEY:-}
     VAPID_SUBJECT: ${VAPID_SUBJECT:-mailto:admin@example.com}
+    # Network scanner (eSCL), e.g. http://192.168.1.50/eSCL. Empty hides "Scan".
+    SCANNER_URL: ${SCANNER_URL:-}
   depends_on:
     db:
       condition: service_healthy

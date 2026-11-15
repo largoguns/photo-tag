@@ -212,6 +212,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
    - **Zoom de la galería**: pellizcar (o Ctrl + rueda en escritorio) cambia el tamaño de las filas, como en Google Photos; cada dispositivo recuerda el tamaño.
    - **Compartir**: en la galería, el modo selección (botón «Seleccionar» o pulsación larga) muestra la barra «N seleccionadas · Compartir · Descargar». En la vista de foto, un botón «Compartir». Se usa la hoja de compartir del dispositivo con los ficheros originales (Web Share API); sin ella, se descarga el JPG o un ZIP (máximo `SHARE_MAX_PHOTOS`, 20). Compartir y descargar quedan en la auditoría.
+   - **Escanear** (solo administradores, si `SCANNER_URL` está configurada): «¿Todo listo para escanear?», resolución 300/600 ppp (600 por defecto) y botón «Escanear». El `worker` escanea por red con SANE (`sane-airscan`, protocolo eSCL/AirScan, p. ej. HP DeskJet 2700), guarda un PNG sin pérdida en `inbox` y registra un `Upload` de tipo escaneo, de modo que el procesado habitual lo recorta y lo atribuye. La pantalla muestra el progreso, el resultado (miniaturas de los recortes) y vuelve a preguntar. Un solo escaneo a la vez (`ScanJob`); errores comprensibles (impresora apagada, ocupada, no encontrada). Diagnóstico: `python manage.py scanner_check`.
    - **Girar**: cualquier usuario puede girar una foto 90° desde su vista. El giro lo aplica el `worker` en unos segundos (fichero, miniaturas y recuadros de cara) y se mantiene al reprocesar el escaneo.
 4. **Vista de foto** (pantalla principal):
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
@@ -246,6 +247,7 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 - **Resumen agrupado**: el `worker` revisa cada `NOTIFY_POLL_MINUTES` (10) lo ocurrido desde el último aviso de cada tipo y envía como mucho uno por tipo cada `NOTIFY_MIN_INTERVAL_MINUTES` (60). En las horas de silencio `NOTIFY_QUIET_HOURS` (`22-9`, zona `TZ`) no se envía nada; lo acumulado se avisa al terminar.
 - Al activar los avisos no se notifica el histórico anterior.
 - Textos genéricos, sin nombres de personas, en el idioma con el que se suscribió cada dispositivo. Al tocar el aviso se abre la pantalla correspondiente (siguiente foto sin catalogar, galería «pendientes de mi voto» o «Mi actividad»).
+- **Escaneos terminados** (preferencia «Mis escaneos terminados», activada por defecto): quien pulsa «Escanear» recibe un aviso **inmediato**, sin agrupar ni horas de silencio, cuando el escaneo ya está procesado («4 fotos listas del escaneo de las 13:10», que abre la primera foto), si era un duplicado o si falló (con el motivo, abre la pantalla de escaneo). No se muestra si la pantalla de escaneo está a la vista, porque ya enseña el resultado.
 - Las suscripciones caducadas (respuesta 404/410 del servicio push) se eliminan. Sin claves VAPID configuradas la función queda desactivada.
 - Envío con `pywebpush`. Las claves se generan con `python manage.py generate_vapid_keys`.
 
@@ -305,6 +307,8 @@ Las rutas reales en el host se definen con variables (`HOST_SCANS_DIR`, `HOST_PH
 | `DUPLICATE_MAX_DISTANCE` | worker | `6` |
 | `ROTATION_POLL_SECONDS` | worker | `5` |
 | `SHARE_MAX_PHOTOS` | web | `20` |
+| `SCANNER_URL` | web, worker | `http://192.168.1.50/eSCL` (vacía = sin escaneo) |
+| `SCAN_TIMEOUT_SECONDS` | worker | `300` |
 | `TS_AUTHKEY` | tailscale | — (solo en el primer arranque) |
 | `TS_HOSTNAME` | tailscale | `phototag` |
 | `POLL_INTERVAL_SECONDS` | worker | `60` |

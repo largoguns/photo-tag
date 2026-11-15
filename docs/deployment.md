@@ -252,6 +252,20 @@ Immich sigue en su propio stack; solo necesita leer la carpeta `export`:
 
 ---
 
+## 7b. Escanear desde PhotoTag (escáner de red)
+
+Si tu impresora multifunción escanea por red con **eSCL/AirScan** (la HP DeskJet 2700 series lo hace), un administrador puede escanear desde **Administración → Escanear**: coloca las fotos en el cristal, pulsa **Escanear** y el NAS recibe la imagen y la procesa. Funciona desde el móvil junto a la impresora; tu PC no interviene.
+
+1. **IP fija para la impresora**: en el router, reserva por DHCP la IP actual de la impresora (por ejemplo `192.168.18.46`) para que no cambie.
+2. **Comprueba que responde**: abre en un navegador de tu red `http://192.168.18.46/eSCL/ScannerCapabilities`. Debe mostrar un XML con `DeskJet 2700`. La primera petición puede tardar o fallar si la impresora estaba en reposo: recarga. Si no responde nunca, activa **Webscan** en el panel web de la impresora (la misma IP en el navegador).
+3. **Variable en Portainer**: `SCANNER_URL=http://192.168.18.46/eSCL` → **Update the stack**.
+4. **Diagnóstico**: Portainer → `phototag-worker-1` → **Console** → `python manage.py scanner_check`. Debe listar `airscan:e0:PhotoTag` y sus resoluciones, y terminar con `Scanner reachable`.
+5. Ya aparece **Escanear** en Administración y en el menú del avatar de los administradores.
+
+Los escaneos se guardan en PNG sin pérdida (unos 25–45 MB por A4 a 600 ppp) en `scans/processed`, como cualquier escaneo.
+
+---
+
 ## 8. Actualizar PhotoTag
 
 Cuando haya cambios en `main`:
@@ -308,5 +322,7 @@ docker exec -i phototag-db-1 pg_restore -U phototag -d phototag --clean --if-exi
 | «Este navegador no admite avisos» | Navegador sin Web Push o iPhone sin la app instalada | En iPhone, instala la app y actívalos desde ella. En Android, usa Chrome. |
 | La prueba de avisos falla | Claves VAPID vacías o mal copiadas, o el `worker`/`web` sin salida a internet | Revisa las variables `VAPID_*` (sin espacios ni comillas) y los logs de `worker` (`event=push_failed`). |
 | No llegan los resúmenes | Horas de silencio, intervalo de una hora o el tipo desactivado | Es lo esperado: comprueba las casillas de la tarjeta «Avisos» y `NOTIFY_QUIET_HOURS`. |
+| «La impresora no responde» al escanear | Impresora apagada, en reposo profundo o fuera de la WiFi | Enciéndela, comprueba el icono de WiFi y que `http://IP/eSCL/ScannerCapabilities` responde; ejecuta `scanner_check` en el worker. |
+| «No se encuentra el escáner» | `SCANNER_URL` mal escrita o la IP cambió | Revisa la reserva de IP en el router y la variable (debe terminar en `/eSCL`). |
 | El móvil no ofrece instalar la app | No es HTTPS, o el aviso se descartó | Abre siempre `https://…`; en Android usa menú ⋮ → Instalar; en iPhone, Safari → Compartir. Para volver a ver el aviso, borra los datos del sitio. |
 | Las fotos exportadas no aparecen en Immich | La biblioteca externa no se ha reescaneado | Immich → Bibliotecas externas → *Scan*. |

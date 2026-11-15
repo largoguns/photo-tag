@@ -60,6 +60,7 @@ Cada usuario puede activar avisos push en «Mi perfil»: fotos nuevas para catal
 ## Uso
 
 - **Escanear**: deja los escaneos (JPG, PNG o TIFF) en `scans/inbox`. El worker los procesa en menos de un minuto y mueve el original a `scans/processed` (nunca se borra).
+- **Escanear desde la app** (administradores): con una impresora de red eSCL/AirScan configurada en `SCANNER_URL`, **Administración → Escanear** escanea y envía al procesado; ver [docs/deployment.md](docs/deployment.md), sección 7b.
 - **Subir desde la app**: cualquier usuario puede pulsar **Subir** (botón flotante en Inicio y Galería) y elegir «Escaneo con varias fotos» o «Foto suelta». Los ficheros van a `scans/inbox` y el worker los procesa igual que los escaneos de la carpeta.
 - **Fotos de lado o boca abajo**: el procesado las endereza solo cuando tienen caras. Si no, pulsa **Girar** en la vista de la foto.
 - **Duplicados**: un reescaneo o una copia recomprimida de una foto ya existente aparece en la cola de revisión como «posible duplicado». Para revisar las fotos ya procesadas, ejecuta `python manage.py find_duplicates` en el worker.
