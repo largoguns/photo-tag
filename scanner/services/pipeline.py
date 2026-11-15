@@ -218,7 +218,9 @@ def _process(path, data, sha, upload):
 
     started = time.monotonic()
     single = upload is not None and upload.kind == Upload.Kind.SINGLE
-    processed, reasons = analyse(decode_image(data), single=single)
+    image = decode_image(data)
+    processed, reasons = analyse(image, single=single)
+    images.save_preview(image, sha)  # context around each photo in the crop editor
     names = _write_files(sha, processed)
     target = _unique_destination(Path(settings.SCANS_PROCESSED_DIR), path.name, sha)
     created = []
@@ -230,6 +232,8 @@ def _process(path, data, sha, upload):
                 needs_review=bool(reasons),
                 review_reasons=reasons,
                 uploaded_by=upload.user if upload else None,
+                width=image.shape[1],
+                height=image.shape[0],
             )
             if upload is not None:
                 Upload.objects.filter(pk=upload.pk).update(
@@ -367,13 +371,53 @@ def _refresh_faces(photo, old_size, detected):
     _create_faces(photo, fresh)
 
 
+def _inside(point, rect):
+    """Is `point` inside the rotated rectangle `rect` (crop_rect dict)?"""
+    r = math.radians(-rect["angle"])
+    dx, dy = point[0] - rect["cx"], point[1] - rect["cy"]
+    u = dx * math.cos(r) - dy * math.sin(r)
+    v = dx * math.sin(r) + dy * math.cos(r)
+    return abs(u) <= rect["w"] / 2 and abs(v) <= rect["h"] / 2
+
+
+def _manual_item(image, photo):
+    """Processed photo rebuilt from a crop fixed by hand (turned later, like the others)."""
+    from scanner.services.recrop import cut, inset
+
+    rect = photo.crop_rect
+    crop_image = cut(image, rect, inset(photo), 0)
+    crop = cropping.Crop(
+        image=crop_image,
+        center=(rect["cx"], rect["cy"]),
+        size=(rect["w"], rect["h"]),
+        angle=rect["angle"],
+    )
+    return ProcessedPhoto(crop=crop, faces=_detect(crop_image), rotation=0)
+
+
 def reprocess(scan):
     """Re-run cropping for a known scan, preserving photos (and their votes) that still exist."""
     source = _source_file(scan)
     single = scan.uploads.filter(kind=Upload.Kind.SINGLE).exists()
-    processed, reasons = analyse(decode_image(source.read_bytes()), single=single)
+    image = decode_image(source.read_bytes())
+    processed, reasons = analyse(image, single=single)
+    images.save_preview(image, scan.sha256)
+    scan.width, scan.height = image.shape[1], image.shape[0]
     old_photos = list(scan.photos.all())
-    matches, unmatched = _match_photos(old_photos, processed)
+    # Crops fixed by hand are kept as they are; automatic crops over them are dropped.
+    manual = [p for p in old_photos if p.crop_manual and p.crop_rect.get("w")]
+    processed = [
+        item
+        for item in processed
+        if not any(_inside(item.crop.center, p.crop_rect) for p in manual)
+    ]
+    matches, unmatched = _match_photos([p for p in old_photos if p not in manual], processed)
+    pairs = list(zip(processed, matches, strict=True))
+    pairs += [(_manual_item(image, p), p) for p in manual]
+    rects = [(item.crop.center, item.crop.size, item.crop.angle) for item, _ in pairs]
+    by_rect = {id(rect): pair for rect, pair in zip(rects, pairs, strict=True)}
+    ordered = [by_rect[id(rect)] for rect in cropping.reading_order(rects)]
+    processed, matches = [p[0] for p in ordered], [p[1] for p in ordered]
     # Kept photos keep their current orientation (it may have been fixed by hand).
     for item, old in zip(processed, matches, strict=True):
         if old is not None:

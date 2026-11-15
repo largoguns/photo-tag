@@ -15,6 +15,9 @@ class Scan(models.Model):
     # Codes such as {"code": "photo_count", "count": 7}; translated when displayed.
     review_reasons = models.JSONField(default=list, blank=True)
     reviewed = models.BooleanField(_("revisado"), default=False)
+    # Size of the original scan; filled when its preview for the crop editor is made.
+    width = models.PositiveIntegerField(null=True, blank=True)
+    height = models.PositiveIntegerField(null=True, blank=True)
     uploaded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -82,6 +85,12 @@ class Photo(models.Model):
     # Clockwise degrees (0/90/180/270) already applied to the file, and still to apply.
     rotation = models.PositiveSmallIntegerField(_("giro aplicado"), default=0)
     pending_rotation = models.PositiveSmallIntegerField(_("giro pendiente"), default=0)
+    # Crop requested from the editor ({cx, cy, w, h, angle} in scan pixels), applied by
+    # the worker. Once applied, crop_manual keeps it when the scan is reprocessed.
+    pending_crop = models.JSONField(null=True, blank=True)
+    crop_manual = models.BooleanField(_("recorte manual"), default=False)
+    # Bumped whenever the image file changes (rotation, crop): busts browser caches.
+    image_version = models.PositiveIntegerField(default=0)
     # Perceptual hash (dHash, 64 bits as hex) to spot re-scans and recompressed copies.
     phash = models.CharField(max_length=16, blank=True, db_index=True)
     duplicate_of = models.ForeignKey(

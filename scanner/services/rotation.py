@@ -55,6 +55,7 @@ def _apply(photo):
         photo.width, photo.height = height, width
     photo.rotation = (photo.rotation + degrees) % 360
     photo.pending_rotation = 0
+    photo.image_version += 1
     photo.phash = dedupe.dhash(rotated)
     photo.catalog_changed_at = timezone.now()  # re-export with the new orientation
     photo.save(
@@ -63,6 +64,7 @@ def _apply(photo):
             "height",
             "rotation",
             "pending_rotation",
+            "image_version",
             "phash",
             "catalog_changed_at",
         ]

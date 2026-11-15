@@ -57,3 +57,28 @@ def delete_photo_files(file_name):
         thumb_path(file_name, size) for size in settings.THUMBNAIL_SIZES
     ]:
         path.unlink(missing_ok=True)
+
+
+PREVIEW_SIDE = 2000
+
+
+def preview_path(sha256):
+    """Reduced copy of a whole scan, shown around a photo in the crop editor."""
+    return Path(settings.PHOTOS_DIR) / "previews" / f"{sha256}.jpg"
+
+
+def save_preview(image, sha256):
+    height, width = image.shape[:2]
+    scale = min(1.0, PREVIEW_SIDE / max(height, width))
+    if scale < 1.0:
+        size = (round(width * scale), round(height * scale))
+        image = cv2.resize(image, size, interpolation=cv2.INTER_AREA)
+    path = preview_path(sha256)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    ok, buffer = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 85])
+    if not ok:
+        raise OSError(f"Could not encode the preview of {sha256[:12]}")
+    tmp = path.with_suffix(".tmp")
+    tmp.write_bytes(buffer.tobytes())
+    tmp.replace(path)
+    return path
