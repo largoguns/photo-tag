@@ -9,11 +9,18 @@ def navigation(request):
     if user is None or not user.is_authenticated:
         return {"nav_shell": False}
     avatar_face = avatar_face_id(user)
+    level = None
+    if user.is_player:
+        from gamification.services.levels import level_for
+        from gamification.services.scoring import total
+
+        level = level_for(total(user))
     push_key = settings.VAPID_PUBLIC_KEY if settings.VAPID_PRIVATE_KEY else ""
     return {
         # Navigation is hidden until the generic password has been replaced.
         "nav_shell": not user.must_change_password,
         "nav_avatar_face_id": avatar_face,
+        "nav_level": level,  # belt ring around the avatar (collaborators only)
         "nav_initial": (user.get_display_name()[:1] or "?").upper(),
         "nav_push_key": push_key,
         "nav_scanner": bool(settings.SCANNER_URL),

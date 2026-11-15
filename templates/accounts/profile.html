@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load i18n catalog_tags %}
+{% extends "base.html" %}{% load i18n catalog_tags gamification_tags %}
 {% block title %}{% translate "Mi perfil" %}{% endblock %}
 {% block content %}
 {% get_current_language as CURRENT_LANGUAGE %}{% get_language_info for CURRENT_LANGUAGE as current_language %}
@@ -7,7 +7,7 @@
   <div class="settings-layout">
     <aside class="settings-aside">
       <header class="profile-header">
-        {% if nav_avatar_face_id %}<img class="profile-avatar" src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="72" height="72">{% else %}<span class="profile-avatar" aria-hidden="true">{{ nav_initial }}</span>{% endif %}
+        {% if progress %}<span {% level_ring progress.level %}>{% endif %}{% if nav_avatar_face_id %}<img class="profile-avatar" src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="72" height="72">{% else %}<span class="profile-avatar" aria-hidden="true">{{ nav_initial }}</span>{% endif %}{% if progress %}</span>{% endif %}
         <div class="profile-identity">
           <strong>{{ user.get_display_name }}</strong>
           <span class="muted">@{{ user.username }} · {{ user.get_role_display }}</span>

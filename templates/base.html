@@ -1,4 +1,4 @@
-{% load static i18n catalog_tags %}<!doctype html>
+{% load gamification_tags static i18n catalog_tags %}<!doctype html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}"{% if user.is_authenticated and user.theme != "auto" %} data-theme="{{ user.theme }}"{% endif %}>
 <head>
@@ -29,7 +29,7 @@
     <a class="brand" href="{% url 'home' %}"><img src="{% static 'img/icons/icon-192.png' %}" alt="" width="32" height="32"><span>PhotoTag</span></a>
     <details class="user-menu">
       <summary class="avatar-button" aria-label="{% blocktranslate with name=user.get_display_name %}Menú de {{ name }}{% endblocktranslate %}">
-        {% if nav_avatar_face_id %}<img src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="40" height="40">{% else %}<span class="avatar-initial" aria-hidden="true">{{ nav_initial }}</span>{% endif %}
+        {% if nav_level %}<span {% level_ring nav_level %}>{% endif %}{% if nav_avatar_face_id %}<img src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="40" height="40">{% else %}<span class="avatar-initial" aria-hidden="true">{{ nav_initial }}</span>{% endif %}{% if nav_level %}</span>{% endif %}
       </summary>
       <div class="menu">
         <div class="menu-header">

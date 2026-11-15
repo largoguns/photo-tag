@@ -837,3 +837,29 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .ranking-row .list-main { min-width: 0; flex: 1; }
 .podium { max-width: 560px; margin-left: auto; margin-right: auto; }
 .ranking-list { max-width: 720px; margin-left: auto; margin-right: auto; }
+
+/* Belt ring: one colour per level (martial-arts style), the next one filling clockwise. */
+:root {
+  --belt-1: #d9dce3; /* white */
+  --belt-2: #f2c200; /* yellow */
+  --belt-3: #f08a1c; /* orange */
+  --belt-4: #2f9e55; /* green */
+  --belt-5: #2468d6; /* blue */
+  --belt-6: #7b4a2b; /* brown */
+  --belt-7: #1c1b1f; /* black */
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --belt-1: #f1f1f4; --belt-7: #050506; }
+}
+:root[data-theme="dark"] { --belt-1: #f1f1f4; --belt-7: #050506; }
+.level-ring {
+  --ring: 3px;
+  position: relative; display: inline-grid; place-items: center; flex: none; border-radius: 50%;
+  padding: var(--ring);
+  background: conic-gradient(var(--next) calc(var(--p) * 1%), var(--current) 0);
+  box-shadow: 0 0 0 1px var(--md-outline-variant);
+}
+.level-ring > img, .level-ring > span { border: 2px solid var(--md-surface); }
+.avatar-button .level-ring { --ring: 2px; }
+.avatar-button .level-ring > img, .avatar-button .level-ring > .avatar-initial { width: 34px; height: 34px; }
+.podium-step .level-ring, .profile-header .level-ring { --ring: 4px; }
