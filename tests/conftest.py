@@ -90,9 +90,13 @@ def synthetic_scan(specs, size=(1754, 1240), seed=0):
         box = cv2.boxPoints((center, rect_size, angle)).astype(np.int32)
         color = [int(c) for c in rng.integers(30, 190, 3)]
         cv2.fillPoly(page, [box], color)
-        # Some texture so photos are not flat colour.
-        cx, cy = int(center[0]), int(center[1])
-        cv2.circle(page, (cx, cy), int(min(rect_size) / 5), [255 - c for c in color], -1)
+        # A different composition per photo (blobs at random spots), like real pictures.
+        radius = int(min(rect_size) / 6)
+        for _ in range(3):
+            dx, dy = (rng.uniform(-0.3, 0.3, 2) * np.array(rect_size)).astype(int)
+            cx, cy = int(center[0]) + int(dx), int(center[1]) + int(dy)
+            shade = [int(c) for c in rng.integers(0, 150, 3)]
+            cv2.circle(page, (cx, cy), radius, shade, -1)
     return page
 
 

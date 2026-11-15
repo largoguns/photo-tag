@@ -16,7 +16,7 @@ from django.utils import timezone
 
 from catalog.models import Face, Photo, Scan, Upload
 from catalog.services.voting import refresh_photo_status
-from scanner.services import cropping, embeddings, faces, images, uploads
+from scanner.services import cropping, dedupe, embeddings, faces, images, orientation, uploads
 
 logger = logging.getLogger("scanner")
 
@@ -35,6 +35,7 @@ class ScanError(Exception):
 class ProcessedPhoto:
     crop: cropping.Crop
     faces: list[faces.DetectedFace]
+    rotation: int = 0  # clockwise degrees applied to fix a sideways/upside-down photo
 
 
 def sha256_of(data):
@@ -99,16 +100,53 @@ def analyse(image, single=False):
         result = cropping.split_scan(
             image, min_area_ratio=settings.MIN_PHOTO_AREA_RATIO, inset=settings.CROP_INSET_PX
         )
-    processed = [
-        ProcessedPhoto(
-            crop=crop,
-            faces=faces.detect_faces(
-                crop.image, settings.YUNET_MODEL_PATH, settings.FACE_SCORE_THRESHOLD
-            ),
+    reasons = list(result.review_reasons)
+    processed = []
+    for crop in result.crops:
+        found = orientation.detect_rotation(crop.image)
+        if found.degrees:
+            crop.image = orientation.rotate(crop.image, found.degrees)
+        if found.uncertain and {"code": "orientation"} not in reasons:
+            reasons.append({"code": "orientation"})
+        processed.append(
+            ProcessedPhoto(crop=crop, faces=_detect(crop.image), rotation=found.degrees)
         )
-        for crop in result.crops
+    return processed, reasons
+
+
+def _detect(image):
+    return faces.detect_faces(image, settings.YUNET_MODEL_PATH, settings.FACE_SCORE_THRESHOLD)
+
+
+def _reorient(item, degrees):
+    """Rotate a processed photo to an absolute orientation (e.g. a manual one to keep)."""
+    delta = (degrees - item.rotation) % 360
+    if delta:
+        item.crop.image = orientation.rotate(item.crop.image, delta)
+        item.faces = _detect(item.crop.image)
+        item.rotation = degrees % 360
+
+
+def _fingerprint(photo, image):
+    """Store the perceptual hash; return the id of an earlier near-identical photo, if any."""
+    photo.phash = dedupe.dhash(image)
+    duplicate = dedupe.find_duplicate(dedupe.hash_variants(image), exclude_pk=photo.pk)
+    if duplicate and not photo.duplicate_of_id:
+        photo.duplicate_of_id = duplicate
+    Photo.objects.filter(pk=photo.pk).update(phash=photo.phash, duplicate_of=photo.duplicate_of_id)
+    return duplicate
+
+
+def _flag_duplicates(scan, duplicates):
+    reasons = [
+        r for r in scan.review_reasons if not (isinstance(r, dict) and r.get("code") == "duplicate")
     ]
-    return processed, result.review_reasons
+    reasons += [{"code": "duplicate", "photo": pk} for pk in duplicates]
+    if duplicates:
+        Scan.objects.filter(pk=scan.pk).update(
+            needs_review=True, reviewed=False, review_reasons=reasons
+        )
+        scan.needs_review, scan.review_reasons = True, reasons
 
 
 def _write_files(sha, processed):
@@ -192,9 +230,12 @@ def _process(path, data, sha, upload):
                     height=item.crop.image.shape[0],
                     angle=round(item.crop.angle, 2),
                     crop_rect=item.crop.rect,
+                    rotation=item.rotation,
                 )
                 _create_faces(photo, item.faces)
                 created.append((item.crop.image, photo))
+            duplicates = [d for image, photo in created if (d := _fingerprint(photo, image))]
+            _flag_duplicates(scan, duplicates)
     except Exception:
         for name in names:
             images.delete_photo_files(name)
@@ -319,6 +360,10 @@ def reprocess(scan):
     processed, reasons = analyse(decode_image(source.read_bytes()), single=single)
     old_photos = list(scan.photos.all())
     matches, unmatched = _match_photos(old_photos, processed)
+    # Kept photos keep their current orientation (it may have been fixed by hand).
+    for item, old in zip(processed, matches, strict=True):
+        if old is not None:
+            _reorient(item, old.rotation)
 
     for old in old_photos:
         images.delete_photo_files(old.file_name)
@@ -344,6 +389,7 @@ def reprocess(scan):
                     height=height,
                     angle=round(item.crop.angle, 2),
                     crop_rect=item.crop.rect,
+                    rotation=item.rotation,
                 )
                 _create_faces(photo, item.faces)
                 refreshed.append((item.crop.image, photo))
@@ -363,6 +409,8 @@ def reprocess(scan):
         scan.reviewed = False
         scan.processed_at = now
         scan.save()
+        duplicates = [d for image, photo in refreshed if (d := _fingerprint(photo, image))]
+        _flag_duplicates(scan, duplicates)
 
     _embed_photos(refreshed)
     logger.info(
