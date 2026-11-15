@@ -3,7 +3,6 @@
 {% block main_class %}container wide{% endblock %}
 {% block content %}
 {% include "catalog/_photo_workspace.html" %}
-<datalist id="person-names">
-  {% for name in person_names %}<option value="{{ name }}">{% endfor %}
-</datalist>
+{{ people_json|json_script:"people-data" }}
+<template id="combobox-create-template">{% translate "Crear «%s»" %}</template>
 {% endblock %}

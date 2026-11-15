@@ -5,6 +5,8 @@
     <div class="photo-frame" id="photo-frame"
          style="aspect-ratio: {{ photo.width }} / {{ photo.height }}"
          data-width="{{ photo.width }}" data-height="{{ photo.height }}"
+         data-full-url="{% url 'photo_image' photo.pk 'full' %}"
+         title="{% translate 'Toca la foto para verla a pantalla completa' %}"
          {% if prev_photo %}data-prev-url="{% url 'photo_detail' prev_photo.pk %}"{% endif %}
          {% if next_photo %}data-next-url="{% url 'photo_detail' next_photo.pk %}"{% endif %}>
       <img src="{% url 'photo_image' photo.pk 1600 %}"
@@ -22,6 +24,32 @@
       <div class="draw-rect" hidden></div>
     </div>
 
+    <dialog class="viewer" id="photo-viewer" aria-label="{% translate 'Foto a pantalla completa' %}">
+      <div class="viewer-stage" data-viewer-stage>
+        <div class="viewer-content" data-viewer-content>
+          <img src="{% url 'photo_image' photo.pk 1600 %}" alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}" width="{{ photo.width }}" height="{{ photo.height }}" draggable="false">
+          <div class="viewer-faces">
+            {% for face in faces %}
+            <button type="button" class="viewer-face{% if face.person %} known{% endif %}" data-face="{{ face.pk }}"
+                    style="left: {{ face.box.left|css_num }}%; top: {{ face.box.top|css_num }}%; width: {{ face.box.width|css_num }}%; height: {{ face.box.height|css_num }}%;"
+                    aria-label="{% blocktranslate with number=face.number %}Cara {{ number }}{% endblocktranslate %}{% if face.person %}: {{ face.person }}{% endif %}">
+              <span>{{ face.number }}{% if face.person %} · {{ face.person }}{% endif %}</span>
+            </button>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      <div class="viewer-toolbar">
+        <button type="button" class="button icon-only" data-viewer="close" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button>
+        <span class="spacer"></span>
+        {% if faces %}<button type="button" class="button" data-viewer="faces" aria-pressed="false">{% icon "face" %}<span>{% translate "Mostrar caras" %}</span></button>{% endif %}
+      </div>
+      <div class="viewer-zoom">
+        <button type="button" class="button icon-only" data-viewer="zoom-in" aria-label="{% translate 'Acercar' %}">{% icon "zoom_in" %}</button>
+        <button type="button" class="button icon-only" data-viewer="zoom-out" aria-label="{% translate 'Alejar' %}">{% icon "zoom_out" %}</button>
+      </div>
+    </dialog>
+
     <form id="add-face-form" class="draw-form card" method="post" action="{% url 'propose_add_face' photo.pk %}" hx-post="{% url 'propose_add_face' photo.pk %}" hidden>
       {% csrf_token %}
       <input type="hidden" name="x"><input type="hidden" name="y"><input type="hidden" name="w"><input type="hidden" name="h">
@@ -33,10 +61,11 @@
     </form>
 
     <div class="photo-toolbar">
-      {% if prev_photo %}<a class="button" href="{% url 'photo_detail' prev_photo.pk %}" rel="prev" aria-label="{% translate 'Foto anterior' %}">←<span class="hide-sm"> {% translate "Anterior" %}</span></a>{% else %}<span class="button disabled" aria-hidden="true">←</span>{% endif %}
-      <button type="button" class="button" data-action="draw-face" aria-pressed="false">✚ {% translate "Dibujar cara" %}</button>
-      <a class="button primary" href="{% url 'next_uncataloged' %}?after={{ photo.pk }}">{% translate "Sin catalogar" %} →</a>
-      {% if next_photo %}<a class="button" href="{% url 'photo_detail' next_photo.pk %}" rel="next" aria-label="{% translate 'Foto siguiente' %}"><span class="hide-sm">{% translate "Siguiente" %} </span>→</a>{% else %}<span class="button disabled" aria-hidden="true">→</span>{% endif %}
+      {% if prev_photo %}<a class="button icon-only" href="{% url 'photo_detail' prev_photo.pk %}" rel="prev" aria-label="{% translate 'Foto anterior' %}" title="{% translate 'Foto anterior' %}">{% icon "chevron_left" %}</a>{% else %}<span class="button icon-only disabled" aria-hidden="true">{% icon "chevron_left" %}</span>{% endif %}
+      <button type="button" class="button grow" data-action="draw-face" aria-pressed="false" aria-label="{% translate 'Dibujar cara' %}" title="{% translate 'Dibujar cara' %}">{% icon "draw" %}<span class="label">{% translate "Dibujar cara" %}</span></button>
+      <button type="button" class="button grow" data-action="open-viewer" aria-label="{% translate 'Pantalla completa' %}" title="{% translate 'Pantalla completa' %}">{% icon "fullscreen" %}<span class="label">{% translate "Ampliar" %}</span></button>
+      <a class="button primary grow" href="{% url 'next_uncataloged' %}?after={{ photo.pk }}" aria-label="{% translate 'Siguiente sin catalogar' %}" title="{% translate 'Siguiente sin catalogar' %}">{% icon "skip_next" %}<span class="label">{% translate "Sin catalogar" %}</span></a>
+      {% if next_photo %}<a class="button icon-only" href="{% url 'photo_detail' next_photo.pk %}" rel="next" aria-label="{% translate 'Foto siguiente' %}" title="{% translate 'Foto siguiente' %}">{% icon "chevron_right" %}</a>{% else %}<span class="button icon-only disabled" aria-hidden="true">{% icon "chevron_right" %}</span>{% endif %}
     </div>
     <p class="draw-hint muted" hidden>{% translate "Arrastra sobre la foto para dibujar el recuadro de la cara." %}</p>
   </section>
@@ -88,7 +117,12 @@
           <input type="hidden" name="selected_face" value="{{ face.pk }}">
           <label for="name-{{ face.pk }}">{% if face.person or face.identity_proposals %}{% translate "Proponer otro nombre" %}{% else %}{% translate "¿Quién es?" %}{% endif %}</label>
           <div class="input-row">
-            <input type="text" id="name-{{ face.pk }}" name="name" list="person-names" autocomplete="off" required placeholder="{% translate 'Nombre y apellidos' %}">
+            <div class="combobox">
+              <input type="text" id="name-{{ face.pk }}" name="name" autocomplete="off" required
+                     role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="name-{{ face.pk }}-list"
+                     data-person-combobox placeholder="{% translate 'Nombre y apellidos' %}">
+              <ul class="combobox-list" id="name-{{ face.pk }}-list" role="listbox" hidden></ul>
+            </div>
             <button type="submit" class="button primary">{% translate "Proponer" %}</button>
           </div>
         </form>
