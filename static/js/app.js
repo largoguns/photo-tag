@@ -1230,6 +1230,8 @@
   // --- Crop editor: move the edges over the original scan and straighten -------------
   // Same geometry as scanner/services/recrop.py: view = photo as shown (already turned);
   // scan point = centre + R(angle)·(u, v) with (u, v) relative to the crop centre.
+  // Perspective mode instead shows the whole original (turned like the photo) with four
+  // free corners, kept in scan pixels and in on-screen order (TL, TR, BR, BL).
   function initCropEditor(root) {
     const data = JSON.parse(document.getElementById("crop-data").textContent);
     const canvas = root.querySelector("[data-crop-canvas]");
@@ -1248,6 +1250,14 @@
     let base = { ...box }; // box chosen by hand; straightening shrinks a copy of it
     let view = { k: 1, ox: 0, oy: 0 };
     let drag = null;
+    const SW = data.scanWidth || image.naturalWidth, SH = data.scanHeight || image.naturalHeight;
+    const TW = r % 180 ? SH : SW, TH = r % 180 ? SW : SH; // the original, turned
+    const initialQuad = data.quad ? data.quad.map((p) => [...p]) : [[0, 0], [SW, 0], [SW, SH], [0, SH]];
+    let quad = initialQuad.map((p) => [...p]);
+    let full = { k: 1, ox: 0, oy: 0 };
+    let mode = root.dataset.mode === "quad" ? "quad" : "box";
+    const badQuad = root.querySelector("[data-crop-bad-quad]");
+    const detectNone = root.querySelector("[data-crop-detect-none]");
 
     const angle = () => data.angle + Number(slider.value);
     const rad = (deg) => (deg * Math.PI) / 180;
@@ -1285,10 +1295,111 @@
       canvas.height = Math.round(height * dpr);
       const k = Math.min(width / (W + 2 * margin), height / (H + 2 * margin));
       view = { k, ox: (width - k * W) / 2, oy: (height - k * H) / 2, dpr, width, height };
+      const pad = 16;
+      const kf = Math.min((width - 2 * pad) / TW, (height - 2 * pad) / TH);
+      full = { k: kf, ox: (width - kf * TW) / 2, oy: (height - kf * TH) / 2 };
       draw();
     }
 
-    function draw() {
+    // --- Perspective mode -----------------------------------------------------------
+    function turnScan(X, Y) {
+      if (r === 90) return [SH - Y, X];
+      if (r === 180) return [SW - X, SH - Y];
+      if (r === 270) return [Y, SW - X];
+      return [X, Y];
+    }
+
+    function unturnScan(tx, ty) {
+      if (r === 90) return [ty, SH - tx];
+      if (r === 180) return [SW - tx, SH - ty];
+      if (r === 270) return [SW - ty, tx];
+      return [tx, ty];
+    }
+
+    const toCanvas = ([X, Y]) => { const [tx, ty] = turnScan(X, Y); return [full.ox + tx * full.k, full.oy + ty * full.k]; };
+    const fromCanvas = (cx, cy) => unturnScan((cx - full.ox) / full.k, (cy - full.oy) / full.k);
+
+    function drawOriginal(transform) {
+      ctx.save();
+      transform();
+      if (r === 90) { ctx.translate(SH, 0); ctx.rotate(Math.PI / 2); }
+      else if (r === 180) { ctx.translate(SW, SH); ctx.rotate(Math.PI); }
+      else if (r === 270) { ctx.translate(0, SW); ctx.rotate(-Math.PI / 2); }
+      const s = image.naturalWidth / SW;
+      ctx.scale(1 / s, 1 / s);
+      ctx.drawImage(image, 0, 0);
+      ctx.restore();
+    }
+
+    function validQuad(points) {
+      for (let i = 0; i < 4; i++) {
+        const [ax, ay] = points[i], [bx, by] = points[(i + 1) % 4], [cx, cy] = points[(i + 2) % 4];
+        if ((bx - ax) * (cy - ay) - (by - ay) * (cx - ax) <= 0) return false; // convex, clockwise
+        if (Math.hypot(bx - ax, by - ay) < data.minSide) return false;
+      }
+      return points.every(([x, y]) => x >= -1 && y >= -1 && x <= SW + 1 && y <= SH + 1);
+    }
+
+    function drawQuad() {
+      const { dpr, width, height } = view;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, width, height);
+      drawOriginal(() => { ctx.translate(full.ox, full.oy); ctx.scale(full.k, full.k); });
+      const corners = quad.map(toCanvas);
+      ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+      ctx.beginPath();
+      ctx.rect(0, 0, width, height);
+      corners.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath();
+      ctx.fill("evenodd");
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      corners.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      ctx.closePath();
+      ctx.stroke();
+      ctx.fillStyle = "#fff";
+      for (const [x, y] of corners) { ctx.beginPath(); ctx.arc(x, y, 9, 0, 2 * Math.PI); ctx.fill(); }
+      if (drag && drag.corner !== undefined) drawLoupe(corners[drag.corner]);
+    }
+
+    // Magnified view around the corner being dragged, away from the finger.
+    function drawLoupe([px, py]) {
+      const radius = 64, zoom = 3;
+      const lx = px < view.width / 2 ? view.width - radius - 12 : radius + 12, ly = radius + 12;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(lx, ly, radius, 0, 2 * Math.PI);
+      ctx.clip();
+      ctx.fillStyle = "#111";
+      ctx.fillRect(lx - radius, ly - radius, 2 * radius, 2 * radius);
+      drawOriginal(() => {
+        ctx.translate(lx, ly); ctx.scale(zoom, zoom); ctx.translate(-px, -py);
+        ctx.translate(full.ox, full.oy); ctx.scale(full.k, full.k);
+      });
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(lx - 10, ly); ctx.lineTo(lx + 10, ly); ctx.moveTo(lx, ly - 10); ctx.lineTo(lx, ly + 10);
+      ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle = "#fff";
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(lx, ly, radius, 0, 2 * Math.PI); ctx.stroke();
+    }
+
+    function hitCorner(cx, cy) {
+      let best = -1, distance = HANDLE * 1.5;
+      quad.map(toCanvas).forEach(([x, y], i) => {
+        const d = Math.hypot(x - cx, y - cy);
+        if (d < distance) { best = i; distance = d; }
+      });
+      return best;
+    }
+
+    function draw() { if (mode === "quad") drawQuad(); else drawBox(); }
+
+    function drawBox() {
       const { k, ox, oy, dpr, width, height } = view;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, width, height);
@@ -1352,6 +1463,16 @@
     }
 
     function sync() {
+      for (const el of root.querySelectorAll("[data-crop-for]")) el.hidden = el.dataset.cropFor !== mode;
+      if (mode === "quad") {
+        const ok = validQuad(quad);
+        outside.hidden = true;
+        badQuad.hidden = ok;
+        save.disabled = !ok;
+        draw();
+        return;
+      }
+      badQuad.hidden = true;
       const ok = valid(box, angle());
       outside.hidden = ok;
       save.disabled = !ok;
@@ -1391,7 +1512,21 @@
       return b;
     }
 
+    function canvasPoint(event) {
+      const rect = canvas.getBoundingClientRect();
+      return [event.clientX - rect.left, event.clientY - rect.top];
+    }
+
     canvas.addEventListener("pointerdown", (event) => {
+      if (mode === "quad") {
+        const corner = hitCorner(...canvasPoint(event));
+        if (corner < 0) return;
+        drag = { corner };
+        canvas.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        draw();
+        return;
+      }
       const [x, y] = pointerView(event);
       const edges = hit(x, y);
       if (!edges) return;
@@ -1400,6 +1535,16 @@
       event.preventDefault();
     });
     canvas.addEventListener("pointermove", (event) => {
+      if (mode === "quad") {
+        if (!drag) {
+          canvas.style.cursor = hitCorner(...canvasPoint(event)) >= 0 ? "grab" : "default";
+          return;
+        }
+        const [X, Y] = fromCanvas(...canvasPoint(event));
+        quad[drag.corner] = [Math.max(0, Math.min(SW, X)), Math.max(0, Math.min(SH, Y))];
+        sync();
+        return;
+      }
       if (!drag) {
         const edges = hit(...pointerView(event));
         const cursor = !edges ? "default" : edges.move ? "move"
@@ -1422,7 +1567,11 @@
       if (valid(candidate, angle()) || !valid(drag.start, angle())) box = candidate;
       sync();
     });
-    const endDrag = () => { if (drag) base = { ...box }; drag = null; };
+    const endDrag = () => {
+      if (drag && mode === "box") base = { ...box };
+      drag = null;
+      draw();
+    };
     canvas.addEventListener("pointerup", endDrag);
     canvas.addEventListener("pointercancel", endDrag);
 
@@ -1439,10 +1588,36 @@
         box = { x0: 0, y0: 0, x1: W, y1: H };
         base = { ...box };
         slider.value = "0";
+        quad = initialQuad.map((p) => [...p]);
         sync();
       }
+      const detect = event.target.closest("[data-crop-detect]");
+      if (detect) {
+        detect.disabled = true;
+        detectNone.hidden = true;
+        fetch(data.detectUrl, { headers: { Accept: "application/json" } })
+          .then((response) => response.json())
+          .then((result) => {
+            if (result.quad) quad = result.quad;
+            else detectNone.hidden = false;
+            sync();
+          })
+          .catch(() => { detectNone.hidden = false; })
+          .finally(() => { detect.disabled = false; });
+      }
+    });
+    root.addEventListener("change", (event) => {
+      if (!event.target.matches("[data-crop-mode]")) return;
+      mode = event.target.value;
+      drag = null;
+      sync();
     });
     form.addEventListener("submit", () => {
+      form.querySelector('[data-crop-field="mode"]').value = mode;
+      quad.forEach(([x, y], i) => {
+        form.querySelector(`[data-crop-field="q${i}x"]`).value = x.toFixed(1);
+        form.querySelector(`[data-crop-field="q${i}y"]`).value = y.toFixed(1);
+      });
       for (const key of ["x0", "y0", "x1", "y1"]) {
         form.querySelector(`[data-crop-field="${key}"]`).value = box[key].toFixed(1);
       }

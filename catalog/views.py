@@ -5,7 +5,13 @@ from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
-from django.http import FileResponse, Http404, HttpResponse, StreamingHttpResponse
+from django.http import (
+    FileResponse,
+    Http404,
+    HttpResponse,
+    JsonResponse,
+    StreamingHttpResponse,
+)
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -420,21 +426,36 @@ def crop_photo(request, pk):
     error = None
     if request.method == "POST":
         try:
-            box = [float(request.POST[k]) for k in ("x0", "y0", "x1", "y1")]
-            angle = float(request.POST["angle"])
-            recrop.request_crop(request.user, photo, box, angle)
+            if request.POST.get("mode") == "quad":
+                points = [
+                    [float(request.POST[f"q{i}x"]), float(request.POST[f"q{i}y"])] for i in range(4)
+                ]
+                recrop.request_quad(request.user, photo, points)
+            else:
+                box = [float(request.POST[k]) for k in ("x0", "y0", "x1", "y1")]
+                angle = float(request.POST["angle"])
+                recrop.request_crop(request.user, photo, box, angle)
         except (KeyError, ValueError):
             error = _("No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño.")
         else:
             messages.success(request, _("Recorte guardado. Se aplica en unos segundos."))
             return redirect("photo_detail", pk=photo.pk)
     rect = photo.crop_rect
+    ready = recrop.editor_ready(photo)
+    quad = None
+    if ready:
+        current, _size = recrop.photo_geometry(photo)
+        quad = recrop.photo_order_to_view([list(p) for p in current], photo.rotation)
+        # Phone photos of a print: start from the detected corners (only a suggestion).
+        if not photo.crop_manual and recrop.is_single_upload(photo):
+            quad = recrop.suggest_quad(photo) or quad
     return render(
         request,
         "catalog/crop.html",
         {
             "photo": photo,
-            "ready": recrop.editor_ready(photo),
+            "ready": ready,
+            "perspective": bool(photo.crop_quad),
             "error": error,
             "crop": {
                 "cx": rect.get("cx"),
@@ -450,10 +471,21 @@ def crop_photo(request, pk):
                 "scanHeight": photo.scan.height,
                 "maxAngle": recrop.MAX_STRAIGHTEN,
                 "minSide": recrop.MIN_SIDE,
+                "quad": [[round(x, 1), round(y, 1)] for x, y in quad] if quad else None,
+                "detectUrl": reverse("crop_detect", args=[photo.pk]),
             },
         },
         status=400 if error else 200,
     )
+
+
+@admin_required
+def crop_detect(request, pk):
+    """Suggested corners of the print in the photo's scan (perspective mode)."""
+    from scanner.services import recrop
+
+    photo = get_object_or_404(Photo.objects.select_related("scan"), pk=pk)
+    return JsonResponse({"quad": recrop.suggest_quad(photo)})
 
 
 @admin_required

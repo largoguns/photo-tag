@@ -12,6 +12,7 @@ urlpatterns = [
     path("photos/<int:pk>/image/<str:size>/", views.photo_image, name="photo_image"),
     path("photos/<int:pk>/rotate/", views.rotate_photo, name="rotate_photo"),
     path("photos/<int:pk>/crop/", views.crop_photo, name="crop_photo"),
+    path("photos/<int:pk>/crop/detect/", views.crop_detect, name="crop_detect"),
     path("scans/<int:pk>/preview/", views.scan_preview, name="scan_preview"),
     path("photos/<int:pk>/propose/event/", views.propose_event, name="propose_event"),
     path("photos/<int:pk>/propose/date/", views.propose_date, name="propose_date"),

@@ -742,3 +742,4 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
   .crop-angle label { flex-basis: 100%; }
   .crop-angle { flex-wrap: wrap; }
 }
+.crop-modes { max-width: 360px; }
