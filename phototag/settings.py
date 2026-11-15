@@ -80,6 +80,7 @@ TEMPLATES = [
             "context_processors": [
                 "django.template.context_processors.request",
                 "django.template.context_processors.i18n",
+                "catalog.context_processors.navigation",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ],
@@ -190,6 +191,11 @@ YUNET_MODEL_PATH = Path(
     env("YUNET_MODEL_PATH", str(BASE_DIR / "models" / "face_detection_yunet_2023mar.onnx"))
 )
 THUMBNAIL_SIZES = (400, 1600)
+
+# Web uploads (written to the scans inbox for the worker).
+UPLOAD_MAX_MB = int(env("UPLOAD_MAX_MB", "50"))
+UPLOAD_MAX_FILES = int(env("UPLOAD_MAX_FILES", "20"))
+DATA_UPLOAD_MAX_NUMBER_FILES = UPLOAD_MAX_FILES
 
 # Identity suggestions (SFace). Suggestions only: identities are always voted.
 SFACE_MODEL_PATH = Path(

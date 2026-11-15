@@ -2,7 +2,8 @@
 <form method="post" action="{% url 'set_language' %}" class="language-switch" aria-label="{% translate 'Idioma' %}">
   {% csrf_token %}
   <input type="hidden" name="next" value="{{ request.get_full_path }}">
-  {% for code, name in AVAILABLE_LANGUAGES %}
-  <button type="submit" name="language" value="{{ code }}" lang="{{ code }}" class="chip" {% if code == CURRENT_LANGUAGE %}aria-current="true"{% endif %}>{{ name }}</button>
+  {% for code, name in AVAILABLE_LANGUAGES %}{% get_language_info for code as language %}
+  {# Each language is shown in its own language: "Español", "English". #}
+  <button type="submit" name="language" value="{{ code }}" lang="{{ code }}" class="chip" {% if code == CURRENT_LANGUAGE %}aria-current="true"{% endif %}>{{ language.name_local|capfirst }}</button>
   {% endfor %}
 </form>
