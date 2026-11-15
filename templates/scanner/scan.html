@@ -2,8 +2,8 @@
 {% block title %}{% translate "Escanear" %}{% endblock %}
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
-<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
-<h1>{% translate "Escanear" %}</h1>
+{% translate "Escanear" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 {% if configured %}
   {% include "scanner/_scan_panel.html" %}
   <section class="stack scan-history" aria-labelledby="scan-history-title">

@@ -1,8 +1,8 @@
 {% extends "base.html" %}{% load i18n %}
 {% block title %}{% translate "Exportación" %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
-<h1>{% translate "Exportación a Immich" %}</h1>
+{% translate "Exportación a Immich" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <section class="card stack">
   <p>{% blocktranslate count counter=pending_photos %}<strong>{{ counter }}</strong> foto catalogada con cambios pendientes de exportar.{% plural %}<strong>{{ counter }}</strong> fotos catalogadas con cambios pendientes de exportar.{% endblocktranslate %}</p>
   <form method="post" action="{% url 'export_start' %}">

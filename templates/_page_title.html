@@ -1,0 +1,7 @@
+{% load i18n catalog_tags %}
+{# Material 3 page header: back arrow + title. Usage: include with back_url, back_label, title. #}
+<div class="page-title">
+  <a class="button text icon-only back-button" href="{{ back_url }}" aria-label="{{ back_label }}" title="{{ back_label }}">{% icon "arrow_back" %}</a>
+  <h1>{{ title }}</h1>
+  {% if actions %}<div class="page-title-actions">{{ actions }}</div>{% endif %}
+</div>

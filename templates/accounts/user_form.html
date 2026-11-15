@@ -2,9 +2,10 @@
 {% block title %}{% if creating %}{% translate "Nuevo usuario" %}{% else %}{% translate "Editar usuario" %}{% endif %}{% endblock %}
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
+{% if creating %}{% translate "Nuevo usuario" as page_title %}{% else %}{% blocktranslate with username=target.username asvar page_title %}Editar «{{ username }}»{% endblocktranslate %}{% endif %}{% translate "Volver a Usuarios" as back_label %}{% url 'user_list' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <form method="post" class="card stack">
   {% csrf_token %}
-  <h1>{% if creating %}{% translate "Nuevo usuario" %}{% else %}{% blocktranslate with username=target.username %}Editar «{{ username }}»{% endblocktranslate %}{% endif %}</h1>
   {% if creating %}<p class="muted">{% translate "El usuario deberá cambiar la contraseña en su primer acceso." %}</p>{% endif %}
   {{ form.as_div }}
   <div class="actions">

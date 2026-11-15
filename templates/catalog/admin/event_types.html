@@ -1,8 +1,8 @@
 {% extends "base.html" %}{% load i18n %}
 {% block title %}{% translate "Tipos de evento" %}{% endblock %}
 {% block content %}
-<p><a href="{% url 'admin_home' %}">← {% translate "Administración" %}</a></p>
-<h1>{% translate "Tipos de evento" %}</h1>
+{% translate "Tipos de evento" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <div class="grid-2">
   <ul class="list">
     {% for event in event_types %}

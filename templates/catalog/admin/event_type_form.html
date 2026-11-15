@@ -2,9 +2,10 @@
 {% block title %}{% translate "Editar tipo de evento" %}{% endblock %}
 {% block main_class %}container narrow{% endblock %}
 {% block content %}
+{% blocktranslate with name=event_type.name asvar page_title %}Editar «{{ name }}»{% endblocktranslate %}{% translate "Volver a Tipos de evento" as back_label %}{% url 'admin_event_types' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <form method="post" class="card stack">
   {% csrf_token %}
-  <h1>{% blocktranslate with name=event_type.name %}Editar «{{ name }}»{% endblocktranslate %}</h1>
   {{ form.as_div }}
   <div class="actions">
     <button type="submit" class="button primary">{% translate "Guardar" %}</button>
