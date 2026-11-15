@@ -99,6 +99,16 @@ El sistema **sugiere** quién puede ser una cara, pero **nunca asigna** una iden
 - Similitud coseno contra las caras con persona aceptada; la puntuación de cada persona es la de su cara más parecida. Se sugiere a partir de `FACE_MATCH_THRESHOLD` (por defecto 0.363) y se marca como «muy probable» a partir de `FACE_MATCH_STRONG` (por defecto 0.5).
 - No se sugieren personas ya aceptadas en otra cara de la misma foto ni personas que ya tengan una propuesta abierta para esa cara.
 
+### 3.6 Ajuste manual del recorte
+
+Cuando el recorte automático no acierta (bordes de anchura variable, esquinas redondeadas, fotos cortadas o algo torcidas), un **administrador** puede corregirlo foto a foto con el botón «Recortar» de la vista de foto.
+
+- **Editor**: muestra la foto recta y girada como se ve, sobre el **escaneo original** que la rodea, con un recuadro de 4 bordes y 4 esquinas arrastrables (también hacia fuera, para recuperar lo que se cortó) y un deslizador **Enderezar** de ±10° (pasos de 0,1°). Al enderezar, el recuadro se reduce lo justo para no salirse del escaneo. No se permite un recuadro fuera del escaneo ni menor de 64 px.
+- **Vista previa del escaneo**: el `worker` guarda una copia reducida (2000 px de lado mayor) en `/data/photos/previews/<sha256>.jpg` al procesar, y genera las que falten de escaneos antiguos en una tarea periódica. Se sirve solo a administradores con sesión, nunca como estático público. En las subidas de una sola foto el escaneo es la propia foto: solo se puede recortar hacia dentro.
+- **Aplicación**: la web solo registra el recorte pedido (`Photo.pending_crop`, en píxeles del escaneo); el `worker` lo aplica en unos segundos desde el original: rehace la foto y sus miniaturas, traslada las caras con intervención humana (persona, dibujadas o con propuestas), vuelve a detectar las automáticas, recalcula huellas y phash y marca la foto para reexportar. Mientras tanto, la vista de foto muestra «Aplicando el recorte…».
+- El recorte queda marcado como manual (`Photo.crop_manual`) y **se respeta al reprocesar** el escaneo con `--force`.
+- Queda en la auditoría (`photo.crop`).
+
 ## 4. Usuarios y autenticación (app `accounts`)
 
 ### 4.1 Autenticación
@@ -170,9 +180,9 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 
 | Entidad | Campos principales |
 |---|---|
-| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable) |
+| `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable), ancho y alto del original |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
-| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, phash, posible_duplicado_de (nullable) |
+| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable) |
 | `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
 | `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
@@ -215,6 +225,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - **Compartir**: en la galería, el modo selección (botón «Seleccionar» o pulsación larga) muestra la barra «N seleccionadas · Compartir · Descargar». En la vista de foto, un botón «Compartir». Se usa la hoja de compartir del dispositivo con los ficheros originales (Web Share API); sin ella, se descarga el JPG o un ZIP (máximo `SHARE_MAX_PHOTOS`, 20). Compartir y descargar quedan en la auditoría.
    - **Escanear** (solo administradores, si `SCANNER_URL` está configurada): «¿Todo listo para escanear?», resolución 300/600 ppp (600 por defecto) y botón «Escanear». El `worker` escanea por red con SANE (`sane-airscan`, protocolo eSCL/AirScan, p. ej. HP DeskJet 2700), guarda un PNG sin pérdida en `inbox` y registra un `Upload` de tipo escaneo, de modo que el procesado habitual lo recorta y lo atribuye. La pantalla muestra el progreso, el resultado (miniaturas de los recortes) y vuelve a preguntar. Un solo escaneo a la vez (`ScanJob`); errores comprensibles (impresora apagada, ocupada, no encontrada). Diagnóstico: `python manage.py scanner_check`.
    - **Girar**: cualquier usuario puede girar una foto 90° desde su vista. El giro lo aplica el `worker` en unos segundos (fichero, miniaturas y recuadros de cara) y se mantiene al reprocesar el escaneo.
+   - **Recortar** (solo administradores): editor de recorte sobre el escaneo original (ver 3.6).
 4. **Vista de foto** (pantalla principal):
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
    - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
@@ -230,7 +241,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 ### 5.6 Cola de revisión
 
-El administrador ve los escaneos con `needs_review` junto a sus recortes y puede marcarlos como correctos o descartar recortes erróneos. La edición manual de recortes queda fuera del alcance inicial (se reprocesa el escaneo con `process_scans --force`).
+El administrador ve los escaneos con `needs_review` junto a sus recortes y puede marcarlos como correctos o descartar recortes erróneos. Un recorte concreto se corrige con el editor de recorte (3.6); para rehacer todo el escaneo se usa `process_scans --force`.
 
 ### 5.7 Auditoría
 
@@ -377,7 +388,6 @@ phototag/
 
 - Login federado (OAuth, SSO).
 - Asignación automática de identidades sin votación (las sugerencias de 3.5 siempre pasan por propuesta y votos).
-- Edición manual de recortes en la web.
 - Sincronización inversa desde Immich.
 - Comentarios o chat en las fotos.
 - Notificaciones por email.
