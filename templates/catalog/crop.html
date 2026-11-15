@@ -18,11 +18,16 @@
     <label><input type="radio" name="crop-mode" value="quad" data-crop-mode {% if perspective %}checked{% endif %}><span><span>{% translate "Perspectiva" %}</span></span></label>
   </fieldset>
   {% if perspective %}<p class="muted crop-hint">{% translate "Esta foto tiene un recorte en perspectiva: se ajusta moviendo sus esquinas." %}</p>{% endif %}
-  <p class="muted crop-hint" data-crop-for="box">{% translate "Arrastra los bordes o las esquinas del recuadro. Puedes ampliarlo para recuperar lo que se cortó." %}</p>
+  <p class="muted crop-hint" data-crop-for="box">{% translate "Arrastra los bordes o las esquinas del recuadro. Puedes ampliarlo para recuperar lo que se cortó. Acerca con la rueda, pellizcando o con los botones." %}</p>
   <p class="muted crop-hint" data-crop-for="quad" hidden>{% translate "Lleva cada esquina a la de la foto en papel; al guardar se endereza y se aplana." %}</p>
   <div class="crop-stage">
     <canvas class="crop-canvas" data-crop-canvas role="img" aria-label="{% translate 'Recorte sobre el escaneo original' %}"></canvas>
     <img data-crop-preview src="{% url 'scan_preview' photo.scan_id %}" alt="" hidden>
+    <div class="crop-zoom" role="group" aria-label="{% translate 'Zoom' %}">
+      <button type="button" class="button icon-only" data-crop-zoom="in" aria-label="{% translate 'Acercar' %}" title="{% translate 'Acercar' %}">{% icon "zoom_in" %}</button>
+      <button type="button" class="button icon-only" data-crop-zoom="out" aria-label="{% translate 'Alejar' %}" title="{% translate 'Alejar' %}">{% icon "zoom_out" %}</button>
+      <button type="button" class="button icon-only" data-crop-zoom="fit" aria-label="{% translate 'Ajustar a la pantalla' %}" title="{% translate 'Ajustar a la pantalla' %}">{% icon "fullscreen" %}</button>
+    </div>
   </div>
   <form method="post" class="crop-controls stack">
     {% csrf_token %}
