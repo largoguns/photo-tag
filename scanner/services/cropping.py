@@ -125,6 +125,80 @@ def _overlaps(rect_a, rect_b):
     return kind != cv2.INTERSECT_NONE
 
 
+# Photos placed edge to edge leave no lid between them and come out as one long blob.
+SPLIT_ASPECT = 1.7  # longer than this is unlikely to be a single print
+SEAM_MIN_RUN = 0.4  # the seam is a strong edge running unbroken across 40% of the blob
+SEAM_CONTRAST = 4.0  # ...and much longer than the typical run of the same blob (texture)
+SEAM_GRADIENT = 30  # grey levels per pixel that count as a strong edge
+SEAM_WINDOW = 0.06  # a border is at most ~6% of the blob: look that far for its pair
+SEAM_SIDE = 1500  # analyse a reduced copy: the seam is a long straight line
+
+
+def _longest_runs(mask):
+    """Longest run of consecutive set pixels in each row, as a share of the row."""
+    padded = np.pad(mask, ((0, 0), (1, 1)))
+    runs = np.zeros(mask.shape[0])
+    for i, row in enumerate(np.diff(padded.astype(np.int8), axis=1)):
+        starts, ends = np.flatnonzero(row == 1), np.flatnonzero(row == -1)
+        if len(starts):
+            runs[i] = (ends - starts).max()
+    return runs / mask.shape[1]
+
+
+def _seam(image, rect):
+    """Position (0-1 along the long side) of a straight seam across the blob, or None."""
+    warped = _warp(image, rect)
+    height, width = warped.shape[:2]
+    scale = min(1.0, SEAM_SIDE / max(height, width))
+    if scale < 1.0:
+        warped = cv2.resize(warped, None, fx=scale, fy=scale, interpolation=cv2.INTER_AREA)
+    gray = cv2.cvtColor(warped, cv2.COLOR_BGR2GRAY) if warped.ndim == 3 else warped
+    gray = cv2.GaussianBlur(gray.astype(np.float32), (0, 0), 2)
+    if height >= width:  # seam across the rows
+        gradient = cv2.Sobel(gray, cv2.CV_32F, 0, 1, ksize=3)
+    else:  # seam across the columns
+        gradient = cv2.Sobel(gray, cv2.CV_32F, 1, 0, ksize=3).T
+    edges = (np.abs(gradient) > SEAM_GRADIENT).astype(np.uint8)
+    edges = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, np.ones((1, 9), np.uint8))  # tiny gaps
+    runs = _longest_runs(edges)
+    lo, hi = int(len(runs) * 0.25), int(len(runs) * 0.75)
+    if hi <= lo:
+        return None
+    middle = runs[lo:hi]
+    best = int(np.argmax(middle))
+    typical = max(float(np.median(middle)), 0.01)
+    if middle[best] < SEAM_MIN_RUN or middle[best] < SEAM_CONTRAST * typical:
+        return None
+    # Bordered prints: the strongest lines are the inner edges of both borders, and the
+    # seam lies between them. Take the centre of the strong lines around the best one.
+    window = int(len(runs) * SEAM_WINDOW)
+    near = np.arange(max(0, best - window), min(len(middle), best + window + 1))
+    strong = near[middle[near] >= max(SEAM_MIN_RUN, 0.6 * middle[best])]
+    return (lo + (strong.min() + strong.max()) / 2) / len(runs)
+
+
+def split_at_seams(image, rect, depth=0):
+    """Split a too-long blob at straight seams (photos touching each other), recursively."""
+    (cx, cy), (w, h), angle = rect
+    if depth >= 2 or _aspect_ratio(rect) < SPLIT_ASPECT:
+        return [rect]
+    t = _seam(image, rect)
+    if t is None:
+        return [rect]
+    vertical = h >= w
+    length = h if vertical else w
+    gap = 0.004 * length  # skip the seam line itself
+    pieces = []
+    for start, end in ((0.0, t * length - gap), (t * length + gap, length)):
+        offset = (start + end) / 2 - length / 2
+        u, v = (0.0, offset) if vertical else (offset, 0.0)
+        r = np.radians(angle)
+        center = (cx + u * np.cos(r) - v * np.sin(r), cy + u * np.sin(r) + v * np.cos(r))
+        size = (w, end - start) if vertical else (end - start, h)
+        pieces += split_at_seams(image, (center, size, angle), depth + 1)
+    return pieces
+
+
 def reading_order(rects):
     """Top to bottom, then left to right: photos whose vertical spans mostly overlap share a row."""
     rows = []
@@ -154,11 +228,16 @@ def split_scan(image, min_area_ratio=0.03, inset=4):
             continue
         rects.append(normalize_rect(cv2.minAreaRect(contour)))
 
-    rects = reading_order(rects)
+    split = [piece for rect in rects for piece in split_at_seams(image, rect)]
+    seams_found = len(split) > len(rects)
+    rects = reading_order(split)
 
     result = CropResult()
     if not MIN_PHOTOS <= len(rects) <= MAX_PHOTOS:
         result.review_reasons.append({"code": "photo_count", "count": len(rects)})
+
+    if seams_found:
+        result.review_reasons.append({"code": "split"})
 
     if any(_aspect_ratio(rect) > MAX_ASPECT_RATIO for rect in rects):
         result.review_reasons.append({"code": "aspect_ratio"})

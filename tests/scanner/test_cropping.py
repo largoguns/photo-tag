@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import pytest
 
 from scanner.services.cropping import normalize_rect, reading_order, split_scan
@@ -109,3 +110,55 @@ def test_reading_order_with_staggered_rows():
     right_higher = ((900, 450), (400, 700), 0)
     below = ((600, 1400), (400, 300), 0)
     assert reading_order([below, right_higher, left_lower]) == [left_lower, right_higher, below]
+
+
+def _textured(rng, size, base):
+    """A print-like patch: a base colour with soft blobs (no long straight edges)."""
+    w, h = size
+    patch = np.full((h, w, 3), base, np.uint8)
+    for _ in range(12):
+        center = (int(rng.integers(0, w)), int(rng.integers(0, h)))
+        color = [int(v) for v in rng.integers(0, 255, 3)]
+        cv2.circle(patch, center, int(rng.integers(20, 80)), color, -1)
+    return cv2.GaussianBlur(patch, (0, 0), 3)
+
+
+def test_photos_touching_each_other_are_split_at_the_seam():
+    # Regression (2026-11-15): two prints stacked with no lid between them.
+    rng = np.random.default_rng(3)
+    page = synthetic_scan([])
+    page[200:800, 300:1000] = _textured(rng, (700, 600), (60, 90, 140))
+    page[800:1400, 300:1000] = _textured(rng, (700, 600), (150, 120, 70))
+    page[797:803, 300:1000] = 50  # the thin shadow between two prints
+    result = split_scan(page)
+
+    assert {"code": "split"} in result.review_reasons
+    assert len(result.crops) == 2
+    for crop in result.crops:
+        assert sorted(crop.size) == pytest.approx([600, 700], abs=20)
+
+
+def test_a_long_photo_without_seam_is_not_split():
+    rng = np.random.default_rng(4)
+    page = synthetic_scan([])
+    page[150:1450, 400:950] = _textured(rng, (550, 1300), (90, 110, 60))  # aspect 2.4
+    result = split_scan(page)
+
+    assert len(result.crops) == 1
+    assert {"code": "split"} not in result.review_reasons
+
+
+def test_touching_prints_with_borders_are_split_between_the_borders():
+    # Prints with cream borders: split in the middle, not at the inner edge of a border.
+    rng = np.random.default_rng(5)
+    page = synthetic_scan([])
+    for top in (200, 800):
+        page[top : top + 600, 300:1000] = (205, 238, 250)  # cream border
+        page[top + 30 : top + 570, 330:970] = _textured(rng, (640, 540), (80, 100, 130))
+    result = split_scan(page)
+
+    assert len(result.crops) == 2
+    centers = sorted(crop.center[1] for crop in result.crops)
+    assert centers == pytest.approx([500, 1100], abs=8)
+    for crop in result.crops:
+        assert sorted(crop.size) == pytest.approx([600, 700], abs=12)
