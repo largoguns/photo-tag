@@ -119,3 +119,21 @@ def test_compose_builds_from_git_and_runs_as_nas_user():
     assert "pull_policy: build" in compose
     assert "pull_policy: never" in compose
     assert 'user: "${PUID:-1000}:${PGID:-100}"' in compose
+
+
+def test_unhashed_static_files_are_not_served_stale(client):
+    # Regression: in development (no hashed names) the cache-first worker kept old CSS.
+    body = client.get("/sw.js").content.decode()
+    assert "hashed" in body and "fetch(request).then(store).catch" in body
+
+
+def test_cache_version_changes_with_file_content(monkeypatch, tmp_path):
+    from phototag import pwa
+
+    css = tmp_path / "app.css"
+    css.write_text("a{}")
+    monkeypatch.setattr(pwa, "SHELL_STATIC", ["css/app.css"])
+    monkeypatch.setattr(pwa.finders, "find", lambda path: str(css))
+    before = pwa.shell_version(["/static/css/app.css"])
+    css.write_text("a{color:red}")
+    assert pwa.shell_version(["/static/css/app.css"]) != before

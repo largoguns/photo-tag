@@ -31,16 +31,21 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  // Hashed static files never change: cache first.
   if (url.pathname.startsWith(STATIC_PREFIX)) {
+    // Hashed names (production, e.g. app.3f2a9c1b7d4e.css) never change: cache first.
+    // Unhashed names (development) may change under the same URL: network first.
+    const hashed = /\.[0-9a-f]{12}\.[a-z0-9]+$/i.test(url.pathname);
+    const store = (response) => {
+      if (response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE).then((cache) => cache.put(request, copy));
+      }
+      return response;
+    };
     event.respondWith(
-      caches.match(request).then((cached) => cached || fetch(request).then((response) => {
-        if (response.ok) {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
-        }
-        return response;
-      }))
+      hashed
+        ? caches.match(request).then((cached) => cached || fetch(request).then(store))
+        : fetch(request).then(store).catch(() => caches.match(request))
     );
     return;
   }

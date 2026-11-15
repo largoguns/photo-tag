@@ -8,6 +8,7 @@ import hashlib
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_not_required
+from django.contrib.staticfiles import finders
 from django.http import JsonResponse
 from django.shortcuts import render
 from django.templatetags.static import static
@@ -30,7 +31,20 @@ SHELL_STATIC = [
     "js/htmx.min.js",
     "img/icons/icon-192.png",
     "img/icons/favicon-32.png",
+    "img/icons.svg",
 ]
+
+
+def shell_version(urls):
+    """Changes whenever a shell file changes: its URL (hashed in production) or its content
+    (development serves unhashed names, so the URL alone would never change)."""
+    digest = hashlib.sha256("\n".join(urls).encode())
+    for path in SHELL_STATIC:
+        source = finders.find(path)
+        if source:
+            with open(source, "rb") as handle:
+                digest.update(handle.read())
+    return digest.hexdigest()[:12]
 
 
 @login_not_required
@@ -72,7 +86,7 @@ def service_worker(request):
         {
             "shell_urls": shell,
             # The cache name changes whenever a hashed static file changes.
-            "cache_version": hashlib.sha256("\n".join(shell).encode()).hexdigest()[:12],
+            "cache_version": shell_version(shell),
             "offline_url": "/offline/",
             "static_prefix": settings.STATIC_URL,
             "icon_url": static("img/icons/icon-192.png"),
