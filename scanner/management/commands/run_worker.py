@@ -11,7 +11,7 @@ from django.db import close_old_connections
 from exporter.services import backup, export
 from notifications.services import digest
 from scanner.management.commands.process_scans import watch_inbox
-from scanner.services import embeddings, recrop, rotation, scanning
+from scanner.services import deletion, embeddings, recrop, rotation, scanning
 
 logger = logging.getLogger("worker")
 
@@ -70,6 +70,20 @@ def build_scheduler():
         "interval",
         seconds=settings.ROTATION_POLL_SECONDS,
         id="photo_crops",
+        **common,
+    )
+    scheduler.add_job(
+        job(deletion.run_cleanups),
+        "interval",
+        seconds=settings.ROTATION_POLL_SECONDS,
+        id="file_cleanups",
+        **common,
+    )
+    scheduler.add_job(
+        job(deletion.run_reprocess_requests),
+        "interval",
+        seconds=settings.ROTATION_POLL_SECONDS,
+        id="scan_reprocess",
         **common,
     )
     scheduler.add_job(

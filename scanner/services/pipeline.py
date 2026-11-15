@@ -14,7 +14,7 @@ from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
-from catalog.models import Face, Photo, Scan, Upload
+from catalog.models import Face, FileCleanup, Photo, Scan, Upload
 from catalog.services.voting import refresh_photo_status
 from scanner.services import cropping, dedupe, embeddings, faces, images, orientation, uploads
 
@@ -433,6 +433,8 @@ def reprocess(scan):
 
     with transaction.atomic():
         for old in unmatched:
+            if old.export_path:  # its Immich copy goes too (removed by the cleanup job)
+                FileCleanup.objects.create(kind=FileCleanup.Kind.EXPORT, name=old.export_path)
             old.delete()
         # Free the (scan, index) slots before reassigning indices.
         for old in old_photos:

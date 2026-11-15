@@ -15,6 +15,8 @@ class Scan(models.Model):
     # Codes such as {"code": "photo_count", "count": 7}; translated when displayed.
     review_reasons = models.JSONField(default=list, blank=True)
     reviewed = models.BooleanField(_("revisado"), default=False)
+    # Asked from the web; the worker re-runs the cropping (like process_scans --force).
+    reprocess_requested = models.BooleanField(default=False)
     # Size of the original scan; filled when its preview for the crop editor is made.
     width = models.PositiveIntegerField(null=True, blank=True)
     height = models.PositiveIntegerField(null=True, blank=True)
@@ -452,3 +454,27 @@ class Upload(models.Model):
 
     def __str__(self):
         return self.original_name
+
+
+class FileCleanup(models.Model):
+    """Files to remove (or move) after a deletion in the web.
+
+    The web container cannot write photos, exports or scans: it deletes the database rows
+    and leaves these tasks for the worker.
+    """
+
+    class Kind(models.TextChoices):
+        PHOTO = "photo", "photo"  # photo JPG and its thumbnails, by file name
+        EXPORT = "export", "export"  # exported JPG and .xmp, path relative to EXPORT_DIR
+        PREVIEW = "preview", "preview"  # scan preview, by sha256
+        ORIGINAL = "original", "original"  # scans/processed/<name> → scans/deleted/
+
+    kind = models.CharField(max_length=10, choices=Kind.choices)
+    name = models.CharField(max_length=500)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self):
+        return f"{self.kind}:{self.name}"

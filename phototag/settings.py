@@ -177,6 +177,7 @@ STORAGES = {
 DATA_DIR = Path(env("DATA_DIR", "/data"))
 SCANS_INBOX_DIR = DATA_DIR / "scans" / "inbox"
 SCANS_PROCESSED_DIR = DATA_DIR / "scans" / "processed"
+SCANS_DELETED_DIR = DATA_DIR / "scans" / "deleted"  # originals of deleted scans (kept)
 PHOTOS_DIR = DATA_DIR / "photos"
 THUMBS_DIR = PHOTOS_DIR / "thumbs"
 EXPORT_DIR = DATA_DIR / "export"
