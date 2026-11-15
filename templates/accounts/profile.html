@@ -2,16 +2,26 @@
 {% block title %}{% translate "Mi perfil" %}{% endblock %}
 {% block content %}
 {% get_current_language as CURRENT_LANGUAGE %}{% get_language_info for CURRENT_LANGUAGE as current_language %}
-<div class="settings">
+<div class="settings" data-settings>
   <h1>{% translate "Mi perfil" %}</h1>
-  <header class="profile-header">
-    {% if nav_avatar_face_id %}<img class="profile-avatar" src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="72" height="72">{% else %}<span class="profile-avatar" aria-hidden="true">{{ nav_initial }}</span>{% endif %}
-    <div class="profile-identity">
-      <strong>{{ user.get_display_name }}</strong>
-      <span class="muted">@{{ user.username }} · {{ user.get_role_display }}</span>
-      {% if user.person %}<span class="muted">{% url 'person_detail' user.person.pk as person_url %}{% blocktranslate with person=user.person %}Apareces en las fotos como <a href="{{ person_url }}">{{ person }}</a>.{% endblocktranslate %}</span>{% endif %}
-    </div>
-  </header>
+  <div class="settings-layout">
+    <aside class="settings-aside">
+      <header class="profile-header">
+        {% if nav_avatar_face_id %}<img class="profile-avatar" src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="72" height="72">{% else %}<span class="profile-avatar" aria-hidden="true">{{ nav_initial }}</span>{% endif %}
+        <div class="profile-identity">
+          <strong>{{ user.get_display_name }}</strong>
+          <span class="muted">@{{ user.username }} · {{ user.get_role_display }}</span>
+          {% if user.person %}<span class="muted">{% url 'person_detail' user.person.pk as person_url %}{% blocktranslate with person=user.person %}Apareces en las fotos como <a href="{{ person_url }}">{{ person }}</a>.{% endblocktranslate %}</span>{% endif %}
+        </div>
+      </header>
+      <nav class="settings-nav" aria-label="{% translate 'Secciones del perfil' %}">
+        <a href="#setting-name" data-settings-link>{% icon "badge" %}<span>{% translate "Nombre a mostrar" %}</span></a>
+        <a href="#setting-theme" data-settings-link>{% icon "palette" %}<span>{% translate "Tema" %}</span></a>
+        <a href="#setting-language" data-settings-link>{% icon "translate" %}<span>{% translate "Idioma" %}</span></a>
+        {% if push_enabled %}<a href="#push-card" data-settings-link>{% icon "notifications" %}<span>{% translate "Avisos" %}</span></a>{% endif %}
+        <a href="#setting-password" data-settings-link>{% icon "lock" %}<span>{% translate "Contraseña" %}</span></a>
+      </nav>
+    </aside>
 
   <div class="settings-list">
     <details class="setting" id="setting-name" {% if profile_form.display_name.errors %}open{% endif %}>
@@ -68,6 +78,7 @@
         <div class="actions"><button type="submit" name="change_password" class="button primary">{% translate "Cambiar contraseña" %}</button></div>
       </form>
     </details>
+  </div>
   </div>
 </div>
 {% endblock %}

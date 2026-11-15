@@ -223,3 +223,11 @@ def test_profile_opens_the_row_with_errors(client, alice):
     content = response.content.decode()
     assert '<details class="setting" id="setting-password" open>' in content
     assert re.search(r'<details class="setting" id="setting-name"\s*>', content)
+
+
+def test_profile_has_a_side_index_for_wide_windows(client, alice):
+    client.force_login(alice)
+    content = client.get(reverse("profile")).content.decode()
+    assert "data-settings" in content and 'class="settings-nav"' in content
+    for target in ("#setting-name", "#setting-theme", "#setting-language", "#setting-password"):
+        assert f'href="{target}"' in content
