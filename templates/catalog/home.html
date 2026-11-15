@@ -1,4 +1,4 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n catalog_tags %}
 {% block title %}{% translate "Inicio" %}{% endblock %}
 {% block content %}
 <h1>{% blocktranslate with name=user.get_display_name %}Hola, {{ name }}{% endblocktranslate %}</h1>
@@ -32,3 +32,4 @@
   </ul>
 </section>
 {% endblock %}
+{% block fab %}<a class="fab" href="{% url 'upload' %}">{% icon "add_photo_alternate" %}<span>{% translate "Subir" %}</span></a>{% endblock %}

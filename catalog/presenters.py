@@ -61,3 +61,50 @@ def next_uncataloged(after=None):
         if photo:
             return photo
     return base.first()
+
+
+# ---------------------------------------------------------------------------
+# Gallery: sections by year and filter chips
+# ---------------------------------------------------------------------------
+
+
+def gallery_group(photo):
+    """(key, label) of the year section a photo belongs to."""
+    from django.utils.translation import gettext
+
+    if not photo.date_value:
+        return "none", gettext("Sin fecha")
+    if photo.date_precision == Photo.DatePrecision.DECADE:
+        return f"d{photo.decade}", gettext("Década de %(decade)s") % {"decade": photo.decade}
+    return f"y{photo.date_value.year}", str(photo.date_value.year)
+
+
+def group_photos(photos, last_group=""):
+    """Consecutive photos grouped by section; a page continuing a section has no header."""
+    groups = []
+    for photo in photos:
+        key, label = gallery_group(photo)
+        if not groups or groups[-1]["key"] != key:
+            groups.append(
+                {
+                    "key": key,
+                    "label": label,
+                    "header": key != last_group or bool(groups),
+                    "photos": [],
+                }
+            )
+        groups[-1]["photos"].append(photo)
+    return groups
+
+
+def person_avatars(person_ids):
+    """{person_id: face_id} with the largest accepted face of each person."""
+    avatars = {}
+    faces = (
+        Face.objects.filter(person_id__in=person_ids, status=Face.Status.ACTIVE)
+        .order_by("person_id", "-w")
+        .values_list("person_id", "pk")
+    )
+    for person_id, face_id in faces:
+        avatars.setdefault(person_id, face_id)
+    return avatars

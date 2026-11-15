@@ -1,0 +1,23 @@
+{% load i18n catalog_tags %}
+<dialog class="sheet" id="sheet-{{ key }}" aria-labelledby="sheet-{{ key }}-title">
+  <div class="sheet-handle" aria-hidden="true"></div>
+  <div class="sheet-header">
+    <h2 id="sheet-{{ key }}-title">{{ title }}</h2>
+    <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
+  </div>
+  {% if searchable %}<input type="search" class="sheet-search" placeholder="{% translate 'Buscar' %}" aria-label="{% translate 'Buscar' %}" data-sheet-search>{% endif %}
+  <div class="sheet-body">
+    <ul class="option-list">
+      <li><a class="option" href="{% qs params key %}" {% if not current %}aria-current="true"{% endif %}><span>{{ all_label }}</span>{% if not current %}{% icon "check" %}{% endif %}</a></li>
+      {% for value, label, avatar in options %}
+      <li data-option-label="{{ label }}">
+        <a class="option" href="{% qs params key value %}" {% if current == value|stringformat:"s" %}aria-current="true"{% endif %}>
+          {% if searchable %}{% if avatar %}<img src="{% url 'face_image' avatar %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ label|first|upper }}</span>{% endif %}{% endif %}
+          <span>{{ label }}</span>
+          {% if current == value|stringformat:"s" %}{% icon "check" %}{% endif %}
+        </a>
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</dialog>

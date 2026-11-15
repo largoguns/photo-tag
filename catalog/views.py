@@ -3,7 +3,7 @@ from io import BytesIO
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.http import FileResponse, Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -18,7 +18,7 @@ from catalog.models import EventType, Face, Person, Photo, Proposal, Vote
 from catalog.services import similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
-GALLERY_PAGE_SIZE = 24
+GALLERY_PAGE_SIZE = 60
 IMAGE_CACHE = "private, max-age=86400"
 
 
@@ -46,7 +46,18 @@ def home(request):
 
 
 def _gallery_queryset(request):
-    photos = Photo.objects.visible().order_by("pk")
+    # Newest year first; within a year, precise dates before decade-only ones; undated last.
+    photos = (
+        Photo.objects.visible()
+        .annotate(
+            decade_only=Case(
+                When(date_precision=Photo.DatePrecision.DECADE, then=Value(1)),
+                default=Value(0),
+                output_field=IntegerField(),
+            )
+        )
+        .order_by(F("date_value").desc(nulls_last=True), "decade_only", "-pk")
+    )
     params = request.GET
     if params.get("status") in Photo.Status.values:
         photos = photos.filter(status=params["status"])
@@ -64,26 +75,62 @@ def _gallery_queryset(request):
     return photos
 
 
-def gallery(request):
+def _gallery_page_context(request):
     page = Paginator(_gallery_queryset(request), GALLERY_PAGE_SIZE).get_page(
         request.GET.get("page")
     )
+    ids = [photo.pk for photo in page]
+    pending = set(
+        voting.photos_pending_for_user(request.user).filter(pk__in=ids).values_list("pk", flat=True)
+    )
+    for photo in page:
+        photo.pending_my_vote = photo.pk in pending
+    groups = presenters.group_photos(page, request.GET.get("last_group", ""))
     query = request.GET.copy()
-    query.pop("page", None)
-    context = {"page": page, "query": query.urlencode()}
+    for name in ("page", "last_group"):
+        query.pop(name, None)
+    return {
+        "page": page,
+        "groups": groups,
+        "last_group": groups[-1]["key"] if groups else request.GET.get("last_group", ""),
+        "query": query.urlencode(),
+    }
+
+
+def gallery(request):
+    context = _gallery_page_context(request)
     if request.htmx_partial:
         return render(request, "catalog/_gallery_page.html", context)
 
+    params = request.GET
+    people = list(Person.objects.active().filter(is_provisional=False))
+    avatars = presenters.person_avatars([p.pk for p in people])
+    for person in people:
+        person.avatar_face_id = avatars.get(person.pk)
+    event_types = list(EventType.objects.all())
     decades = sorted(
-        {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")}
+        {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")},
+        reverse=True,
     )
+
+    def selected(options, key):
+        value = params.get(key, "")
+        return next((label for option, label in options if str(option) == value), None)
+
     context.update(
         {
+            "params": params,
             "statuses": Photo.Status.choices,
-            "persons": Person.objects.active().filter(is_provisional=False),
-            "event_types": EventType.objects.all(),
+            "persons": people,
+            "event_types": event_types,
             "decades": decades,
-            "filters": request.GET,
+            "selected_status": selected(Photo.Status.choices, "status"),
+            "selected_person": selected([(p.pk, p.display_name) for p in people], "person"),
+            "selected_event": selected([(e.pk, str(e)) for e in event_types], "event"),
+            "selected_decade": selected([(d, f"{d}s") for d in decades], "decade"),
+            "has_filters": any(
+                params.get(k) for k in ("status", "person", "event", "decade", "mine")
+            ),
         }
     )
     return render(request, "catalog/gallery.html", context)
@@ -157,9 +204,20 @@ def _render_photo(request, photo, status=200):
     selected = request.GET.get("face") or request.POST.get("selected_face")
     context = presenters.photo_context(photo, request.user, selected_face=selected)
     context["event_types"] = voting.event_types()
-    context["person_names"] = (
-        Person.objects.active().order_by("display_name").values_list("display_name", flat=True)
-    )
+    if not request.htmx_partial:
+        people = list(
+            Person.objects.active().order_by("display_name").values_list("pk", "display_name")
+        )
+        avatars = presenters.person_avatars([pk for pk, _name in people])
+        face_url = reverse("face_image", args=[0]).replace("/0/", "/{id}/")
+        # Used by the name autocomplete; avatars are face crops behind the login.
+        context["people_json"] = [
+            {
+                "name": name,
+                "avatar": face_url.replace("{id}", str(avatars[pk])) if pk in avatars else "",
+            }
+            for pk, name in people
+        ]
     context["date_precisions"] = Photo.DatePrecision.choices
     template = "catalog/_photo_workspace.html" if request.htmx_partial else "catalog/photo.html"
     return render(request, template, context, status=status)
