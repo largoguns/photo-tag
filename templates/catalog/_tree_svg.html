@@ -1,0 +1,42 @@
+{% load i18n catalog_tags %}
+<div class="tree-canvas" data-pan-zoom aria-label="{% if mode == 'family' %}{% translate 'Árbol familiar' %}{% else %}{% translate 'Red de relaciones' %}{% endif %}">
+  <div class="tree-stage" data-pan-content>
+    <svg class="tree-svg" width="{{ layout.width|css_num }}" height="{{ layout.height|css_num }}" viewBox="0 0 {{ layout.width|css_num }} {{ layout.height|css_num }}" role="group">
+      <defs><clipPath id="tree-avatar" clipPathUnits="objectBoundingBox"><circle cx=".5" cy=".5" r=".5"/></clipPath></defs>
+      <g class="tree-edges" aria-hidden="true">
+        {% for edge in layout.edges %}<path class="edge edge-{{ edge.style }}" d="{{ edge.d }}"/>{% endfor %}
+      </g>
+      <g class="tree-nodes">
+        {% for item in nodes %}
+        <a class="tree-node{% if item.node.focus %} focus{% endif %}" href="{% url 'tree' %}{% qs params 'person' item.person.pk %}"
+           data-node data-node-name="{{ item.person }}" data-node-role="{{ item.role }}"
+           data-node-detail="{% url 'person_detail' item.person.pk %}" data-node-add="{% url 'person_detail' item.person.pk %}?sheet=family"
+           data-node-x="{{ item.node.x|css_num }}" data-node-y="{{ item.node.y|css_num }}"{% if item.node.focus %} data-node-focus{% endif %}>
+          <title>{{ item.person }}{% if item.role %} · {{ item.role }}{% endif %}</title>
+          <circle class="node-ring" cx="{{ item.node.x|css_num }}" cy="{{ item.node.y|css_num }}" r="{{ node_r|add:3 }}"/>
+          {% if item.avatar_url %}
+          <image href="{{ item.avatar_url }}" x="{{ item.image_x|css_num }}" y="{{ item.image_y|css_num }}" width="{{ node_r|add:node_r }}" height="{{ node_r|add:node_r }}" clip-path="url(#tree-avatar)" preserveAspectRatio="xMidYMid slice"/>
+          {% else %}
+          <circle class="node-initial" cx="{{ item.node.x|css_num }}" cy="{{ item.node.y|css_num }}" r="{{ node_r }}"/>
+          <text class="node-initial-text" x="{{ item.node.x|css_num }}" y="{{ item.node.y|css_num }}" text-anchor="middle" dominant-baseline="central">{{ item.person.display_name|first|upper }}</text>
+          {% endif %}
+          <text class="node-name" x="{{ item.node.x|css_num }}" y="{{ item.name_y|css_num }}" text-anchor="middle">{{ item.short_name }}</text>
+        </a>
+        {% endfor %}
+      </g>
+    </svg>
+  </div>
+  <div class="tree-controls">
+    <button type="button" class="button icon-only tonal" data-pan-zoom-action="in" aria-label="{% translate 'Acercar' %}">{% icon "zoom_in" %}</button>
+    <button type="button" class="button icon-only tonal" data-pan-zoom-action="out" aria-label="{% translate 'Alejar' %}">{% icon "zoom_out" %}</button>
+    <button type="button" class="button icon-only tonal" data-pan-zoom-action="center" aria-label="{% translate 'Centrar' %}">{% icon "restart_alt" %}</button>
+  </div>
+  {% if legend %}
+  <ul class="tree-legend" aria-label="{% translate 'Leyenda' %}">
+    {% for kind, label in legend %}<li><span class="legend-swatch edge-{{ kind }}" aria-hidden="true"></span>{{ label }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  {% if nodes|length == 1 %}
+  <p class="tree-empty muted">{% if mode == "family" %}{% blocktranslate with name=focus %}Todavía no hay familia de {{ name }}. Añádela desde su ficha, en «Familia y relaciones».{% endblocktranslate %}{% else %}{% blocktranslate with name=focus %}Todavía no hay relaciones de {{ name }} con estos filtros.{% endblocktranslate %}{% endif %}</p>
+  {% endif %}
+</div>

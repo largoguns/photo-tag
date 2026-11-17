@@ -1,6 +1,6 @@
 from django.urls import path
 
-from catalog import admin_views, person_views, views
+from catalog import admin_views, person_views, tree_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -40,6 +40,7 @@ urlpatterns = [
         person_views.remove_relationship,
         name="remove_relationship",
     ),
+    path("tree/", tree_views.tree, name="tree"),
     path("activity/", views.my_activity, name="my_activity"),
     # Administration
     path("admin/", admin_views.admin_home, name="admin_home"),

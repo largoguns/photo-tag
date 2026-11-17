@@ -1,0 +1,20 @@
+{% load i18n catalog_tags %}
+<section class="tree-list stack" aria-label="{% translate 'Lista' %}">
+  <p><strong>{{ focus }}</strong></p>
+  {% for title, items in list_levels %}
+  <h2 class="sheet-subtitle">{{ title }}</h2>
+  <ul class="relation-list">
+    {% for item in items %}
+    <li class="relation">
+      <a class="relation-person" href="{% url 'tree' %}{% qs params 'person' item.person.pk %}">
+        {% if item.avatar_url %}<img src="{{ item.avatar_url }}" alt="" loading="lazy" width="40" height="40">{% else %}<span class="avatar-mini" aria-hidden="true">{{ item.person.display_name|first|upper }}</span>{% endif %}
+        <span class="relation-text"><span class="relation-name">{{ item.person }}</span>{% if item.role %}<span class="relation-role">{{ item.role }}</span>{% endif %}</span>
+      </a>
+      <a class="button text small" href="{% url 'person_detail' item.person.pk %}" hx-boost="false">{% translate "Ver ficha" %}</a>
+    </li>
+    {% endfor %}
+  </ul>
+  {% empty %}
+  <p class="muted">{% translate "Nadie más con estos filtros." %}</p>
+  {% endfor %}
+</section>

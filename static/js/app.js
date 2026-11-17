@@ -655,7 +655,7 @@
   document.addEventListener("input", (event) => {
     if (!event.target.matches("[data-sheet-search]")) return;
     const query = nameKey(event.target.value);
-    event.target.closest("dialog").querySelectorAll("[data-option-label]").forEach((item) => {
+    event.target.closest("dialog, [data-search-scope]").querySelectorAll("[data-option-label]").forEach((item) => {
       item.hidden = !!query && !looseMatch(query, item.dataset.optionLabel);
     });
   });
@@ -2151,4 +2151,150 @@
     if (image.complete && image.naturalWidth) initCropEditor(root);
     else image.addEventListener("load", () => initCropEditor(root), { once: true });
   });
+
+  // --- Family tree / relationship network: pan and zoom of the drawing (5.12) -----------
+  // Same model as the photo viewer: a stage with a transformed content, pinch and wheel
+  // zoom around a point, drag to move. Tapping a node opens its sheet; dragging does not.
+  const PAN_MIN = 0.25;
+  const PAN_MAX = 3;
+  const panZoom = { root: null, scale: 1, x: 0, y: 0, pointers: new Map(), pinch: null, moved: 0 };
+
+  function panApply() {
+    const content = panZoom.root && panZoom.root.querySelector("[data-pan-content]");
+    if (content) content.style.transform = `translate(${panZoom.x}px, ${panZoom.y}px) scale(${panZoom.scale})`;
+  }
+
+  function panZoomAt(factor, cx, cy) {
+    const next = Math.min(PAN_MAX, Math.max(PAN_MIN, panZoom.scale * factor));
+    const ratio = next / panZoom.scale;
+    panZoom.x = cx - (cx - panZoom.x) * ratio;
+    panZoom.y = cy - (cy - panZoom.y) * ratio;
+    panZoom.scale = next;
+    panApply();
+  }
+
+  // Start readable (never below 60 %), with the central person as close to the middle as
+  // possible while keeping the drawing inside the canvas: a drawing that fits is centred.
+  function panAxis(canvas, size, focus, scale) {
+    const drawn = size * scale;
+    if (drawn <= canvas) return (canvas - drawn) / 2;
+    return Math.min(0, Math.max(canvas - drawn, canvas / 2 - focus * scale));
+  }
+
+  function panCenter() {
+    const root = panZoom.root;
+    if (!root) return;
+    const svg = root.querySelector("svg");
+    const focus = root.querySelector("[data-node-focus]");
+    const width = Number(svg.getAttribute("width"));
+    const height = Number(svg.getAttribute("height"));
+    const fit = Math.min(root.clientWidth / width, root.clientHeight / height);
+    panZoom.scale = Math.min(1, Math.max(0.6, fit));
+    const fx = focus ? Number(focus.dataset.nodeX) : width / 2;
+    const fy = focus ? Number(focus.dataset.nodeY) : height / 2;
+    panZoom.x = panAxis(root.clientWidth, width, fx, panZoom.scale);
+    panZoom.y = panAxis(root.clientHeight, height, fy, panZoom.scale);
+    panApply();
+  }
+
+  function initPanZoom() {
+    const root = document.querySelector("[data-pan-zoom]");
+    if (root === panZoom.root) return;
+    panZoom.root = root;
+    panZoom.pointers.clear();
+    panZoom.pinch = null;
+    if (root) panCenter();
+  }
+  ready(initPanZoom);
+  document.addEventListener("htmx:afterSettle", initPanZoom);
+  window.addEventListener("resize", () => { if (panZoom.root) panCenter(); });
+
+  function panPoint(event) {
+    const r = panZoom.root.getBoundingClientRect();
+    return { x: event.clientX - r.left, y: event.clientY - r.top };
+  }
+
+  document.addEventListener("pointerdown", (event) => {
+    if (!panZoom.root || !panZoom.root.contains(event.target) || event.target.closest(".tree-controls, .tree-legend")) return;
+    panZoom.pointers.set(event.pointerId, panPoint(event));
+    panZoom.moved = 0;
+    panZoom.root.classList.add("dragging");
+    if (panZoom.pointers.size === 2) {
+      const [a, b] = [...panZoom.pointers.values()];
+      panZoom.pinch = {
+        distance: Math.hypot(a.x - b.x, a.y - b.y),
+        scale: panZoom.scale,
+        mid: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+        origin: { x: panZoom.x, y: panZoom.y },
+      };
+    }
+  });
+
+  window.addEventListener("pointermove", (event) => {
+    if (!panZoom.pointers.has(event.pointerId)) return;
+    const previous = panZoom.pointers.get(event.pointerId);
+    const point = panPoint(event);
+    panZoom.pointers.set(event.pointerId, point);
+    panZoom.moved += Math.hypot(point.x - previous.x, point.y - previous.y);
+    if (panZoom.pointers.size === 2 && panZoom.pinch) {
+      const [a, b] = [...panZoom.pointers.values()];
+      const p = panZoom.pinch;
+      const scale = Math.min(PAN_MAX, Math.max(PAN_MIN, p.scale * Math.hypot(a.x - b.x, a.y - b.y) / (p.distance || 1)));
+      const mid = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+      panZoom.x = mid.x - (p.mid.x - p.origin.x) * (scale / p.scale);
+      panZoom.y = mid.y - (p.mid.y - p.origin.y) * (scale / p.scale);
+      panZoom.scale = scale;
+      panApply();
+    } else if (panZoom.pointers.size === 1) {
+      panZoom.x += point.x - previous.x;
+      panZoom.y += point.y - previous.y;
+      panApply();
+    }
+  });
+
+  function endPan(event) {
+    if (!panZoom.pointers.delete(event.pointerId)) return;
+    if (panZoom.pointers.size < 2) panZoom.pinch = null;
+    if (panZoom.pointers.size === 0 && panZoom.root) panZoom.root.classList.remove("dragging");
+  }
+  window.addEventListener("pointerup", endPan);
+  window.addEventListener("pointercancel", endPan);
+
+  document.addEventListener("wheel", (event) => {
+    if (!panZoom.root || !panZoom.root.contains(event.target)) return;
+    event.preventDefault();
+    const point = panPoint(event);
+    panZoomAt(Math.exp(-event.deltaY * 0.0015), point.x, point.y);
+  }, { passive: false });
+
+  document.addEventListener("click", (event) => {
+    const control = event.target.closest("[data-pan-zoom-action]");
+    if (control && panZoom.root) {
+      const action = control.dataset.panZoomAction;
+      const cx = panZoom.root.clientWidth / 2;
+      const cy = panZoom.root.clientHeight / 2;
+      if (action === "in") panZoomAt(1.4, cx, cy);
+      if (action === "out") panZoomAt(1 / 1.4, cx, cy);
+      if (action === "center") panCenter();
+      return;
+    }
+    const node = event.target.closest("[data-node]");
+    if (!node) return;
+    // A drag that ends on a node is not a tap; a tap opens the node sheet (the link,
+    // which centres the tree on that person, is the fallback without JS).
+    event.preventDefault();
+    event.stopPropagation();
+    if (event.detail !== 0 && panZoom.moved > TAP_MAX_MOVE) return;  // detail 0: keyboard
+    const sheet = document.getElementById("sheet-node");
+    if (!sheet) { window.location.href = node.getAttribute("href"); return; }
+    sheet.querySelector('[data-node-field="name"]').textContent = node.dataset.nodeName;
+    const role = sheet.querySelector('[data-node-field="role"]');
+    role.textContent = node.dataset.nodeRole || "";
+    role.hidden = !node.dataset.nodeRole;
+    sheet.querySelector('[data-node-link="center"]').setAttribute("href", node.getAttribute("href"));
+    sheet.querySelector('[data-node-link="detail"]').setAttribute("href", node.dataset.nodeDetail);
+    sheet.querySelector('[data-node-link="add"]').setAttribute("href", node.dataset.nodeAdd);
+    sheet.showModal();
+  }, true);
+
 })();

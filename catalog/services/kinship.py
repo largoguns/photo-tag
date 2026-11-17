@@ -135,16 +135,23 @@ def role_label(role):
 
 
 class Graph:
-    """Accepted relationships in memory, loaded with a single query."""
+    """Relationships in memory, loaded with a single query.
+
+    `rows` are (person_from, person_to, kind) or (person_from, person_to, kind, activity).
+    """
 
     def __init__(self, rows=()):
+        self.edges = []  # (person_from, person_to, kind, activity), every relationship
         self.parents = defaultdict(set)
         self.children = defaultdict(set)
         self.partners = defaultdict(set)
+        self.ex_partners = defaultdict(set)
         self.siblings = defaultdict(set)  # explicit sibling relationships only
         self.upper = defaultdict(set)  # ancestors one explicit step away (parent/grandparent)
         self.family = {}  # frozenset(pair) → kind, the explicit family relationship of a pair
-        for person_from, person_to, kind in rows:
+        for row in rows:
+            person_from, person_to, kind = row[:3]
+            self.edges.append((person_from, person_to, kind, row[3] if len(row) > 3 else ""))
             if kind in FAMILY_KINDS:
                 self.family[frozenset((person_from, person_to))] = kind
             if kind == K.PARENT:
@@ -153,6 +160,9 @@ class Graph:
             elif kind == K.PARTNER:
                 self.partners[person_from].add(person_to)
                 self.partners[person_to].add(person_from)
+            elif kind == K.EX_PARTNER:
+                self.ex_partners[person_from].add(person_to)
+                self.ex_partners[person_to].add(person_from)
             elif kind == K.SIBLING:
                 self.siblings[person_from].add(person_to)
                 self.siblings[person_to].add(person_from)
@@ -164,7 +174,9 @@ class Graph:
         """All accepted relationships, optionally ignoring the family one of a pair (used
         when a proposal would replace it)."""
         skip = frozenset(exclude_family_pair) if exclude_family_pair else None
-        rows = Relationship.objects.values_list("person_from_id", "person_to_id", "kind")
+        rows = Relationship.objects.values_list(
+            "person_from_id", "person_to_id", "kind", "activity"
+        )
         return cls(
             row
             for row in rows

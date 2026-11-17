@@ -99,6 +99,7 @@
     {% if not family_relations and not social_relations %}
     <p class="muted">{% blocktranslate %}Todavía no se sabe con quién está relacionado {{ person }}.{% endblocktranslate %}</p>
     {% endif %}
+    <a class="button small tree-link" href="{% url 'tree' %}?person={{ person.pk }}" hx-boost="false">{% icon "family_history" %}{% translate "Ver árbol" %}</a>
     <details class="relation-add"{% if not family_relations and not social_relations %} open{% endif %}>
       <summary class="button small">{% icon "add" %}{% translate "Añadir relación" %}</summary>
       <form method="post" class="stack relation-form" action="{% url 'add_relationship' person.pk %}" hx-boost="true">

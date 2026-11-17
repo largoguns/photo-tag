@@ -1,0 +1,95 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Árbol genealógico" %}{% endblock %}
+{% block main_class %}container wide tree-main{% endblock %}
+{% block content %}
+<div id="tree-body" class="tree-body" hx-boost="true" hx-target="#tree-body" hx-select="#tree-body" hx-swap="outerHTML">
+  <h1 class="visually-hidden">{% translate "Árbol genealógico" %}</h1>
+  <nav class="segmented audit-tabs tree-tabs" aria-label="{% translate 'Tipo de árbol' %}">
+    <a href="{% qs params 'mode' %}" {% if mode == "family" %}aria-current="page"{% endif %}><span><span>{% translate "Familiar" %}</span></span></a>
+    <a href="{% qs params 'mode' 'social' %}" {% if mode == "social" %}aria-current="page"{% endif %}><span><span>{% translate "Relaciones" %}</span></span></a>
+  </nav>
+
+  {% if not focus %}
+  <section class="card stack tree-chooser" data-search-scope>
+    <h2>{% translate "¿De quién quieres ver el árbol?" %}</h2>
+    <p class="muted">{% translate "Si te identificas como una persona del álbum con «Soy yo», el árbol empezará por ti." %}</p>
+    <input type="search" class="sheet-search" placeholder="{% translate 'Buscar' %}" aria-label="{% translate 'Buscar' %}" data-sheet-search>
+    <ul class="option-list">
+      {% for person in people %}
+      <li data-option-label="{{ person.shown_name }}">
+        <a class="option" href="{% qs params 'person' person.pk %}">
+          {% if person.avatar_id %}<img src="{% url 'face_image' person.avatar_id %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ person.display_name|first|upper }}</span>{% endif %}
+          <span>{{ person }}</span>
+        </a>
+      </li>
+      {% empty %}
+      <li class="empty">{% translate "Todavía no hay personas identificadas." %}</li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% else %}
+  <nav class="filter-bar" aria-label="{% translate 'Filtros' %}">
+    <button type="button" class="chip selected" data-open-sheet="sheet-person" aria-haspopup="dialog">{% icon "person" %}{{ focus }}{% icon "keyboard_arrow_down" %}</button>
+    {% if mode == "family" %}
+    <button type="button" class="chip" data-open-sheet="sheet-up" aria-haspopup="dialog">{% blocktranslate count counter=up %}{{ counter }} generación arriba{% plural %}{{ counter }} generaciones arriba{% endblocktranslate %}{% icon "keyboard_arrow_down" %}</button>
+    <button type="button" class="chip" data-open-sheet="sheet-down" aria-haspopup="dialog">{% blocktranslate count counter=down %}{{ counter }} generación abajo{% plural %}{{ counter }} generaciones abajo{% endblocktranslate %}{% icon "keyboard_arrow_down" %}</button>
+    {% for key, label, on in family_toggles %}
+    {% if on %}
+    <a class="chip" href="{% qs params key '0' %}" aria-pressed="true">{% icon "check" %}{{ label }}</a>
+    {% else %}
+    <a class="chip" href="{% qs params key %}" aria-pressed="false">{{ label }}</a>
+    {% endif %}
+    {% endfor %}
+    {% else %}
+    <button type="button" class="chip{% if kind %} selected{% endif %}" data-open-sheet="sheet-kind" aria-haspopup="dialog">{% if kind %}{% icon "check" %}{{ kind_label }}{% else %}{% translate "Tipo" %}{% endif %}{% icon "keyboard_arrow_down" %}</button>
+    {% if activities %}<button type="button" class="chip{% if params.activity %} selected{% endif %}" data-open-sheet="sheet-activity" aria-haspopup="dialog">{% if params.activity %}{% icon "check" %}{{ params.activity }}{% else %}{% translate "Actividad" %}{% endif %}{% icon "keyboard_arrow_down" %}</button>{% endif %}
+    {% if params.depth == "2" %}
+    <a class="chip" href="{% qs params 'depth' %}" aria-pressed="true">{% icon "check" %}{% translate "Segundo grado" %}</a>
+    {% else %}
+    <a class="chip" href="{% qs params 'depth' '2' %}" aria-pressed="false">{% translate "Segundo grado" %}</a>
+    {% endif %}
+    {% endif %}
+    {% if list_view %}
+    <a class="chip" href="{% qs params 'view' %}">{% icon "visibility" %}{% translate "Ver dibujo" %}</a>
+    {% else %}
+    <a class="chip" href="{% qs params 'view' 'list' %}">{% icon "checklist" %}{% translate "Ver como lista" %}</a>
+    {% endif %}
+  </nav>
+  {% if layout.truncated %}<p class="muted">{% translate "Hay demasiadas personas: solo se muestran las más cercanas. Reduce las generaciones o los filtros." %}</p>{% endif %}
+
+  {% if list_view %}{% include "catalog/_tree_list.html" %}{% else %}{% include "catalog/_tree_svg.html" %}{% endif %}
+
+  {% translate "Persona central" as t_person %}{% translate "Tú" as t_me %}
+  {% sheet_options people "person" as person_options %}
+  {% include "catalog/_filter_sheet.html" with key="person" title=t_person all_label=t_me options=person_options current=params.person searchable=True %}
+  {% if mode == "family" %}
+  {% translate "Generaciones arriba" as t_up %}{% translate "Generaciones abajo" as t_down %}{% translate "3 (por defecto)" as t_default %}
+  {% sheet_options generation_choices as generation_sheet %}
+  {% include "catalog/_filter_sheet.html" with key="up" title=t_up all_label=t_default options=generation_sheet current=params.up searchable=False %}
+  {% include "catalog/_filter_sheet.html" with key="down" title=t_down all_label=t_default options=generation_sheet current=params.down searchable=False %}
+  {% else %}
+  {% translate "Tipo de relación" as t_kind %}{% translate "Todas" as t_all %}{% translate "Actividad" as t_activity %}
+  {% sheet_options kind_options as kind_sheet %}
+  {% include "catalog/_filter_sheet.html" with key="kind" title=t_kind all_label=t_all options=kind_sheet current=params.kind searchable=False %}
+  {% sheet_options activity_choices as activity_sheet %}
+  {% include "catalog/_filter_sheet.html" with key="activity" title=t_activity all_label=t_all options=activity_sheet current=params.activity searchable=False %}
+  {% endif %}
+
+  <dialog class="sheet tree-node-sheet" id="sheet-node" aria-labelledby="sheet-node-title">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="sheet-header">
+      <h2 id="sheet-node-title" data-node-field="name"></h2>
+      <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
+    </div>
+    <div class="sheet-body sheet-form stack">
+      <p class="muted" data-node-field="role"></p>
+      <div class="actions tree-node-actions">
+        <a class="button primary" data-node-link="center">{% icon "person" %}{% translate "Centrar aquí" %}</a>
+        <a class="button" data-node-link="detail" hx-boost="false">{% icon "account_circle" %}{% translate "Ver ficha" %}</a>
+        <a class="button" data-node-link="add" hx-boost="false">{% icon "add" %}{% translate "Añadir relación" %}</a>
+      </div>
+    </div>
+  </dialog>
+  {% endif %}
+</div>
+{% endblock %}

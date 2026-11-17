@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 22:35+0100\n"
+"POT-Creation-Date: 2026-11-17 23:05+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -107,7 +107,7 @@ msgid "Catalogación"
 msgstr "Cataloging"
 
 #: accounts/services/audit_catalog.py:21
-#: templates/catalog/person_detail.html:67
+#: templates/catalog/person_detail.html:68
 msgid "Fotos"
 msgstr "Photos"
 
@@ -334,7 +334,7 @@ msgid "Propuesta"
 msgstr "Proposed"
 
 #: accounts/services/audit_catalog.py:83
-#: templates/catalog/_person_sheets.html:107 templates/catalog/gallery.html:11
+#: templates/catalog/_person_sheets.html:108 templates/catalog/gallery.html:11
 #: templates/catalog/gallery.html:55
 msgid "Persona"
 msgstr "Person"
@@ -458,52 +458,52 @@ msgstr "Password of “%(username)s” reset to the generic password."
 msgid "No ha hecho propuestas."
 msgstr "No proposals yet."
 
-#: catalog/admin_views.py:43
+#: catalog/admin_views.py:42
 #, python-format
 msgid "Tipo de evento «%(name)s» creado."
 msgstr "Event type “%(name)s” created."
 
-#: catalog/admin_views.py:60
+#: catalog/admin_views.py:59
 msgid "Tipo de evento actualizado."
 msgstr "Event type updated."
 
-#: catalog/admin_views.py:89
+#: catalog/admin_views.py:90
 msgid "Ubicación renombrada."
 msgstr "Location renamed."
 
-#: catalog/admin_views.py:92
+#: catalog/admin_views.py:93
 msgid "Ubicación actualizada."
 msgstr "Location updated."
 
-#: catalog/admin_views.py:100
+#: catalog/admin_views.py:101
 #, python-format
 msgid "Ubicaciones fusionadas en «%(name)s»."
 msgstr "Locations merged into “%(name)s”."
 
-#: catalog/admin_views.py:121
+#: catalog/admin_views.py:122
 msgid "Umbrales actualizados."
 msgstr "Thresholds updated."
 
-#: catalog/admin_views.py:142
+#: catalog/admin_views.py:143
 #, python-format
 msgid "Escaneo «%(name)s» marcado como revisado."
 msgstr "Scan “%(name)s” marked as reviewed."
 
-#: catalog/admin_views.py:180
+#: catalog/admin_views.py:181
 msgid "Foto borrada."
 msgstr "Photo deleted."
 
-#: catalog/admin_views.py:196
+#: catalog/admin_views.py:197
 #, python-format
 msgid "Escaneo «%(name)s» borrado. Puedes volver a escanearlo o subirlo."
 msgstr "Scan “%(name)s” deleted. You can scan or upload it again."
 
-#: catalog/admin_views.py:209
+#: catalog/admin_views.py:210
 #, python-format
 msgid "Reprocesando «%(name)s»: tardará unos segundos."
 msgstr "Reprocessing “%(name)s”: it will take a few seconds."
 
-#: catalog/admin_views.py:241
+#: catalog/admin_views.py:242
 #, python-format
 msgid "Personas fusionadas en «%(name)s»."
 msgstr "People merged into “%(name)s”."
@@ -887,7 +887,7 @@ msgstr "%(from)s and %(to)s: %(role)s"
 msgid "apodo"
 msgstr "nickname"
 
-#: catalog/person_views.py:98
+#: catalog/person_views.py:94
 msgid "Relación guardada."
 msgstr "Relationship saved."
 
@@ -907,11 +907,12 @@ msgstr "The family has catalogued half the album!"
 msgid "¡Un cuarto del álbum ya está catalogado!"
 msgstr "A quarter of the album is catalogued!"
 
-#: catalog/presenters.py:176 templates/catalog/_person_sheets.html:118
+#: catalog/presenters.py:178 templates/catalog/_person_sheets.html:119
 msgid "Familia"
 msgstr "Family"
 
-#: catalog/presenters.py:176 templates/catalog/_person_sheets.html:121
+#: catalog/presenters.py:178 templates/catalog/_person_sheets.html:122
+#: templates/catalog/tree.html:9
 msgid "Relaciones"
 msgstr "Relationships"
 
@@ -1092,6 +1093,45 @@ msgstr "Invalid vote."
 msgid "La propuesta ya está cerrada."
 msgstr "The proposal is already closed."
 
+#: catalog/tree_views.py:52
+msgid "Relaciones directas"
+msgstr "Direct relationships"
+
+#: catalog/tree_views.py:52 templates/catalog/tree.html:47
+#: templates/catalog/tree.html:49
+msgid "Segundo grado"
+msgstr "Second degree"
+
+#: catalog/tree_views.py:54
+msgid "Su generación"
+msgstr "Same generation"
+
+#: catalog/tree_views.py:56
+#, python-format
+msgid "%(n)s generación por encima"
+msgid_plural "%(n)s generaciones por encima"
+msgstr[0] "%(n)s generation above"
+msgstr[1] "%(n)s generations above"
+
+#: catalog/tree_views.py:59
+#, python-format
+msgid "%(n)s generación por debajo"
+msgid_plural "%(n)s generaciones por debajo"
+msgstr[0] "%(n)s generation below"
+msgstr[1] "%(n)s generations below"
+
+#: catalog/tree_views.py:90
+msgid "Parejas"
+msgstr "Partners"
+
+#: catalog/tree_views.py:91
+msgid "Familia política"
+msgstr "In-laws"
+
+#: catalog/tree_views.py:92
+msgid "Enlaces directos"
+msgstr "Direct links"
+
 #: catalog/views.py:203
 #, python-format
 msgid ""
@@ -1116,21 +1156,21 @@ msgstr "That face is not this person."
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:280
+#: catalog/views.py:282
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:402
+#: catalog/views.py:404
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:466
+#: catalog/views.py:468
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:468
+#: catalog/views.py:470
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -1594,7 +1634,7 @@ msgid "Volver a Usuarios"
 msgstr "Back to Users"
 
 #: templates/accounts/audit.html:7 templates/catalog/_proposal_activity.html:2
-#: templates/catalog/gallery.html:6
+#: templates/catalog/gallery.html:6 templates/catalog/tree.html:31
 msgid "Filtros"
 msgstr "Filters"
 
@@ -1742,7 +1782,7 @@ msgstr "All"
 #: templates/catalog/_person_sheets.html:37
 #: templates/catalog/_person_sheets.html:71
 #: templates/catalog/_photo_workspace.html:61
-#: templates/catalog/person_detail.html:79
+#: templates/catalog/person_detail.html:80 templates/catalog/tree.html:82
 msgid "Cerrar"
 msgstr "Close"
 
@@ -1825,7 +1865,7 @@ msgstr "Theme"
 #: templates/accounts/profile.html:39 templates/accounts/profile.html:114
 #: templates/accounts/user_form.html:13
 #: templates/catalog/_person_sheets.html:17
-#: templates/catalog/_person_sheets.html:131
+#: templates/catalog/_person_sheets.html:132
 #: templates/catalog/admin/event_type_form.html:11
 #: templates/catalog/admin/location_form.html:17
 #: templates/catalog/admin/thresholds.html:12
@@ -1866,7 +1906,7 @@ msgstr ""
 "You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you "
 "shows on your profile:"
 
-#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:89
+#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:90
 #, python-format
 msgid "Cara de la foto %(id)s"
 msgstr "Face from photo %(id)s"
@@ -1875,14 +1915,14 @@ msgstr "Face from photo %(id)s"
 msgid "Aún no hay fotos tuyas identificadas."
 msgstr "No photos of you have been identified yet."
 
-#: templates/accounts/profile.html:94 templates/catalog/person_detail.html:37
+#: templates/accounts/profile.html:94 templates/catalog/person_detail.html:38
 #, python-format
 msgid "¿Dejar de identificarte como %(name)s?"
 msgstr "Stop identifying as %(name)s?"
 
 #: templates/accounts/profile.html:94 templates/accounts/profile.html:95
-#: templates/catalog/person_detail.html:37
 #: templates/catalog/person_detail.html:38
+#: templates/catalog/person_detail.html:39
 msgid "No soy yo"
 msgstr "Not me"
 
@@ -1932,7 +1972,7 @@ msgid "El usuario deberá cambiar la contraseña en su primer acceso."
 msgstr ""
 "The user will have to change the password when signing in for the first time."
 
-#: templates/accounts/user_form.html:14 templates/base.html:122
+#: templates/accounts/user_form.html:14 templates/base.html:126
 #: templates/catalog/_photo_workspace.html:77
 #: templates/catalog/admin/event_type_form.html:12
 #: templates/catalog/admin/merge.html:15
@@ -1960,6 +2000,7 @@ msgstr "Search by username or name"
 
 #: templates/accounts/user_list.html:12 templates/catalog/_filter_sheet.html:8
 #: templates/catalog/_person_sheet.html:17 templates/catalog/persons.html:8
+#: templates/catalog/tree.html:16
 msgid "Buscar"
 msgstr "Search"
 
@@ -1967,8 +2008,9 @@ msgstr "Search"
 msgid "Contraseña genérica"
 msgstr "Generic password"
 
-#: templates/accounts/user_list.html:27 templates/base.html:75
-#: templates/catalog/_person_sheets.html:127
+#: templates/accounts/user_list.html:27 templates/base.html:79
+#: templates/catalog/_person_sheets.html:128 templates/catalog/tree.html:45
+#: templates/catalog/tree.html:71
 msgid "Actividad"
 msgstr "Activity"
 
@@ -2048,15 +2090,19 @@ msgstr "Home"
 msgid "Galería"
 msgstr "Gallery"
 
-#: templates/base.html:91
+#: templates/base.html:75
+msgid "Árbol"
+msgstr "Tree"
+
+#: templates/base.html:95
 msgid "Instala PhotoTag"
 msgstr "Install PhotoTag"
 
-#: templates/base.html:92
+#: templates/base.html:96
 msgid "Añádela a tu pantalla de inicio y ábrela como una app."
 msgstr "Add it to your home screen and open it like an app."
 
-#: templates/base.html:93
+#: templates/base.html:97
 msgid ""
 "Pulsa <strong>Compartir</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> y elige <strong>Añadir a pantalla de inicio</strong>."
@@ -2064,7 +2110,7 @@ msgstr ""
 "Tap <strong>Share</strong> <span class=\"share-glyph\" aria-"
 "hidden=\"true\"></span> and choose <strong>Add to Home Screen</strong>."
 
-#: templates/base.html:94
+#: templates/base.html:98
 msgid ""
 "Abre el menú <strong>⋮</strong> del navegador y elige <strong>Instalar app</"
 "strong> o <strong>Añadir a pantalla de inicio</strong>."
@@ -2072,19 +2118,19 @@ msgstr ""
 "Open the browser menu <strong>⋮</strong> and choose <strong>Install app</"
 "strong> or <strong>Add to Home screen</strong>."
 
-#: templates/base.html:97 templates/base.html:111
+#: templates/base.html:101 templates/base.html:115
 msgid "Ahora no"
 msgstr "Not now"
 
-#: templates/base.html:98
+#: templates/base.html:102
 msgid "Instalar"
 msgstr "Install"
 
-#: templates/base.html:106
+#: templates/base.html:110
 msgid "Activa los avisos"
 msgstr "Turn on notifications"
 
-#: templates/base.html:107
+#: templates/base.html:111
 msgid ""
 "Te avisaremos de fotos nuevas y de propuestas que esperan tu voto. Como "
 "mucho uno por hora y nunca de noche."
@@ -2092,19 +2138,19 @@ msgstr ""
 "We'll let you know about new photos and proposals waiting for your vote. At "
 "most one per hour, never at night."
 
-#: templates/base.html:108
+#: templates/base.html:112
 msgid "No se han podido activar. Puedes intentarlo desde Mi perfil."
 msgstr "They could not be turned on. You can try again from My profile."
 
-#: templates/base.html:112 templates/catalog/admin/location_form.html:30
+#: templates/base.html:116 templates/catalog/admin/location_form.html:30
 msgid "Activar"
 msgstr "Turn on"
 
-#: templates/base.html:119
+#: templates/base.html:123
 msgid "¿Confirmar?"
 msgstr "Confirm?"
 
-#: templates/base.html:123
+#: templates/base.html:127
 msgid "Confirmar"
 msgstr "Confirm"
 
@@ -2145,7 +2191,8 @@ msgstr "Uncle, Auntie, Grandma…"
 #: templates/catalog/_person_sheets.html:15
 #, python-format
 msgid "Va delante del nombre: «Tito %(name)s». Déjalo vacío para quitarlo."
-msgstr "It goes before the name: “Uncle %(name)s”. Leave it empty to remove it."
+msgstr ""
+"It goes before the name: “Uncle %(name)s”. Leave it empty to remove it."
 
 #: templates/catalog/_person_sheets.html:23
 msgid "Nombre a mostrar (administración)"
@@ -2160,7 +2207,7 @@ msgid "Cambiar nombre"
 msgstr "Rename"
 
 #: templates/catalog/_person_sheets.html:36
-#: templates/catalog/person_detail.html:32
+#: templates/catalog/person_detail.html:33
 msgid "Apodos"
 msgstr "Nicknames"
 
@@ -2197,7 +2244,7 @@ msgid "Añadir"
 msgstr "Add"
 
 #: templates/catalog/_person_sheets.html:70
-#: templates/catalog/person_detail.html:31
+#: templates/catalog/person_detail.html:32
 msgid "Familia y relaciones"
 msgstr "Family and relationships"
 
@@ -2220,24 +2267,29 @@ msgstr "Remove the relationship with %(name)s (%(label)s)"
 msgid "Todavía no se sabe con quién está relacionado %(person)s."
 msgstr "Nobody knows yet who %(person)s is related to."
 
-#: templates/catalog/_person_sheets.html:103
+#: templates/catalog/_person_sheets.html:102
+#: templates/catalog/person_detail.html:31
+msgid "Ver árbol"
+msgstr "See tree"
+
+#: templates/catalog/_person_sheets.html:104 templates/catalog/tree.html:89
 msgid "Añadir relación"
 msgstr "Add relationship"
 
-#: templates/catalog/_person_sheets.html:111
+#: templates/catalog/_person_sheets.html:112
 msgid "Nombre, honorífico o apodo"
 msgstr "Name, honorific or nickname"
 
-#: templates/catalog/_person_sheets.html:116
+#: templates/catalog/_person_sheets.html:117
 #, python-format
 msgid "Es … de %(person)s"
 msgstr "Is … of %(person)s"
 
-#: templates/catalog/_person_sheets.html:128
+#: templates/catalog/_person_sheets.html:129
 msgid "Fútbol, coro…"
 msgstr "Football, choir…"
 
-#: templates/catalog/_person_sheets.html:130
+#: templates/catalog/_person_sheets.html:131
 msgid "Si la persona no está en el álbum, se añade con este nombre."
 msgstr "If the person is not in the album, they are added with this name."
 
@@ -2276,11 +2328,13 @@ msgstr "Full-screen photo"
 msgid "Mostrar caras"
 msgstr "Show faces"
 
-#: templates/catalog/_photo_workspace.html:66 templates/catalog/crop.html:27
+#: templates/catalog/_photo_workspace.html:66
+#: templates/catalog/_tree_svg.html:30 templates/catalog/crop.html:27
 msgid "Acercar"
 msgstr "Zoom in"
 
-#: templates/catalog/_photo_workspace.html:67 templates/catalog/crop.html:28
+#: templates/catalog/_photo_workspace.html:67
+#: templates/catalog/_tree_svg.html:31 templates/catalog/crop.html:28
 msgid "Alejar"
 msgstr "Zoom out"
 
@@ -2592,7 +2646,7 @@ msgid "Estado"
 msgstr "Status"
 
 #: templates/catalog/_proposal_activity.html:7
-#: templates/catalog/_proposal_activity.html:31
+#: templates/catalog/_proposal_activity.html:31 templates/catalog/tree.html:44
 msgid "Tipo"
 msgstr "Type"
 
@@ -2615,6 +2669,46 @@ msgstr "No proposals match these filters."
 #: templates/catalog/_proposal_activity.html:27
 msgid "Aún no has hecho propuestas."
 msgstr "You have not made any proposals yet."
+
+#: templates/catalog/_tree_list.html:2
+msgid "Lista"
+msgstr "List"
+
+#: templates/catalog/_tree_list.html:13 templates/catalog/tree.html:88
+msgid "Ver ficha"
+msgstr "Open profile"
+
+#: templates/catalog/_tree_list.html:18
+msgid "Nadie más con estos filtros."
+msgstr "Nobody else with these filters."
+
+#: templates/catalog/_tree_svg.html:2
+msgid "Árbol familiar"
+msgstr "Family tree"
+
+#: templates/catalog/_tree_svg.html:2
+msgid "Red de relaciones"
+msgstr "Relationship network"
+
+#: templates/catalog/_tree_svg.html:32
+msgid "Centrar"
+msgstr "Centre"
+
+#: templates/catalog/_tree_svg.html:35
+msgid "Leyenda"
+msgstr "Legend"
+
+#: templates/catalog/_tree_svg.html:40
+#, python-format
+msgid ""
+"Todavía no hay familia de %(name)s. Añádela desde su ficha, en «Familia y "
+"relaciones»."
+msgstr "There is no family of %(name)s yet. Add it from their profile, in “Family and relationships”."
+
+#: templates/catalog/_tree_svg.html:40
+#, python-format
+msgid "Todavía no hay relaciones de %(name)s con estos filtros."
+msgstr "There are no relationships of %(name)s with these filters yet."
 
 #: templates/catalog/admin/event_type_form.html:2
 msgid "Editar tipo de evento"
@@ -2743,7 +2837,7 @@ msgstr "Back to Locations"
 
 #: templates/catalog/admin/location_form.html:7
 #: templates/catalog/admin/locations.html:14 templates/catalog/gallery.html:29
-#: templates/catalog/person_detail.html:46 templates/catalog/persons.html:20
+#: templates/catalog/person_detail.html:47 templates/catalog/persons.html:20
 #, python-format
 msgid "%(counter)s foto"
 msgid_plural "%(counter)s fotos"
@@ -2751,7 +2845,7 @@ msgstr[0] "%(counter)s photo"
 msgstr[1] "%(counter)s photos"
 
 #: templates/catalog/admin/location_form.html:7
-#: templates/catalog/person_detail.html:46
+#: templates/catalog/person_detail.html:47
 msgid "Ver en la galería"
 msgstr "See in gallery"
 
@@ -2781,7 +2875,9 @@ msgstr "It is disabled: no longer suggested, but photos keep it."
 msgid ""
 "¿Fusionar «%(name)s» en la ubicación elegida? Sus fotos y propuestas pasarán "
 "a ella."
-msgstr "Merge “%(name)s” into the chosen location? Its photos and proposals will move to it."
+msgstr ""
+"Merge “%(name)s” into the chosen location? Its photos and proposals will "
+"move to it."
 
 #: templates/catalog/admin/location_form.html:37
 #: templates/catalog/admin/location_form.html:39
@@ -2794,7 +2890,9 @@ msgstr "Merge"
 msgid ""
 "Las ubicaciones se crean al proponerlas en las fotos. Aquí puedes "
 "corregirlas, unir duplicados o dejar de sugerirlas."
-msgstr "Locations are created when proposed on photos. Here you can fix them, merge duplicates or stop suggesting them."
+msgstr ""
+"Locations are created when proposed on photos. Here you can fix them, merge "
+"duplicates or stop suggesting them."
 
 #: templates/catalog/admin/locations.html:11
 msgid "Inactiva"
@@ -3019,7 +3117,7 @@ msgstr "No photos match these filters."
 msgid "Saltar a un año"
 msgstr "Jump to a year"
 
-#: templates/catalog/gallery.html:54
+#: templates/catalog/gallery.html:54 templates/catalog/tree.html:71
 msgid "Todas"
 msgstr "All"
 
@@ -3111,7 +3209,7 @@ msgid "Mi actividad"
 msgstr "My activity"
 
 #: templates/catalog/person_detail.html:9
-#: templates/catalog/person_detail.html:33
+#: templates/catalog/person_detail.html:34
 msgid "Cambiar foto principal"
 msgstr "Change main photo"
 
@@ -3146,20 +3244,20 @@ msgstr "That’s me"
 msgid "Más acciones"
 msgstr "More actions"
 
-#: templates/catalog/person_detail.html:34
+#: templates/catalog/person_detail.html:35
 msgid "Fusionar con otra persona"
 msgstr "Merge with another person"
 
-#: templates/catalog/person_detail.html:44
+#: templates/catalog/person_detail.html:45
 #, python-format
 msgid "Usuario vinculado: %(linked)s"
 msgstr "Linked user: %(linked)s"
 
-#: templates/catalog/person_detail.html:49
+#: templates/catalog/person_detail.html:50
 msgid "Puede que aparezca en"
 msgstr "May appear in"
 
-#: templates/catalog/person_detail.html:50
+#: templates/catalog/person_detail.html:51
 #, python-format
 msgid ""
 "Caras sin identificar que se parecen a %(person)s. Confirmar crea una "
@@ -3168,30 +3266,30 @@ msgstr ""
 "Unidentified faces that look like %(person)s. Confirming creates a proposal "
 "for everyone else to vote on."
 
-#: templates/catalog/person_detail.html:55
+#: templates/catalog/person_detail.html:56
 #, python-format
 msgid "Cara sin identificar en la foto %(id)s"
 msgstr "Unidentified face in photo %(id)s"
 
-#: templates/catalog/person_detail.html:61
+#: templates/catalog/person_detail.html:62
 #, python-format
 msgid "Es %(person)s"
 msgstr "It's %(person)s"
 
-#: templates/catalog/person_detail.html:70
+#: templates/catalog/person_detail.html:71
 msgid "Sin fotos."
 msgstr "No photos."
 
-#: templates/catalog/person_detail.html:78
+#: templates/catalog/person_detail.html:79
 msgid "Foto principal"
 msgstr "Main photo"
 
-#: templates/catalog/person_detail.html:82
+#: templates/catalog/person_detail.html:83
 #, python-format
 msgid "Elige la cara que identifica a %(person)s en toda la app."
 msgstr "Choose the face that identifies %(person)s across the app."
 
-#: templates/catalog/person_detail.html:103 templates/catalog/photo.html:8
+#: templates/catalog/person_detail.html:104 templates/catalog/photo.html:8
 #, python-format
 msgid "Crear «%%s»"
 msgstr "Create “%%s”"
@@ -3204,9 +3302,87 @@ msgstr "Search people"
 msgid "Buscar por nombre o apodo"
 msgstr "Search by name or nickname"
 
-#: templates/catalog/persons.html:24
+#: templates/catalog/persons.html:24 templates/catalog/tree.html:26
 msgid "Todavía no hay personas identificadas."
 msgstr "No people have been identified yet."
+
+#: templates/catalog/tree.html:2 templates/catalog/tree.html:6
+msgid "Árbol genealógico"
+msgstr "Family tree"
+
+#: templates/catalog/tree.html:7
+msgid "Tipo de árbol"
+msgstr "Tree type"
+
+#: templates/catalog/tree.html:8
+msgid "Familiar"
+msgstr "Family"
+
+#: templates/catalog/tree.html:14
+msgid "¿De quién quieres ver el árbol?"
+msgstr "Whose tree do you want to see?"
+
+#: templates/catalog/tree.html:15
+msgid ""
+"Si te identificas como una persona del álbum con «Soy yo», el árbol empezará "
+"por ti."
+msgstr "If you identify as a person of the album with “That's me”, the tree will start with you."
+
+#: templates/catalog/tree.html:34
+#, python-format
+msgid "%(counter)s generación arriba"
+msgid_plural "%(counter)s generaciones arriba"
+msgstr[0] "%(counter)s generation up"
+msgstr[1] "%(counter)s generations up"
+
+#: templates/catalog/tree.html:35
+#, python-format
+msgid "%(counter)s generación abajo"
+msgid_plural "%(counter)s generaciones abajo"
+msgstr[0] "%(counter)s generation down"
+msgstr[1] "%(counter)s generations down"
+
+#: templates/catalog/tree.html:53
+msgid "Ver dibujo"
+msgstr "See drawing"
+
+#: templates/catalog/tree.html:55
+msgid "Ver como lista"
+msgstr "See as a list"
+
+#: templates/catalog/tree.html:58
+msgid ""
+"Hay demasiadas personas: solo se muestran las más cercanas. Reduce las "
+"generaciones o los filtros."
+msgstr "There are too many people: only the closest are shown. Reduce the generations or the filters."
+
+#: templates/catalog/tree.html:62
+msgid "Persona central"
+msgstr "Central person"
+
+#: templates/catalog/tree.html:62 templates/gamification/ranking.html:29
+msgid "Tú"
+msgstr "You"
+
+#: templates/catalog/tree.html:66
+msgid "Generaciones arriba"
+msgstr "Generations up"
+
+#: templates/catalog/tree.html:66
+msgid "Generaciones abajo"
+msgstr "Generations down"
+
+#: templates/catalog/tree.html:66
+msgid "3 (por defecto)"
+msgstr "3 (default)"
+
+#: templates/catalog/tree.html:71
+msgid "Tipo de relación"
+msgstr "Relationship type"
+
+#: templates/catalog/tree.html:87
+msgid "Centrar aquí"
+msgstr "Centre here"
 
 #: templates/exporter/export.html:7
 #, python-format
@@ -3305,10 +3481,6 @@ msgstr "Podium"
 #, python-format
 msgid "Puesto %(n)s"
 msgstr "Place %(n)s"
-
-#: templates/gamification/ranking.html:29
-msgid "Tú"
-msgstr "You"
 
 #: templates/gamification/ranking.html:30
 #, python-format

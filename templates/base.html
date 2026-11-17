@@ -70,6 +70,10 @@
       <span class="nav-indicator">{% if name == 'persons' or name == 'person_detail' %}{% icon "group-fill" %}{% else %}{% icon "group" %}{% endif %}</span>
       <span class="nav-label">{% translate "Personas" %}</span>
     </a>
+    <a class="nav-item" href="{% url 'tree' %}" {% if name == 'tree' %}aria-current="page"{% endif %}>
+      <span class="nav-indicator">{% if name == 'tree' %}{% icon "family_history-fill" %}{% else %}{% icon "family_history" %}{% endif %}</span>
+      <span class="nav-label">{% translate "Árbol" %}</span>
+    </a>
     <a class="nav-item" href="{% url 'my_activity' %}" {% if name == 'my_activity' %}aria-current="page"{% endif %}>
       <span class="nav-indicator">{% if name == 'my_activity' %}{% icon "history-fill" %}{% else %}{% icon "history" %}{% endif %}</span>
       <span class="nav-label">{% translate "Actividad" %}</span>
