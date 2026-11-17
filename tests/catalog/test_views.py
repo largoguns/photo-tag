@@ -125,10 +125,11 @@ def test_draw_face_and_date_and_event_from_views(client, photo, alice, boda):
     client.post(
         reverse("propose_date", args=[photo.pk]), {"precision": "exact", "date": "1990-05-02"}
     )
+    client.post(reverse("propose_location", args=[photo.pk]), {"location": "Casa de la playa"})
     client.post(reverse("propose_remove_face", args=[photo.faces.first().pk]))
 
     kinds = set(Proposal.objects.values_list("kind", flat=True))
-    assert kinds == {"add_face", "event", "date", "remove_face"}
+    assert kinds == {"add_face", "event", "date", "location", "remove_face"}
 
 
 def test_photo_page_shows_face_boxes_with_dot_decimals(client, photo, alice):

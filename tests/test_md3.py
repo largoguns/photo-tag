@@ -165,6 +165,7 @@ def test_languages_are_named_in_their_own_language(client, alice):
     [
         ("admin_event_types", "admin_home"),
         ("admin_thresholds", "admin_home"),
+        ("admin_locations", "admin_home"),
         ("admin_review_queue", "admin_home"),
         ("admin_merge", "admin_home"),
         ("export_home", "admin_home"),

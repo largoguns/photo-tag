@@ -1,17 +1,17 @@
 import pytest
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError, transaction
+from django.urls import reverse
 from django.utils import translation
 
 from accounts.models import AuditLog
-from catalog.models import Person, Relationship, RelationshipProposal, Vote
-from catalog.services import relationships
+from catalog.models import Person, Relationship
+from catalog.services import relationships, voting
 from catalog.services.persons import merge_persons
 
 pytestmark = pytest.mark.django_db
 
 K = Relationship.Kind
-Status = RelationshipProposal.Status
 
 
 @pytest.fixture(autouse=True)
@@ -25,11 +25,6 @@ def person(name):
     return Person.objects.create(display_name=name)
 
 
-def accepted(user1, user2, subject, role, other, **extra):
-    proposal = relationships.propose(user1, subject, role, other=other, **extra)
-    return relationships.cast_vote(user2, proposal, Vote.UP)
-
-
 @pytest.fixture
 def ana():
     return person("Ana")
@@ -40,82 +35,36 @@ def luis():
     return person("Luis")
 
 
-def test_proposal_counts_as_authors_vote_and_is_stored_canonically(alice, ana, luis):
-    proposal = relationships.propose(alice, ana, "child", other=luis)  # Luis is Ana's child
+def test_added_directly_in_canonical_form_and_audited(alice, ana, luis):
+    relationship = relationships.add(alice, ana, "child", other=luis)  # Luis is Ana's child
 
-    assert proposal.status == Status.OPEN
-    assert (proposal.person_from, proposal.person_to, proposal.kind) == (ana, luis, K.PARENT)
-    assert list(proposal.votes.values_list("user__username", "value")) == [("alice", 1)]
-    assert proposal.label() == "Ana, progenitor de Luis"
-
-
-def test_two_votes_accept_it_and_it_is_reciprocal(alice, bob, ana, luis):
-    proposal = accepted(alice, bob, luis, "parent", ana)  # Ana is Luis's parent
-
-    assert proposal.status == Status.ACCEPTED
-    relationship = Relationship.objects.get()
     assert (relationship.person_from, relationship.person_to) == (ana, luis)
-    assert relationship.accepted_proposal == proposal
+    assert relationship.kind == K.PARENT and relationship.created_by == alice
+    assert str(relationship) == "Ana, progenitor de Luis"
+    entry = AuditLog.objects.get(action="relationship.add")
+    assert entry.details["label"] == "Ana, progenitor de Luis"
 
 
-def test_votes_against_reject_it(alice, bob, carol, ana, luis):
-    proposal = relationships.propose(alice, ana, "sibling", other=luis)
-    relationships.cast_vote(bob, proposal, Vote.DOWN)
-    proposal = relationships.cast_vote(carol, proposal, Vote.DOWN)
-
-    assert proposal.status == Status.REJECTED
-    assert not Relationship.objects.exists()
+def test_symmetric_kinds_are_stored_once(alice, ana, luis):
+    relationships.add(alice, luis, "cousin", other=ana)
+    with pytest.raises(ValidationError, match="ya está guardada"):
+        relationships.add(alice, ana, "cousin", other=luis)
+    assert Relationship.objects.get().person_from == ana  # lower id first
 
 
-def test_identical_open_proposal_adds_a_vote(alice, bob, ana, luis):
-    first = relationships.propose(alice, ana, "cousin", other=luis)
-    second = relationships.propose(bob, luis, "cousin", other=ana)
-
-    assert second.pk == first.pk
-    assert second.status == Status.ACCEPTED
-    assert RelationshipProposal.objects.count() == 1
-
-
-def test_admin_decides_directly(admin_user, alice, ana, luis):
-    proposal = relationships.propose(alice, ana, "friend", other=luis)
-    with pytest.raises(PermissionDenied):
-        relationships.admin_decide(alice, proposal, True)
-
-    proposal = relationships.admin_decide(admin_user, proposal, True)
-
-    assert proposal.status == Status.ACCEPTED
-    assert proposal.decided_by == admin_user
-    assert Relationship.objects.filter(kind=K.FRIEND).exists()
-
-
-def test_reopening_a_family_field_replaces_it_when_accepted(alice, bob, ana, luis):
-    partner = accepted(alice, bob, ana, "partner", luis)
-    reopen = relationships.propose(alice, ana, "ex_partner", other=luis)
-
-    # The accepted value stays until the new one is accepted.
-    assert Relationship.objects.get().kind == K.PARTNER
-    relationships.cast_vote(bob, reopen, Vote.UP)
+def test_a_family_field_is_replaced(alice, ana, luis):
+    relationships.add(alice, ana, "partner", other=luis)
+    relationships.add(alice, luis, "ex_partner", other=ana)
 
     assert Relationship.objects.get().kind == K.EX_PARTNER
-    partner.refresh_from_db()
-    assert partner.status == Status.SUPERSEDED
+    entry = AuditLog.objects.filter(action="relationship.add").latest("pk")
+    assert entry.details["replaced"] == ["Ana y Luis: pareja"]
 
 
-def test_competing_family_proposals_supersede_each_other(alice, bob, ana, luis):
-    sibling = relationships.propose(alice, ana, "sibling", other=luis)
-    cousin = relationships.propose(alice, ana, "cousin", other=luis)
-
-    relationships.cast_vote(bob, cousin, Vote.UP)
-
-    sibling.refresh_from_db()
-    assert sibling.status == Status.SUPERSEDED
-    assert Relationship.objects.get().kind == K.COUSIN
-
-
-def test_social_relationships_add_up(alice, bob, ana, luis):
-    accepted(alice, bob, ana, "cousin", luis)
-    accepted(alice, bob, ana, "coworker", luis)
-    accepted(alice, bob, ana, "neighbor", luis)
+def test_social_relationships_add_up(alice, ana, luis):
+    relationships.add(alice, ana, "cousin", other=luis)
+    relationships.add(alice, ana, "coworker", other=luis)
+    relationships.add(alice, ana, "neighbor", other=luis)
 
     assert set(Relationship.objects.values_list("kind", flat=True)) == {
         K.COUSIN,
@@ -124,151 +73,101 @@ def test_social_relationships_add_up(alice, bob, ana, luis):
     }
 
 
-def test_activity_is_required_normalized_and_can_be_changed(alice, bob, ana, luis):
-    with pytest.raises(ValidationError):
-        relationships.propose(alice, ana, "activity_mate", other=luis)
+def test_activity_is_required_normalized_and_can_be_changed(alice, ana, luis):
+    with pytest.raises(ValidationError, match="actividad"):
+        relationships.add(alice, ana, "activity_mate", other=luis)
 
-    accepted(alice, bob, ana, "activity_mate", luis, activity="  FÚTBOL ")
+    relationships.add(alice, ana, "activity_mate", other=luis, activity="  FÚTBOL ")
     assert Relationship.objects.get().activity == "Fútbol"
-
-    with pytest.raises(ValidationError, match="ya está aceptada"):
-        relationships.propose(alice, luis, "activity_mate", other=ana, activity="futbol")
-    accepted(alice, bob, ana, "activity_mate", luis, activity="pádel")
+    with pytest.raises(ValidationError, match="ya está guardada"):
+        relationships.add(alice, luis, "activity_mate", other=ana, activity="futbol")
+    relationships.add(alice, ana, "activity_mate", other=luis, activity="pádel")
     assert Relationship.objects.get().activity == "Pádel"
 
 
-def test_removal_is_voted(alice, bob, ana, luis):
-    addition = accepted(alice, bob, ana, "friend", luis)
-    relationship = Relationship.objects.get()
+def test_remove(alice, ana, luis):
+    relationship = relationships.add(alice, ana, "friend", other=luis)
+    relationships.remove(alice, relationship)
 
-    removal = relationships.propose_removal(alice, relationship)
-    assert removal.label() == "Quitar: Ana y Luis: amigo"
-    assert relationships.propose_removal(bob, relationship).pk == removal.pk
-
-    removal.refresh_from_db()
-    assert removal.status == Status.ACCEPTED
     assert not Relationship.objects.exists()
-    addition.refresh_from_db()
-    assert addition.status == Status.SUPERSEDED
-    assert AuditLog.objects.filter(action="relationship.delete").exists()
+    entry = AuditLog.objects.get(action="relationship.delete")
+    assert entry.details["label"] == "Ana y Luis: amigo"
 
 
-def test_unknown_name_creates_a_provisional_person_removed_on_rejection(alice, bob, carol, ana):
-    proposal = relationships.propose(alice, ana, "grandparent", other_name="bisabuelo pepe")
+def test_unknown_name_creates_the_person(alice, ana):
+    relationships.add(alice, ana, "grandparent", other_name="bisabuelo pepe")
     pepe = Person.objects.get(display_name="Bisabuelo Pepe")
-    assert pepe.is_provisional
-
-    relationships.cast_vote(bob, proposal, Vote.DOWN)
-    proposal = relationships.cast_vote(carol, proposal, Vote.DOWN)
-
-    assert not Person.objects.filter(pk=pepe.pk).exists()
-    # The proposal stays as history.
-    assert proposal.status == Status.REJECTED
-    assert proposal.label() == "(persona eliminada), abuelo de Ana"
+    assert not pepe.is_provisional
+    assert Relationship.objects.get().person_from == pepe
 
 
-def test_accepted_provisional_person_becomes_permanent(alice, bob, ana):
-    proposal = relationships.propose(alice, ana, "grandparent", other_name="Pepe")
-    relationships.cast_vote(bob, proposal, Vote.UP)
+def test_an_invalid_relationship_does_not_create_the_person(alice, ana):
+    relationships.add(alice, ana, "parent", other=person("Madre"))
+    relationships.add(alice, ana, "parent", other=person("Padre"))
+    with pytest.raises(ValidationError, match="dos progenitores"):
+        relationships.add(alice, ana, "parent", other_name="Nadie")
+    assert not Person.objects.filter(display_name="Nadie").exists()
 
-    assert not Person.objects.get(display_name="Pepe").is_provisional
 
-
-def test_provisional_person_in_another_relationship_is_kept(alice, bob, carol, ana, luis):
-    relationships.propose(alice, ana, "grandparent", other_name="Pepe")
-    pepe = Person.objects.get(display_name="Pepe")
-    other = relationships.propose(alice, luis, "grandparent", other=pepe)
-
-    relationships.cast_vote(bob, other, Vote.DOWN)
-    relationships.cast_vote(carol, other, Vote.DOWN)
-
+def test_provisional_person_is_kept_while_related(ana):
+    pepe = Person.objects.create(display_name="Pepe", is_provisional=True)
+    Relationship.objects.create(person_from=ana, person_to=pepe, kind=K.FRIEND)
+    voting.cleanup_provisional_person(pepe)
     assert Person.objects.filter(pk=pepe.pk).exists()
 
 
 def test_cannot_relate_a_person_with_oneself(alice, ana):
     with pytest.raises(ValidationError, match="consigo misma"):
-        relationships.propose(alice, ana, "friend", other=ana)
+        relationships.add(alice, ana, "friend", other=ana)
 
 
 def test_unknown_role(alice, ana, luis):
     with pytest.raises(ValidationError):
-        relationships.propose(alice, ana, "boss", other=luis)
+        relationships.add(alice, ana, "boss", other=luis)
 
 
-def test_at_most_two_parents(alice, bob, ana, luis):
-    child = person("Hijo")
-    accepted(alice, bob, child, "parent", ana)
-    accepted(alice, bob, child, "parent", luis)
-
-    with pytest.raises(ValidationError, match="dos progenitores"):
-        relationships.propose(alice, child, "parent", other=person("Otro"))
-
-
-def test_no_ancestry_cycles(alice, bob, ana, luis):
-    accepted(alice, bob, luis, "parent", ana)  # Ana → Luis
+def test_no_ancestry_cycles(alice, ana, luis):
+    relationships.add(alice, luis, "parent", other=ana)  # Ana → Luis
     nieto = person("Nieto")
-    accepted(alice, bob, nieto, "parent", luis)  # Luis → Nieto
+    relationships.add(alice, nieto, "parent", other=luis)  # Luis → Nieto
 
     with pytest.raises(ValidationError, match="antepasado"):
-        relationships.propose(alice, ana, "grandparent", other=nieto)
+        relationships.add(alice, ana, "grandparent", other=nieto)
 
 
-def test_deduced_relationships_cannot_be_proposed_or_contradicted(alice, bob, ana, luis):
+def test_deduced_relationships_cannot_be_added_or_contradicted(alice, ana, luis):
     marta = person("Marta")
-    accepted(alice, bob, luis, "parent", ana)
-    accepted(alice, bob, marta, "parent", ana)
+    relationships.add(alice, luis, "parent", other=ana)
+    relationships.add(alice, marta, "parent", other=ana)
 
     with pytest.raises(ValidationError, match="ya se deduce"):
-        relationships.propose(alice, luis, "sibling", other=marta)
+        relationships.add(alice, luis, "sibling", other=marta)
     with pytest.raises(ValidationError, match="deduce: hermano"):
-        relationships.propose(alice, luis, "cousin", other=marta)
+        relationships.add(alice, luis, "cousin", other=marta)
 
 
-def test_explicit_relationships_without_the_intermediate_link(alice, bob, ana, luis):
-    # A father-in-law without the partner in the album is still allowed.
-    proposal = accepted(alice, bob, ana, "parent_in_law", luis)
-    assert proposal.status == Status.ACCEPTED
+def test_explicit_relationships_without_the_intermediate_link(alice, ana, luis):
+    # A parent-in-law without the partner in the album is still allowed.
+    assert relationships.add(alice, ana, "parent_in_law", other=luis).kind == K.PARENT_IN_LAW
 
 
-def test_acceptance_revalidates_the_relationship(alice, bob, ana, luis):
-    child = person("Hijo")
-    third = relationships.propose(alice, child, "parent", other=person("Tercero"))
-    accepted(alice, bob, child, "parent", ana)
-    accepted(alice, bob, child, "parent", luis)
-
-    third = relationships.cast_vote(bob, third, Vote.UP)
-
-    assert third.status == Status.SUPERSEDED
-    assert Relationship.objects.filter(person_to=child).count() == 2
-
-
-def test_audit_records_proposals_and_votes(alice, bob, ana, luis):
-    accepted(alice, bob, ana, "friend", luis)
-    actions = set(AuditLog.objects.values_list("action", flat=True))
-    assert {"relationship.propose", "relationship.vote"} <= actions
-
-
-def test_merge_moves_relationships_recanonicalizing_and_dropping_duplicates(admin_user, alice, bob):
+def test_merge_moves_relationships_recanonicalizing_and_dropping_duplicates(admin_user, alice):
     a, b, c = person("A"), person("B"), person("C")  # ids ascending
-    accepted(alice, bob, b, "friend", c)  # (b, c)
-    accepted(alice, bob, a, "friend", c)  # (a, c)
-    accepted(alice, bob, b, "neighbor", a)  # (a, b) → (a, c) after merging b into c
-    open_proposal = relationships.propose(alice, b, "cousin", other=person("D"))
+    relationships.add(alice, b, "friend", other=c)  # (b, c)
+    relationships.add(alice, a, "friend", other=c)  # (a, c)
+    relationships.add(alice, b, "neighbor", other=a)  # (a, b) → (a, c) after the merge
 
     merge_persons(admin_user, b, c)
 
     rows = set(Relationship.objects.values_list("person_from", "person_to", "kind"))
-    # (b, c) friends became (c, c): dropped. (a, c) neighbour kept, canonical order.
+    # (b, c) friends became (c, c): dropped. The neighbours keep the canonical order.
     assert rows == {(a.pk, c.pk, K.FRIEND), (a.pk, c.pk, K.NEIGHBOR)}
-    open_proposal.refresh_from_db()
-    assert open_proposal.status == Status.OPEN
-    assert c.pk in (open_proposal.person_from_id, open_proposal.person_to_id)
 
 
-def test_merge_keeps_the_targets_family_relationship(admin_user, alice, bob, ana, luis):
+def test_merge_keeps_the_targets_family_relationship(admin_user, alice, ana, luis):
     twin = person("Luis bis")
-    accepted(alice, bob, ana, "sibling", luis)
-    accepted(alice, bob, ana, "cousin", twin)
+    relationships.add(alice, ana, "sibling", other=luis)
+    relationships.add(alice, ana, "cousin", other=twin)
 
     merge_persons(admin_user, twin, luis)
 
@@ -286,3 +185,53 @@ def test_database_enforces_the_canonical_form(ana, luis):
         Relationship.objects.create(person_from=low, person_to=high, kind=K.FRIEND)
     # Asymmetric kinds may go either way.
     Relationship.objects.create(person_from=high, person_to=low, kind=K.PARENT)
+
+
+# ---------------------------------------------------------------------------
+# Person page
+# ---------------------------------------------------------------------------
+
+
+def test_person_page_keeps_photos_first_and_relationships_in_the_menu(client, alice, ana, luis):
+    relationships.add(alice, ana, "child", other=luis)
+    client.force_login(alice)
+
+    content = client.get(reverse("person_detail", args=[ana.pk])).content.decode()
+
+    assert 'data-open-sheet="sheet-family"' in content and 'id="sheet-family"' in content
+    assert 'data-open-sheet="sheet-nicknames"' in content
+    sheet = content.split('id="sheet-family"')[1].split("</dialog>")[0]
+    assert "Luis" in sheet and "Hijo" in sheet
+    assert 'id="people-data"' in content
+
+
+def test_add_and_remove_from_the_person_page(client, alice, ana, luis):
+    client.force_login(alice)
+    url = reverse("person_detail", args=[ana.pk])
+
+    response = client.post(
+        reverse("add_relationship", args=[ana.pk]),
+        {"name": "Luis", "role": "sibling", "next": url},
+    )
+    assert response.url == f"{url}?sheet=family"
+    relationship = Relationship.objects.get()
+
+    # The page opens again the sheet it came from.
+    content = client.get(response.url).content.decode()
+    assert 'id="sheet-family" aria-labelledby="sheet-family-title" data-autoopen' in content
+
+    client.post(reverse("remove_relationship", args=[relationship.pk]), {"next": url})
+    assert not Relationship.objects.exists()
+
+
+def test_errors_are_shown_on_the_person_page(client, alice, ana):
+    client.force_login(alice)
+    response = client.post(
+        reverse("add_relationship", args=[ana.pk]), {"name": "Ana", "role": "friend"}, follow=True
+    )
+    assert "consigo misma" in response.content.decode()
+
+
+def test_login_is_required(client, ana):
+    response = client.post(reverse("add_relationship", args=[ana.pk]), {"role": "friend"})
+    assert response.status_code == 302 and "login" in response.url
