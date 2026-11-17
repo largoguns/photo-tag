@@ -164,6 +164,8 @@ def seed_family(maria):
         except Exception:  # already there from a previous run
             continue
     relationships.add(maria, marta, "activity_mate", other=sofia, activity="Natación")
+    # The demo user is Luis in the album, so the tree starts with him.
+    Person.objects.filter(pk=luis.pk).update(user=User.objects.get(username="demo"))
     person_details.set_honorific(maria, paco, "Tito")
     person_details.set_honorific(maria, carmen, "Abuela")
     for target, text in ((paco, "Pico pata"), (paco, "Pico Paco"), (luis, "Er Canijo")):

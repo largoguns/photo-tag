@@ -23,7 +23,7 @@ const variants = [
   { name: "light-es", scheme: "light", locale: "es-ES" },
   { name: "dark-en", scheme: "dark", locale: "en-GB" },
 ];
-const pages = ["/", "/gallery/", "/persons/", "/activity/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/accounts/audit/", "/ranking/", "/admin/export/"];
+const pages = ["/", "/gallery/", "/persons/", "/activity/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/accounts/audit/", "/ranking/", "/admin/export/", "/tree/", "/tree/?mode=social&depth=2", "/tree/?view=list"];
 
 fs.mkdirSync(outDir, { recursive: true });
 const browser = await chromium.launch();
@@ -53,7 +53,7 @@ for (const variant of variants) {
         if (document.documentElement.scrollWidth > vw + 1) found.push(`horizontal scroll (${document.documentElement.scrollWidth}px > ${vw}px)`);
         for (const el of document.querySelectorAll("body *")) {
           const style = getComputedStyle(el);
-          if (style.display === "none" || style.visibility === "hidden" || el.closest("dialog:not([open]), [hidden], .filter-bar, .visually-hidden, .skip-link")) continue;
+          if (style.display === "none" || style.visibility === "hidden" || el.closest("dialog:not([open]), [hidden], .filter-bar, .visually-hidden, .skip-link, .tree-stage")) continue;
           const r = el.getBoundingClientRect();
           if (r.width === 0 || r.height === 0) continue;
           if (r.right > vw + 1 || r.left < -1) found.push(`outside viewport: ${el.tagName.toLowerCase()}.${[...el.classList].join(".")} "${(el.textContent || "").trim().slice(0, 40)}"`);
