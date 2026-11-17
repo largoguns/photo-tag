@@ -4,6 +4,7 @@ Usage (never against the real database):
     export DJANGO_DEBUG=1 DATA_DIR=/tmp/phototag-demo DATABASE_URL=sqlite:////tmp/phototag-demo/db.sqlite3
     python manage.py migrate
     python scripts/agents/seed_demo.py
+    python scripts/agents/seed_demo.py --many 3000   # plus N extra photos (gallery at scale)
 
 Creates the users demo (superadmin) and maria (collaborator), both with the password
 "Demo-Password-1", several synthetic scans with dated photos in different years and a
@@ -125,5 +126,37 @@ def seed_players(maria):
     scoring.rebuild()
 
 
+def seed_many(count):
+    """Extra photo rows reusing the demo files, spread over 60 years (gallery at scale)."""
+    import random
+
+    from catalog.models import Scan
+
+    sources = list(Photo.objects.order_by("pk")[:16])
+    scan = Scan.objects.create(sha256=f"{count:064d}", file_name=f"many-{count}.png")
+    rng = random.Random(count)
+    batch = []
+    for index in range(count):
+        source = sources[index % len(sources)]
+        undated = rng.random() < 0.1
+        date = None if undated else datetime.date(rng.randint(1950, 2010), rng.randint(1, 12), 1)
+        batch.append(
+            Photo(
+                scan=scan,
+                file_name=source.file_name,
+                index=index,
+                width=source.width,
+                height=source.height,
+                date_value=date,
+                date_precision="" if undated else "year",
+            )
+        )
+    Photo.objects.bulk_create(batch, batch_size=500)
+    print(f"Added {count} photos ({Photo.objects.count()} in total).")
+
+
 if __name__ == "__main__":
-    main()
+    if "--many" in sys.argv:
+        seed_many(int(sys.argv[sys.argv.index("--many") + 1]))
+    else:
+        main()

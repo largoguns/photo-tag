@@ -88,7 +88,7 @@ for (const variant of variants) {
       await page.click('[data-action="open-viewer"]');
       await page.waitForTimeout(300);
       await shot("viewer");
-      await page.click('[data-viewer="faces"]');
+      if (await page.locator('[data-viewer="faces"]').count()) await page.click('[data-viewer="faces"]'); // only photos with faces
       await page.click('[data-viewer="zoom-in"]');
       await page.waitForTimeout(200);
       await shot("viewer-zoom-faces");
