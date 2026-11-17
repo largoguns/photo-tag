@@ -189,8 +189,12 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `Scan` | hash, fichero, fecha de procesado, needs_review, reviewed, subido_por (nullable), ancho y alto del original, reprocesado pedido |
 | `FileCleanup` | tipo (`photo`, `export`, `preview`, `original`), nombre o ruta, fecha. Tareas de ficheros pendientes tras un borrado |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
-| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, cuadrilátero de perspectiva (nullable), recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable) |
-| `Person` | nombre a mostrar, notas, creada_por, merged_into (nullable), user vinculado (nullable) |
+| `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, cuadrilátero de perspectiva (nullable), recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable), ubicación aceptada (nullable) |
+| `Person` | nombre a mostrar, honorífico (opcional), notas, creada_por, merged_into (nullable), user vinculado (nullable) |
+| `PersonNickname` | person, texto, texto normalizado, fecha. Único por (person, texto normalizado). Ver 5.13 |
+| `PersonDetailProposal` | person, campo (`honorific`/`nickname`), acción (`set`/`add`/`remove`), texto, nickname (nullable, para `remove`), autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`), decidida_en, decidida_por. Ver 5.13 |
+| `PersonDetailVote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
+| `Location` | nombre, nombre normalizado (único), activa, provisional, propuesta_por (nullable), merged_into (nullable), fecha. Catálogo de lugares en texto («Casa de Los Tarantos»), sin geoposición por ahora |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
 | `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
@@ -208,6 +212,7 @@ Tipos de propuesta (`kind`):
 - `face_identity`: asigna una `Person` (existente o nueva) a una `Face`.
 - `event`: tipo de evento + descripción libre opcional («Boda de Luis y Ana»).
 - `date`: fecha aproximada con precisión variable (año, década o fecha exacta).
+- `location`: ubicación de la foto, una `Location` existente o nueva.
 - `add_face`: nueva cara dibujada manualmente (el detector no la encontró).
 - `remove_face`: la cara detectada es un falso positivo.
 
@@ -223,18 +228,19 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 - Un administrador puede aceptar o rechazar directamente cualquier propuesta (queda registrado).
 - Los umbrales son configurables desde la administración.
 - **Eventos nuevos**: cualquier usuario puede proponer «Otro…» con un nombre. Si coincide con un tipo existente (sin distinguir tildes ni mayúsculas, en español o en inglés), se usa ese tipo; si no, se crea uno **provisional** con el nombre en formato frase. Pasa al catálogo cuando la propuesta se acepta y se elimina si se rechaza o queda sustituida sin que nadie más lo use. Los administradores ven quién lo propuso y pueden editarlo o desactivarlo.
-- Una foto pasa a `cataloged` cuando todas sus caras tienen persona aceptada y tiene evento aceptado.
+- **Ubicaciones nuevas**: igual que los eventos nuevos. Si el texto coincide con una `Location` existente (sin distinguir tildes ni mayúsculas), se usa esa; si no, se crea una **provisional** con el texto recortado y las mayúsculas tal como se escribieron. Pasa al catálogo cuando la propuesta se acepta y se elimina si se rechaza o queda sustituida sin que nadie más la use.
+- Una foto pasa a `cataloged` cuando todas sus caras tienen persona aceptada y tiene evento aceptado. La fecha y la ubicación no son obligatorias.
 
 ### 5.5 Pantallas
 
 1. **Login** y **cambio obligatorio de contraseña** en el primer acceso.
 2. **Inicio**: progreso global (fotos catalogadas / total), propuestas abiertas pendientes de mi voto y botón «Siguiente foto sin catalogar».
-3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones.
+3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, ubicación, década y «pendientes de mi voto») que abren hojas inferiores con las opciones. La de ubicación tiene buscador y muestra el número de fotos de cada una (`?location=<id>`; las ubicaciones fusionadas se resuelven a la de destino).
    - **Varias personas**: la hoja de persona (con buscador y caras) permite elegir varias y muestra las fotos donde **salen todas juntas**; el chip dice «Ana +2» y la URL (`?person=12&person=45`) se puede compartir. Las personas fusionadas se resuelven a la persona destino.
    - **Carga por bloques** (como Google Fotos e Immich), para que miles de fotos no saturen la memoria: la página trae solo el esqueleto (cada sección partida en bloques de hasta 120 fotos, con su recuento y la suma de proporciones para estimar su altura) y los primeros bloques ya llenos. El navegador pide cada bloque (`?block=i`) al acercarse a menos de ~2 pantallas y lo vacía al pasar de ~4, dejando un hueco de su altura medida; así nunca hay más de unos pocos bloques vivos. Lo visible no se mueve cuando un bloque cambia de altura, y al volver desde una foto se reabre en el mismo punto (`?anchor=i`).
    - **Barra de años** a la derecha: arrastrar recorre toda la galería y tocar un año salta a él; en escritorio, al pasar el ratón, muestra los años con el actual resaltado; en móvil aparece al hacer scroll con una burbuja del año. Los años también son enlaces, accesibles con teclado.
-   - **Búsquedas laxas**: todos los buscadores (personas, usuarios, autocompletado de nombres y hoja de persona de la galería) ignoran tildes y mayúsculas y buscan cada palabra por separado en cualquier orden: «ari» encuentra «María» y «lop mar», «María López».
-   - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara.
+   - **Búsquedas laxas**: todos los buscadores (personas, usuarios, autocompletado de nombres y hoja de persona de la galería) ignoran tildes y mayúsculas y buscan cada palabra por separado en cualquier orden: «ari» encuentra «María» y «lop mar», «María López». Las personas se encuentran también por su honorífico y sus apodos (5.13).
+   - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara. En toda la interfaz se muestra el **nombre visible**: honorífico + nombre si hay honorífico («Tito Paco») y, si no, el nombre a mostrar (5.13).
    - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
    - **Zoom de la galería**: pellizcar (o Ctrl + rueda en escritorio) cambia el tamaño de las filas, como en Google Photos; cada dispositivo recuerda el tamaño.
    - **Compartir**: en la galería, el modo selección (botón «Seleccionar» o pulsación larga) muestra la barra «N seleccionadas · Compartir · Descargar». En la vista de foto, un botón «Compartir». Se usa la hoja de compartir del dispositivo con los ficheros originales (Web Share API); sin ella, se descarga el JPG o un ZIP (máximo `SHARE_MAX_PHOTOS`, 20). Compartir y descargar quedan en la auditoría.
@@ -244,14 +250,15 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 4. **Vista de foto** (pantalla principal):
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
    - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
-   - Panel de evento y fecha con el mismo mecanismo.
+   - Panel de evento, fecha y ubicación con el mismo mecanismo. El campo de ubicación sugiere las del catálogo con la búsqueda laxa.
    - Botón para dibujar una cara nueva y para marcar una cara como falso positivo.
    - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
-5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮». La ficha incluye la sección «Familia y relaciones» y el botón «Ver árbol» (ver 5.12).
+5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮». La ficha incluye la sección «Familia y relaciones» y el botón «Ver árbol» (ver 5.12), y el honorífico y la sección «Apodos» (ver 5.13).
 6. **Mi actividad**: mis propuestas y su estado.
 7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema, idioma y avisos. En móvil es una lista de ajustes plegables; en ventanas anchas (≥ 840 px), dos columnas: la tarjeta del usuario con un índice fijo de secciones a la izquierda y todas las secciones abiertas como tarjetas a la derecha.
-8. **Administración**: tipos de evento, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
+8. **Administración**: tipos de evento, ubicaciones, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
+   - **Ubicaciones**: listado con número de fotos y quién propuso cada una. Los administradores pueden **renombrar**, **fusionar** (las fotos y propuestas pasan a la de destino) y **desactivar** (deja de sugerirse). Renombrar o fusionar reexporta las fotos afectadas. Todo queda en la auditoría.
 9. **Gestión de usuarios** (solo superadmin, ver 4.4).
 10. **Árbol genealógico**: destino propio en la barra de navegación y el rail, y accesible desde la ficha de persona (ver 5.12).
 
@@ -259,7 +266,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 El administrador ve los escaneos con `needs_review` junto a sus recortes y puede marcarlos como correctos o descartar recortes erróneos. Un recorte concreto se corrige con el editor de recorte (3.6); para rehacer todo el escaneo, el botón «Reprocesar» (o `process_scans --force`).
 
-**Borrar** (solo administradores, con confirmación): una foto (desde la cola o la vista de foto) o un escaneo entero con todas sus fotos (cola o panel «Escaneo de origen»). Se eliminan caras, propuestas, votos y las personas o tipos de evento provisionales que solo existían por ellas. Si la foto se exportó, se borran también su JPG y su `.xmp` de la exportación, para que Immich la retire. Al borrar un escaneo su original se aparta en `scans/deleted/` (nunca se borra), y ese fichero o un reescaneo se pueden volver a procesar. La web solo cambia la base de datos; los ficheros los limpia el `worker` desde una cola (`FileCleanup`). Todo queda en la auditoría.
+**Borrar** (solo administradores, con confirmación): una foto (desde la cola o la vista de foto) o un escaneo entero con todas sus fotos (cola o panel «Escaneo de origen»). Se eliminan caras, propuestas, votos y las personas, tipos de evento o ubicaciones provisionales que solo existían por ellas. Si la foto se exportó, se borran también su JPG y su `.xmp` de la exportación, para que Immich la retire. Al borrar un escaneo su original se aparta en `scans/deleted/` (nunca se borra), y ese fichero o un reescaneo se pueden volver a procesar. La web solo cambia la base de datos; los ficheros los limpia el `worker` desde una cola (`FileCleanup`). Todo queda en la auditoría.
 
 ### 5.7 Auditoría
 
@@ -293,10 +300,11 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 |---|---|
 | Foto subida y procesada (no si es posible duplicado; se retira si se descarta o se borra) | 5 |
 | Identidad aceptada (10 si venía de una sugerencia automática) | 20 |
-| Fecha o evento aceptados | 10 |
+| Fecha, evento o ubicación aceptados | 10 |
 | Cara nueva aceptada | 15 |
 | Falso positivo aceptado | 5 |
 | Relación aceptada (añadir o quitar, 5.12) | 10 |
+| Honorífico o apodo aceptado (poner, añadir o quitar, 5.13) | 5 |
 | Primera identidad aceptada de una persona en todo el álbum | +15 |
 | Voto que coincide con el resultado (tope de 20 puntos de votos al día) | 2 |
 
@@ -395,6 +403,34 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 - Límites: 5 generaciones en cada sentido y profundidad 2 en la red. Objetivo: menos de 300 ms en el servidor con 1 000 personas.
 - `scripts/agents/seed_demo.py` genera una familia de demo de 3–4 generaciones con parejas, una expareja y relaciones sociales.
 
+### 5.13 Honorífico y apodos
+
+Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se proponen y se votan como el resto de la catalogación.
+
+- **Honorífico**: un tratamiento opcional que va delante del nombre («Tito», «Tita», «Abuela»). Hay uno como mucho. Se guarda con mayúscula inicial («tito» → «Tito»).
+- **Apodos**: una lista, que puede estar vacía, de motes («Pico pata», «Pico Paco»). Se recortan y se guardan tal cual. No hay dos apodos iguales en la misma persona (sin distinguir tildes ni mayúsculas), pero sí pueden repetirse entre personas distintas.
+- **Nombre visible**: honorífico + nombre a mostrar («Tito» + «Paco» = «Tito Paco»), o solo el nombre a mostrar si no hay honorífico. Se usa en toda la interfaz: recuadros y sugerencias de cara, chips, listado y ficha de personas, árbol, ranking, auditoría y «Mi actividad». Cambiar el nombre a mostrar (5.5) sigue siendo cosa de administradores y no pasa por votación.
+- **Búsqueda**: la búsqueda laxa de 5.5 también busca por el honorífico y los apodos. «tito paco» y «pico pata» encuentran a la misma persona. Si el resultado aparece por un apodo, la sugerencia lo indica («Tito Paco · Pico pata»).
+
+**Ficha de persona.** El nombre visible va como título, con un lápiz para proponer otro honorífico o quitarlo. La sección **«Apodos»** muestra los apodos aceptados (cada uno con «Quitar»), las propuestas abiertas con 👍 / 👎 y el botón «Añadir apodo». Los apodos solo se ven en la ficha.
+
+**Propuesta y votación** (mismas reglas que 5.4: el +1 del autor, `VOTE_MIN_APPROVALS`, `VOTE_APPROVAL_RATIO` y la decisión directa del administrador). Puede proponer cualquier colaborador.
+- **Honorífico** (`set`, con texto vacío para quitarlo): las propuestas abiertas de una misma persona compiten entre sí. Al aceptarse una, el resto pasan a `superseded`. El valor vigente se mantiene hasta que se acepte el nuevo.
+- **Apodos**: `add` añade un apodo y `remove` quita uno aceptado. Cada apodo se vota por separado y las propuestas de apodos distintos no se sustituyen entre sí. No se puede proponer un apodo que ya existe ni duplicar una propuesta abierta igual: en ese caso se lleva al usuario a votar la que ya hay.
+- Solo se pueden proponer para personas activas, ni provisionales ni fusionadas.
+
+**Integración con el resto de la aplicación:**
+- Las propuestas cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, en «Mi actividad» y en los avisos push (5.9), con las mismas reglas que las relaciones (5.12).
+- Se auditan la creación, el voto y la decisión, con eventos en la categoría «Personas».
+- Gamificación (5.10): las propuestas aceptadas puntúan y cuenta el voto que coincide con el resultado. Si un honorífico aceptado se sustituye, sus puntos se retiran. `rebuild_scores` las incluye.
+- **Fusionar personas**: se conserva el honorífico de la persona destino (o el de la absorbida si la destino no tiene) y se juntan los apodos de las dos sin duplicados. Las propuestas abiertas pasan a la persona destino, y las que queden en conflicto o duplicadas pasan a `superseded`.
+- Exportación (6): `mwg-rs:Name` sigue siendo el nombre a mostrar, sin honorífico. Cambiar el honorífico o los apodos no reexporta nada.
+
+**Implementación:**
+- La lógica va en `catalog/services/person_details.py` (proponer, validar, votar, aceptar y normalizar). Reutiliza `tally`/`outcome` de la votación y bloquea la persona con `select_for_update`.
+- El nombre visible se calcula en un único sitio del modelo (`Person.shown_name`) y lo usan todas las plantillas, los presentadores, las notificaciones y la auditoría.
+- Sin dependencias nuevas.
+
 ## 6. Exportación a Immich (app `exporter`)
 
 - Tarea manual (botón en administración) y opcionalmente periódica.
@@ -402,8 +438,9 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 - Por cada foto escribe en `/data/export/<año o "sin-fecha">/`:
   - La imagen JPG.
   - Un sidecar `<fichero>.jpg.xmp` con:
-    - **Regiones de cara** en formato MWG (`mwg-rs:Regions`), con `mwg-rs:Name` = nombre de la persona y `mwg-rs:Type` = `Face`. Coordenadas **normalizadas (0–1) y centradas** (`stArea:x` y `stArea:y` son el centro), junto con `mwg-rs:AppliedToDimensions`.
+    - **Regiones de cara** en formato MWG (`mwg-rs:Regions`), con `mwg-rs:Name` = nombre a mostrar de la persona (sin honorífico, 5.13) y `mwg-rs:Type` = `Face`. Coordenadas **normalizadas (0–1) y centradas** (`stArea:x` y `stArea:y` son el centro), junto con `mwg-rs:AppliedToDimensions`.
     - `dc:subject` y `digiKam:TagsList` con el evento (por ejemplo, `Eventos/Boda`) y la descripción libre.
+    - La ubicación aceptada en `Iptc4xmpCore:Location` y como etiqueta `Ubicaciones/<nombre>` en `dc:subject` y `digiKam:TagsList`. Aceptar otra ubicación, renombrarla o fusionarla cuenta como cambio de catalogación.
     - `exif:DateTimeOriginal` cuando la fecha aceptada tenga precisión suficiente. Si es solo un año, usar el 1 de enero de ese año y añadir la etiqueta `Fecha/aproximada`.
 - Immich debe tener `/data/export` montado como **biblioteca externa** y activada la importación de caras desde metadatos (Administración → Ajustes de metadatos). Debe documentarse en el README.
 - Limitación conocida de Immich: las fotos con caras en metadatos no pasan por su detección facial automática. Es el comportamiento deseado.
