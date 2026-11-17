@@ -115,6 +115,9 @@ class Photo(models.Model):
     event_description = models.CharField(max_length=255, blank=True)
     date_precision = models.CharField(max_length=10, choices=DatePrecision.choices, blank=True)
     date_value = models.DateField(null=True, blank=True)
+    location = models.ForeignKey(
+        "Location", null=True, blank=True, on_delete=models.PROTECT, related_name="photos"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     catalog_changed_at = models.DateTimeField(null=True, blank=True)
@@ -156,6 +159,8 @@ class PersonQuerySet(models.QuerySet):
 
 class Person(models.Model):
     display_name = models.CharField(_("nombre a mostrar"), max_length=150, db_index=True)
+    # Goes before the name: "Tito" (services.person_details).
+    honorific = models.CharField(_("honorífico"), max_length=50, blank=True)
     notes = models.TextField(_("notas"), blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -188,7 +193,15 @@ class Person(models.Model):
         ordering = ["display_name", "id"]
 
     def __str__(self):
-        return self.display_name
+        return self.shown_name
+
+    @property
+    def shown_name(self):
+        """Name shown everywhere in the interface: honorific + name ("Tito Paco").
+
+        The export (XMP) and name matching use `display_name` alone.
+        """
+        return f"{self.honorific} {self.display_name}" if self.honorific else self.display_name
 
     def resolved(self):
         """Follow merges to the surviving person."""
@@ -292,11 +305,57 @@ class EventType(models.Model):
         return self.name
 
 
+class LocationQuerySet(models.QuerySet):
+    def enabled(self):
+        return self.filter(active=True, is_provisional=False, merged_into__isnull=True)
+
+
+class Location(models.Model):
+    """A place where photos were taken, as free text ("Casa de Los Tarantos")."""
+
+    name = models.CharField(_("nombre"), max_length=150)
+    # Accent- and case-insensitive key (services.names.name_key): one location per key.
+    name_key = models.CharField(max_length=150, unique=True)
+    active = models.BooleanField(_("activa"), default=True)
+    # Created by a proposal; permanent once that proposal is accepted.
+    is_provisional = models.BooleanField(_("pendiente de votación"), default=False)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_locations",
+        verbose_name=_("propuesta por"),
+    )
+    merged_into = models.ForeignKey(
+        "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="merged_locations"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    objects = LocationQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["name", "id"]
+
+    def __str__(self):
+        return self.name
+
+    def resolved(self):
+        """Follow merges to the surviving location."""
+        location = self
+        seen = set()
+        while location.merged_into_id and location.pk not in seen:
+            seen.add(location.pk)
+            location = location.merged_into
+        return location
+
+
 class Proposal(models.Model):
     class Kind(models.TextChoices):
         FACE_IDENTITY = "face_identity", _("Identidad de cara")
         EVENT = "event", _("Evento")
         DATE = "date", _("Fecha")
+        LOCATION = "location", _("Ubicación")
         ADD_FACE = "add_face", _("Nueva cara")
         REMOVE_FACE = "remove_face", _("Falso positivo")
 
@@ -318,6 +377,9 @@ class Proposal(models.Model):
     )
     event_type = models.ForeignKey(
         EventType, null=True, blank=True, on_delete=models.PROTECT, related_name="proposals"
+    )
+    location = models.ForeignKey(
+        Location, null=True, blank=True, on_delete=models.PROTECT, related_name="proposals"
     )
     author = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="proposals"
@@ -349,13 +411,15 @@ class Proposal(models.Model):
     def label(self):
         """Human readable value in the active language."""
         if self.kind == self.Kind.FACE_IDENTITY:
-            return self.person.display_name if self.person else gettext("(persona eliminada)")
+            return self.person.shown_name if self.person else gettext("(persona eliminada)")
         if self.kind == self.Kind.EVENT:
             name = str(self.event_type) if self.event_type else self.value.get("event_name", "?")
             description = self.value.get("description")
             return f"{name} — {description}" if description else name
         if self.kind == self.Kind.DATE:
             return date_label(self.value)
+        if self.kind == self.Kind.LOCATION:
+            return self.location.name if self.location else self.value.get("location_name", "?")
         if self.kind == self.Kind.ADD_FACE:
             return gettext("Añadir esta cara")
         if self.kind == self.Kind.REMOVE_FACE:
@@ -531,7 +595,10 @@ def _canonical_constraints(prefix):
 
 
 class Relationship(models.Model):
-    """An accepted relationship, stored once in canonical form (see services.kinship)."""
+    """A relationship between two persons, stored once in canonical form (services.kinship).
+
+    Any collaborator adds or removes it directly (no vote); changes are audited.
+    """
 
     Kind = RelationshipKind
 
@@ -542,12 +609,12 @@ class Relationship(models.Model):
     kind = models.CharField(max_length=20, choices=RelationshipKind.choices)
     # Only for activity mates: "Fútbol", "Coro".
     activity = models.CharField(max_length=100, blank=True)
-    accepted_proposal = models.ForeignKey(
-        "RelationshipProposal",
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
         on_delete=models.SET_NULL,
-        related_name="+",
+        related_name="created_relationships",
     )
     created_at = models.DateTimeField(default=timezone.now)
 
@@ -564,77 +631,10 @@ class Relationship(models.Model):
         return relationship_label(self)
 
 
-class RelationshipProposal(models.Model):
-    Kind = RelationshipKind
-    Status = Proposal.Status
-
-    class Action(models.TextChoices):
-        ADD = "add", _("Añadir relación")
-        REMOVE = "remove", _("Quitar relación")
-
-    # Null once a provisional person of a closed proposal is deleted (kept as history).
-    person_from = models.ForeignKey(
-        Person,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="relationship_proposals_from",
-    )
-    person_to = models.ForeignKey(
-        Person,
-        null=True,
-        on_delete=models.SET_NULL,
-        related_name="relationship_proposals_to",
-    )
-    kind = models.CharField(max_length=20, choices=RelationshipKind.choices)
-    activity = models.CharField(max_length=100, blank=True)
-    action = models.CharField(max_length=10, choices=Action.choices, default=Action.ADD)
-    # The accepted relationship a "remove" proposal wants to delete.
-    relationship = models.ForeignKey(
-        Relationship, null=True, blank=True, on_delete=models.SET_NULL, related_name="proposals"
-    )
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relationship_proposals"
-    )
-    created_at = models.DateTimeField(default=timezone.now)
-    status = models.CharField(
-        max_length=12, choices=Proposal.Status.choices, default=Proposal.Status.OPEN, db_index=True
-    )
-    decided_at = models.DateTimeField(null=True, blank=True)
-    decided_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="forced_relationship_decisions",
-    )
-
-    class Meta:
-        ordering = ["-created_at", "-id"]
-        constraints = _canonical_constraints("relationship_proposal")
-
-    def __str__(self):
-        return f"{self.get_action_display()} #{self.pk} ({self.get_status_display()})"
-
-    @property
-    def is_open(self):
-        return self.status == self.Status.OPEN
-
-    def label(self):
-        text = relationship_label(self)
-        if self.action == self.Action.REMOVE:
-            return gettext("Quitar: %(label)s") % {"label": text}
-        return text
-
-
 def relationship_label(obj):
     """'Ana, progenitor de Luis' / 'Ana y Luis: primo' (+ activity), in the active language."""
     role = str(RelationshipKind(obj.kind).label).lower()
-    gone = gettext("(persona eliminada)")
-    names = {
-        "from": obj.person_from.display_name if obj.person_from else gone,
-        "to": obj.person_to.display_name if obj.person_to else gone,
-        "role": role,
-    }
+    names = {"from": obj.person_from.shown_name, "to": obj.person_to.shown_name, "role": role}
     if obj.kind in ASYMMETRIC_KINDS:
         text = gettext("%(from)s, %(role)s de %(to)s") % names
     else:
@@ -642,22 +642,32 @@ def relationship_label(obj):
     return f"{text} ({obj.activity})" if obj.activity else text
 
 
-class RelationshipVote(models.Model):
-    proposal = models.ForeignKey(
-        RelationshipProposal, on_delete=models.CASCADE, related_name="votes"
+# ---------------------------------------------------------------------------
+# Honorific and nicknames (spec section 5.13)
+# ---------------------------------------------------------------------------
+
+
+class PersonNickname(models.Model):
+    person = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="nicknames")
+    text = models.CharField(_("apodo"), max_length=100)
+    # services.names.name_key(text): no two equal nicknames on the same person.
+    text_key = models.CharField(max_length=100)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="created_nicknames",
     )
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relationship_votes"
-    )
-    value = models.SmallIntegerField(choices=Vote.VALUE_CHOICES)
-    created_at = models.DateTimeField(auto_now=True)
+    created_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
+        ordering = ["text", "id"]
         constraints = [
             models.UniqueConstraint(
-                fields=["proposal", "user"], name="unique_relationship_vote_per_user"
+                fields=["person", "text_key"], name="unique_nickname_per_person"
             )
         ]
 
     def __str__(self):
-        return f"{self.user} {'+1' if self.value > 0 else '-1'} R#{self.proposal_id}"
+        return self.text

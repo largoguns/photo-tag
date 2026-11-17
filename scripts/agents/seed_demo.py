@@ -103,11 +103,74 @@ def main():
                 face=face,
                 person_name="Un nombre de persona bastante largo para probar desbordes",
             )
+    seed_locations(maria, demo)
+    seed_family(maria)
     seed_players(maria)
     print(
         f"Seeded {Photo.objects.count()} photos. Users: demo / maria / pablo / lucia, "
         f"password {PASSWORD}"
     )
+
+
+def seed_locations(maria, demo):
+    """Accepted and open locations (photo panel, gallery filter, admin screen)."""
+    places = ["Casa de los abuelos", "Playa de Bolonia", "Casa de Los Tarantos"]
+    for index, photo in enumerate(Photo.objects.order_by("pk")[:9]):
+        proposal = voting.create_proposal(
+            maria, photo, "location", location_name=places[index % len(places)]
+        )
+        if index % 3 != 2:
+            try:
+                voting.cast_vote(demo, proposal, 1)
+            except Exception:  # an identical proposal was already accepted
+                continue
+
+
+def seed_family(maria):
+    """Four generations with partners, an ex-partner, honorifics, nicknames and friends."""
+    from catalog.models import Person
+    from catalog.services import person_details, relationships, voting
+
+    def person(name):
+        found = voting.resolve_person(name, maria)
+        Person.objects.filter(pk=found.pk).update(is_provisional=False)
+        return Person.objects.get(pk=found.pk)
+
+    carmen = person("Carmen López de la Vega")
+    pepe = person("José Martín")
+    paco, lola, ana = person("Paco Martín"), person("Lola Martín"), person("Ana Ruiz")
+    luis, marta, sofia = person("Luis Martín"), person("Marta Martín"), person("Sofía Martín")
+    bisabuela = person("Rosario Vega")
+    steps = [
+        (carmen, "partner", pepe),
+        (carmen, "child", paco),
+        (pepe, "child", paco),
+        (carmen, "child", lola),
+        (pepe, "child", lola),
+        (paco, "partner", ana),
+        (paco, "child", luis),
+        (ana, "child", luis),
+        (paco, "child", marta),
+        (lola, "child", sofia),
+        (carmen, "parent", bisabuela),
+        (lola, "ex_partner", person("Andrés Gil")),
+        (paco, "friend", person("Manolo Pérez")),
+        (paco, "compadre", person("Manolo Pérez")),
+        (luis, "classmate", person("Jorge Díaz")),
+    ]
+    for subject, role, other in steps:
+        try:
+            relationships.add(maria, subject, role, other=other)
+        except Exception:  # already there from a previous run
+            continue
+    relationships.add(maria, marta, "activity_mate", other=sofia, activity="Natación")
+    person_details.set_honorific(maria, paco, "Tito")
+    person_details.set_honorific(maria, carmen, "Abuela")
+    for target, text in ((paco, "Pico pata"), (paco, "Pico Paco"), (luis, "Er Canijo")):
+        try:
+            person_details.add_nickname(maria, target, text)
+        except Exception:
+            continue
 
 
 def seed_players(maria):

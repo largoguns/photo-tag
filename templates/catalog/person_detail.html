@@ -1,6 +1,9 @@
 {% extends "base.html" %}{% load i18n catalog_tags %}
 {% block title %}{{ person }}{% endblock %}
 {% block content %}
+{# Forms with hx-boost swap only the main content and keep the scroll position. #}
+<div id="person-page" hx-target="#main" hx-select="#main" hx-swap="outerHTML show:none">
+{% with next=request.path %}
 <div class="person-header">
   {% if avatar_id %}
   <button type="button" class="person-avatar-button" data-open-sheet="sheet-avatar" aria-haspopup="dialog" aria-label="{% translate 'Cambiar foto principal' %}" title="{% translate 'Cambiar foto principal' %}">
@@ -11,7 +14,7 @@
   <div class="person-header-main">
     <div class="person-name">
       <h1>{{ person }}</h1>
-      {% if user.is_catalog_admin %}<button type="button" class="button text icon-only" data-rename-toggle aria-controls="rename-form" aria-expanded="false" aria-label="{% translate 'Cambiar nombre' %}" title="{% translate 'Cambiar nombre' %}">{% icon "edit" %}</button>{% endif %}
+      <button type="button" class="button text icon-only" data-open-sheet="sheet-name" aria-haspopup="dialog" aria-label="{% translate 'Cambiar nombre o tratamiento' %}" title="{% translate 'Cambiar nombre o tratamiento' %}">{% icon "edit" %}</button>
     </div>
     {% if person.user_id == user.pk %}<span class="badge ok person-me">{% icon "check" %}{% translate "Eres tú" %}</span>
     {% elif not person.user_id %}
@@ -21,20 +24,12 @@
       {% csrf_token %}<button type="submit" class="button small">{% icon "person" %}{% translate "Soy yo" %}</button>
     </form>
     {% endif %}
-    {% if user.is_catalog_admin %}
-    <form method="post" action="{% url 'person_rename' person.pk %}" class="rename-form" id="rename-form" hidden>
-      {% csrf_token %}
-      <label class="visually-hidden" for="rename-name">{% translate "Nombre" %}</label>
-      <input type="text" id="rename-name" name="display_name" value="{{ person.display_name }}" maxlength="150" required autocomplete="off">
-      <button type="submit" class="button primary small">{% translate "Guardar" %}</button>
-      <button type="button" class="button text small" data-rename-toggle>{% translate "Cancelar" %}</button>
-    </form>
-    {% endif %}
   </div>
-  {% if user.is_catalog_admin or person.user_id == user.pk %}
   <details class="user-menu person-menu">
     <summary class="button text icon-only" aria-label="{% translate 'Más acciones' %}" title="{% translate 'Más acciones' %}">{% icon "more_vert" %}</summary>
     <div class="menu">
+      <button type="button" class="menu-item" data-open-sheet="sheet-family" aria-haspopup="dialog">{% icon "group" %}<span>{% translate "Familia y relaciones" %}</span>{% if family_relations or social_relations %}<span class="menu-count">{{ family_relations|length|add:social_relations|length }}</span>{% endif %}</button>
+      <button type="button" class="menu-item" data-open-sheet="sheet-nicknames" aria-haspopup="dialog">{% icon "badge" %}<span>{% translate "Apodos" %}</span>{% if nicknames %}<span class="menu-count">{{ nicknames|length }}</span>{% endif %}</button>
       {% if avatar_choices|length > 1 %}<button type="button" class="menu-item" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}<span>{% translate "Cambiar foto principal" %}</span></button>{% endif %}
       {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>{% endif %}
       {% if person.user_id == user.pk %}
@@ -45,7 +40,6 @@
       {% endif %}
     </div>
   </details>
-  {% endif %}
 </div>
 {% if person.user %}<p class="muted">{% blocktranslate with linked=person.user %}Usuario vinculado: {{ linked }}{% endblocktranslate %}</p>{% endif %}
 {% if person.notes %}<p>{{ person.notes|linebreaksbr }}</p>{% endif %}
@@ -76,6 +70,7 @@
   {% for photo in page %}{% include "catalog/_photo_card.html" %}{% empty %}<li class="empty">{% translate "Sin fotos." %}</li>{% endfor %}
 </ul>
 {% include "_pagination.html" %}
+{% include "catalog/_person_sheets.html" %}
 {% if avatar_id %}
 <dialog class="sheet" id="sheet-avatar" aria-labelledby="sheet-avatar-title">
   <div class="sheet-handle" aria-hidden="true"></div>
@@ -102,4 +97,8 @@
   </div>
 </dialog>
 {% endif %}
+{% endwith %}
+</div>
+{{ people_json|json_script:"people-data" }}
+<template id="combobox-create-template">{% translate "Crear «%s»" %}</template>
 {% endblock %}

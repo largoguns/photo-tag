@@ -451,6 +451,33 @@
   ready(() => initEventForms(document));
   document.addEventListener("htmx:afterSwap", (event) => initEventForms(event.target));
 
+  // Sheets marked data-autoopen (the person page after saving) open by themselves.
+  function openAutoSheets() {
+    document.querySelectorAll("dialog[data-autoopen]:not([open])").forEach((dialog) => {
+      dialog.removeAttribute("data-autoopen");
+      if (typeof dialog.showModal === "function") dialog.showModal();
+    });
+  }
+  ready(openAutoSheets);
+  document.addEventListener("htmx:afterSettle", openAutoSheets);
+
+  // Relationship sheet: the activity field only for "activity mate" (visible without JS).
+  function syncRelationForm(select) {
+    const field = select.closest("form").querySelector("[data-relation-activity]");
+    if (!field) return;
+    const needed = select.value === "activity_mate";
+    field.hidden = !needed;
+    field.querySelector("input").required = needed;
+  }
+  document.addEventListener("change", (event) => {
+    if (event.target.matches("[data-relation-role]")) syncRelationForm(event.target);
+  });
+  function initRelationForms(root) {
+    root.querySelectorAll("[data-relation-role]").forEach(syncRelationForm);
+  }
+  ready(() => initRelationForms(document));
+  document.addEventListener("htmx:afterSwap", () => initRelationForms(document));
+
   // --- Keyboard navigation on desktop ----------------------------------------------
   document.addEventListener("keydown", (event) => {
     if (event.altKey || event.ctrlKey || event.metaKey) return;
@@ -463,14 +490,30 @@
     if (url) window.location.href = url;
   });
 
-  // --- Person name autocomplete (accent-insensitive, prefers existing people) ------
-  let peopleCache = null;
-  function people() {
-    if (peopleCache) return peopleCache;
-    const data = document.getElementById("people-data");
-    try { peopleCache = data ? JSON.parse(data.textContent) : []; } catch (error) { peopleCache = []; }
-    peopleCache.forEach((person) => { person.key = nameKey(person.name); });
-    return peopleCache;
+  // --- Autocomplete of persons and locations (accent-insensitive, prefers existing) ---
+  // Persons: <input data-person-combobox>, data in #people-data ({name, shown, nicknames,
+  // avatar}; `name` is the value sent). Locations: <input data-combobox="locations">,
+  // data in #locations-data ({name}), kept as typed instead of normalized as a name.
+  const COMBOBOX = "[data-person-combobox], [data-combobox]";
+  const comboboxCache = {};
+  function comboboxSource(input) { return input.dataset.combobox || "people"; }
+  function comboboxItems(source) {
+    if (comboboxCache[source]) return comboboxCache[source];
+    const data = document.getElementById(`${source}-data`);
+    let items = [];
+    try { items = data ? JSON.parse(data.textContent) : []; } catch (error) { items = []; }
+    items.forEach((item) => { item.key = nameKey(item.name); item.shownKey = nameKey(item.shown || item.name); });
+    comboboxCache[source] = items;
+    return items;
+  }
+  function comboboxNormalize(input, value) {
+    return comboboxSource(input) === "people" ? normalizeName(value) : String(value).replace(/\s+/g, " ").trim();
+  }
+  // How an item matches: by its name (or shown name), by a nickname, or not at all.
+  function comboboxMatch(query, item) {
+    if (looseMatch(query, `${item.name} ${item.shown || ""}`)) return { item, hint: "" };
+    const nickname = (item.nicknames || []).find((text) => looseMatch(query, text));
+    return nickname ? { item, hint: nickname } : null;
   }
 
   function comboboxList(input) { return document.getElementById(input.getAttribute("aria-controls")); }
@@ -486,9 +529,13 @@
     const list = comboboxList(input);
     const query = nameKey(input.value);
     if (!list || !query) { closeCombobox(input); return; }
-    const matches = people()
-      .filter((person) => looseMatch(query, person.name))
-      .sort((a, b) => Number(!a.key.startsWith(query)) - Number(!b.key.startsWith(query)) || a.key.localeCompare(b.key))
+    const source = comboboxSource(input);
+    const items = comboboxItems(source);
+    const startsWith = (m) => m.item.key.startsWith(query) || m.item.shownKey.startsWith(query);
+    const matches = items
+      .map((item) => comboboxMatch(query, item))
+      .filter(Boolean)
+      .sort((a, b) => Number(!startsWith(a)) - Number(!startsWith(b)) || a.item.shownKey.localeCompare(b.item.shownKey))
       .slice(0, 8);
     list.innerHTML = "";
     const add = (label, value, avatar, extraClass) => {
@@ -497,7 +544,9 @@
       option.id = `${list.id}-${list.children.length}`;
       option.setAttribute("role", "option");
       option.dataset.value = value;
-      if (avatar) {
+      if (avatar === null) {
+        // Locations: no picture.
+      } else if (avatar) {
         const img = document.createElement("img");
         img.src = avatar; img.alt = ""; img.loading = "lazy";
         option.appendChild(img);
@@ -513,12 +562,16 @@
       option.appendChild(text);
       list.appendChild(option);
     };
-    matches.forEach((person) => add(person.name, person.name, person.avatar));
-    const normalized = normalizeName(input.value);
-    if (normalized && !people().some((person) => person.key === nameKey(normalized))) {
+    const avatars = source === "people";
+    matches.forEach(({ item, hint }) => {
+      const label = (item.shown || item.name) + (hint ? ` · ${hint}` : "");
+      add(label, item.name, avatars ? item.avatar : null);
+    });
+    const normalized = comboboxNormalize(input, input.value);
+    if (normalized && !items.some((item) => item.key === nameKey(normalized))) {
       const template = document.getElementById("combobox-create-template");
       const label = template ? template.textContent.replace("%s", normalized) : normalized;
-      add(label, normalized, "", "create");
+      add(label, normalized, avatars ? "" : null, "create");
     }
     list.hidden = list.children.length === 0;
     input.setAttribute("aria-expanded", list.hidden ? "false" : "true");
@@ -542,12 +595,12 @@
   }
 
   document.addEventListener("input", (event) => {
-    if (event.target.matches("[data-person-combobox]")) renderCombobox(event.target);
+    if (event.target.matches(COMBOBOX)) renderCombobox(event.target);
   });
 
   document.addEventListener("keydown", (event) => {
     const input = event.target;
-    if (!input.matches || !input.matches("[data-person-combobox]")) return;
+    if (!input.matches || !input.matches(COMBOBOX)) return;
     if (event.key === "ArrowDown") { event.preventDefault(); moveComboboxSelection(input, 1); }
     else if (event.key === "ArrowUp") { event.preventDefault(); moveComboboxSelection(input, -1); }
     else if (event.key === "Escape") closeCombobox(input);
@@ -568,15 +621,15 @@
   });
 
   document.addEventListener("focusout", (event) => {
-    if (event.target.matches && event.target.matches("[data-person-combobox]")) {
+    if (event.target.matches && event.target.matches(COMBOBOX)) {
       window.setTimeout(() => closeCombobox(event.target), 150);
     }
   });
 
   // Normalize the name before sending ("adri" → "Adri"); the server does it too.
   document.addEventListener("submit", (event) => {
-    const input = event.target.querySelector && event.target.querySelector("[data-person-combobox]");
-    if (input) input.value = normalizeName(input.value);
+    const inputs = event.target.querySelectorAll ? event.target.querySelectorAll(COMBOBOX) : [];
+    inputs.forEach((input) => { input.value = comboboxNormalize(input, input.value); });
   }, true);
 
   // --- Gallery filter sheets ---------------------------------------------------------
@@ -2053,18 +2106,6 @@
     resize();
     sync();
   }
-
-  // --- Person page: rename in place ----------------------------------------------------
-  document.addEventListener("click", (event) => {
-    const toggle = event.target.closest("[data-rename-toggle]");
-    if (!toggle) return;
-    const form = document.getElementById("rename-form");
-    const opener = document.querySelector('[data-rename-toggle][aria-controls="rename-form"]');
-    form.hidden = !form.hidden;
-    opener.setAttribute("aria-expanded", String(!form.hidden));
-    if (!form.hidden) { const input = form.querySelector("input[name=display_name]"); input.focus(); input.select(); }
-    else opener.focus();
-  });
 
   // --- Profile: on wide windows every section is open, with an index that follows -----
   ready(() => {

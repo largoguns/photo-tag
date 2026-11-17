@@ -424,6 +424,8 @@ body.selecting .fab { display: none; }
 .option img, .option .avatar-mini { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; }
 .option span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .option .check { margin-left: auto; }
+.option span.option-count { margin-left: auto; flex: none; color: var(--md-on-surface-variant); font-variant-numeric: tabular-nums; }
+.option .option-count + .icon { margin-left: 0; }
 .avatar-mini { display: grid; place-items: center; background: var(--md-primary-container); color: var(--md-on-primary-container); font-size: .8rem; font-weight: 500; }
 
 /* ------------------------------------------------------------ Persons -- */
@@ -792,8 +794,24 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
   .settings-wide .setting-title { font-size: 1.125rem; font-weight: 500; }
   .settings-wide .setting-body { padding: 0 var(--space) var(--space) calc(var(--space) * 2 + 24px); }
 }
-.rename-form { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-.rename-form input { flex: 1 1 12rem; min-width: 0; }
+/* Person page sheets: nicknames and relationships (5.12, 5.13) */
+.sheet-subtitle { font-size: .9rem; font-weight: 500; margin: .25rem 0 0; color: var(--md-on-surface-variant); }
+.menu-item .menu-count { margin-left: auto; color: var(--md-on-surface-variant); font-variant-numeric: tabular-nums; }
+.relation-add > summary { list-style: none; display: inline-flex; width: auto; }
+.relation-add > summary::-webkit-details-marker { display: none; }
+.relation-add[open] > summary { margin-bottom: .75rem; }
+.relation-role { color: var(--md-on-surface-variant); font-size: .875rem; }
+.nickname-list, .relation-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; }
+.nickname-list { flex-direction: row; flex-wrap: wrap; }
+.nickname { display: inline-flex; align-items: center; gap: .25rem; padding-left: .75rem; border-radius: 8px; background: var(--md-surface-container); min-width: 0; }
+.nickname > span { overflow-wrap: anywhere; }
+.nickname form, .relation form { margin: 0; }
+.relation { display: flex; align-items: center; gap: .5rem; min-height: 52px; min-width: 0; }
+.relation-person { display: flex; align-items: center; gap: .75rem; flex: 1 1 auto; min-width: 0; min-height: 44px; color: inherit; text-decoration: none; }
+.relation-person img, .relation-person .avatar-mini { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; }
+.relation-text { display: flex; flex-direction: column; min-width: 0; }
+.relation-name, .relation-role { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.relation.deduced .relation-name { font-style: italic; }
 .crop-stage { position: relative; }
 .crop-zoom { position: absolute; right: .5rem; bottom: .5rem; display: flex; gap: .25rem; }
 .crop-zoom .button { background: color-mix(in srgb, var(--md-surface) 85%, transparent); backdrop-filter: blur(4px); }

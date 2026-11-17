@@ -23,7 +23,7 @@ from accounts.permissions import admin_required
 from accounts.services import audit
 from catalog import presenters
 from catalog.models import EventType, Face, Person, Photo, Proposal, Scan, Vote
-from catalog.services import avatars, names, sharing, similarity, voting
+from catalog.services import avatars, person_details, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
 PERSON_PAGE_SIZE = 60
@@ -84,10 +84,14 @@ def gallery(request):
 
     people = list(Person.objects.active().filter(is_provisional=False))
     avatars = presenters.person_avatars([p.pk for p in people])
+    nicknames = presenters.person_nicknames([p.pk for p in people])
     for person in people:
         person.avatar_id = avatars.get(person.pk)
+        # The sheet's search also finds people by honorific and nicknames.
+        person.search_text = " ".join([person.shown_name, *nicknames.get(person.pk, [])])
     chosen = gallery_service.selected_people(params)
     event_types = list(EventType.objects.filter(is_provisional=False))
+    location = gallery_service.selected_location(params)
     decades = sorted(
         {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")},
         reverse=True,
@@ -115,13 +119,16 @@ def gallery(request):
             "chosen_people": chosen,
             "chosen_ids": [person.pk for person in chosen],
             "event_types": event_types,
+            "locations": gallery_service.location_options(),
             "decades": decades,
             "selected_status": selected(Photo.Status.choices, "status"),
             "selected_event": selected([(e.pk, str(e)) for e in event_types], "event"),
+            "selected_location": location.name if location else None,
+            "location_param": str(location.pk) if location else "",
             "selected_decade": selected([(d, f"{d}s") for d in decades], "decade"),
             "share_max": settings.SHARE_MAX_PHOTOS,
             "has_filters": bool(chosen)
-            or any(params.get(k) for k in ("status", "event", "decade", "mine")),
+            or any(params.get(k) for k in ("status", "event", "location", "decade", "mine")),
         },
     )
 
@@ -141,7 +148,12 @@ def persons(request):
         .order_by("display_name", "id")
     )
     if query:
-        people = names.search(people, query, "display_name")
+        # By name, honorific or nickname; a match by nickname is shown ("Tito Paco · Pico").
+        found = []
+        for person, nickname in person_details.search_persons(people, query):
+            person.nickname_hint = nickname
+            found.append(person)
+        people = found
     page = Paginator(people, 60).get_page(request.GET.get("page"))
     avatars = presenters.person_avatars([person.pk for person in page])
     for person in page:
@@ -169,6 +181,8 @@ def person_detail(request, pk):
             "candidates": similarity.candidate_faces_for_person(person),
             "avatar_id": avatars.avatar_face_id(person),
             "avatar_choices": avatars.selectable_faces(person),
+            "people_json": presenters.people_json(exclude=person.pk),
+            **presenters.person_sheet_context(person),
         },
     )
 
@@ -187,7 +201,7 @@ def person_claim(request, pk):
         messages.success(
             request,
             _("Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil».")
-            % {"name": person.display_name},
+            % {"name": person.shown_name},
         )
     return redirect("person_detail", pk=person.pk)
 
@@ -248,18 +262,9 @@ def _render_photo(request, photo, status=200):
     context = presenters.photo_context(photo, request.user, selected_face=selected)
     context["event_types"] = voting.event_types()
     if not request.htmx_partial:
-        people = list(
-            Person.objects.active().order_by("display_name").values_list("pk", "display_name")
-        )
-        avatars = presenters.person_avatars([pk for pk, _name in people])
-        face_url = reverse("face_image", args=[0]).replace("/0/", "/{id}/")
-        # Used by the name autocomplete; avatars are face crops behind the login.
-        context["people_json"] = [
-            {
-                "name": name,
-                "avatar": face_url.replace("{id}", str(avatars[pk])) if pk in avatars else "",
-            }
-            for pk, name in people
+        context["people_json"] = presenters.people_json()
+        context["locations_json"] = [
+            {"name": name} for name in voting.locations().values_list("name", flat=True)
         ]
     context["date_precisions"] = Photo.DatePrecision.choices
     template = "catalog/_photo_workspace.html" if request.htmx_partial else "catalog/photo.html"
@@ -369,6 +374,21 @@ def propose_event(request, pk):
         )
 
     return _run(request, photo, action)
+
+
+@require_POST
+def propose_location(request, pk):
+    photo = get_object_or_404(Photo, pk=pk)
+    return _run(
+        request,
+        photo,
+        lambda: voting.create_proposal(
+            request.user,
+            photo,
+            Proposal.Kind.LOCATION,
+            location_name=request.POST.get("location", ""),
+        ),
+    )
 
 
 @require_POST

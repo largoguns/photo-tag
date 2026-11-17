@@ -268,7 +268,5 @@ def relations_for(person, graph=None):
                 Relation(person=others[other_id], role=role, tree=FAMILY, deduced=True)
             )
     order = {role: i for i, role in enumerate(FAMILY_ROLES + SOCIAL_ROLES)}
-    relations.sort(
-        key=lambda r: (r.tree != FAMILY, r.deduced, order[r.role], r.person.display_name)
-    )
+    relations.sort(key=lambda r: (r.tree != FAMILY, r.deduced, order[r.role], r.person.shown_name))
     return relations

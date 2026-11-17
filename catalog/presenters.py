@@ -49,6 +49,7 @@ def photo_context(photo, user, selected_face=None):
         "selected_face": selected_face,
         "event_proposals": [p for p in open_proposals if p.kind == Proposal.Kind.EVENT],
         "date_proposals": [p for p in open_proposals if p.kind == Proposal.Kind.DATE],
+        "location_proposals": [p for p in open_proposals if p.kind == Proposal.Kind.LOCATION],
         "prev_photo": Photo.objects.visible().filter(pk__lt=photo.pk).order_by("-pk").first(),
         "next_photo": Photo.objects.visible().filter(pk__gt=photo.pk).order_by("pk").first(),
     }
@@ -73,6 +74,17 @@ def person_avatars(person_ids):
     from catalog.services.avatars import avatar_faces
 
     return avatar_faces(person_ids)
+
+
+def person_nicknames(person_ids):
+    """{person_id: [nickname, ...]} of the given people."""
+    from catalog.models import PersonNickname
+
+    result = {}
+    rows = PersonNickname.objects.filter(person_id__in=person_ids).values_list("person_id", "text")
+    for person_id, text in rows:
+        result.setdefault(person_id, []).append(text)
+    return result
 
 
 def proposal_activity(proposals, params, viewer):
@@ -113,3 +125,56 @@ def family_milestone(percent):
     if percent >= 25:
         return _("¡Un cuarto del álbum ya está catalogado!")
     return ""
+
+
+def people_json(exclude=None):
+    """Active people for the name autocomplete: `name` is the value sent (matched by
+    voting.resolve_person); `shown` and `nicknames` are for display and search. Avatars
+    are face crops behind the login."""
+    from django.urls import reverse
+
+    from catalog.models import Person
+
+    people = list(
+        Person.objects.active()
+        .exclude(pk=exclude)
+        .order_by("display_name")
+        .only("pk", "display_name", "honorific")
+    )
+    ids = [person.pk for person in people]
+    avatars = person_avatars(ids)
+    nicknames = person_nicknames(ids)
+    face_url = reverse("face_image", args=[0]).replace("/0/", "/{id}/")
+    return [
+        {
+            "name": person.display_name,
+            "shown": person.shown_name,
+            "nicknames": nicknames.get(person.pk, []),
+            "avatar": face_url.replace("{id}", str(avatars[person.pk]))
+            if person.pk in avatars
+            else "",
+        }
+        for person in people
+    ]
+
+
+def person_sheet_context(person):
+    """Nicknames and relationships shown in the person sheet."""
+    from django.utils.translation import gettext as _
+
+    from catalog.services import kinship
+
+    relations = kinship.relations_for(person)
+    avatars = person_avatars([relation.person.pk for relation in relations])
+    for relation in relations:
+        relation.avatar_id = avatars.get(relation.person.pk)
+    family = [r for r in relations if r.tree == kinship.FAMILY]
+    social = [r for r in relations if r.tree == kinship.SOCIAL]
+    return {
+        "nicknames": list(person.nicknames.all()),
+        "family_relations": family,
+        "social_relations": social,
+        "relation_groups": [(_("Familia"), family), (_("Relaciones"), social)],
+        "family_roles": [(role, kinship.role_label(role)) for role in kinship.FAMILY_ROLES],
+        "social_roles": [(role, kinship.role_label(role)) for role in kinship.SOCIAL_ROLES],
+    }

@@ -4,7 +4,7 @@
 <h1>{% translate "Personas" %}</h1>
 <form method="get" class="search" role="search">
   <label for="q" class="visually-hidden">{% translate "Buscar personas" %}</label>
-  <input type="search" id="q" name="q" value="{{ query }}" placeholder="{% translate 'Buscar por nombre' %}">
+  <input type="search" id="q" name="q" value="{{ query }}" placeholder="{% translate 'Buscar por nombre o apodo' %}">
   <button type="submit" class="button">{% translate "Buscar" %}</button>
 </form>
 <ul class="person-grid">
@@ -16,7 +16,7 @@
       {% else %}
       <span class="avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>
       {% endif %}
-      <span class="person-name">{{ person }}</span>
+      <span class="person-name">{{ person }}{% if person.nickname_hint %} <span class="muted">· {{ person.nickname_hint }}</span>{% endif %}</span>
       <span class="muted">{% blocktranslate count counter=person.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</span>
     </a>
   </li>

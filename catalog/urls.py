@@ -1,6 +1,6 @@
 from django.urls import path
 
-from catalog import admin_views, views
+from catalog import admin_views, person_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -16,6 +16,7 @@ urlpatterns = [
     path("scans/<int:pk>/preview/", views.scan_preview, name="scan_preview"),
     path("photos/<int:pk>/propose/event/", views.propose_event, name="propose_event"),
     path("photos/<int:pk>/propose/date/", views.propose_date, name="propose_date"),
+    path("photos/<int:pk>/propose/location/", views.propose_location, name="propose_location"),
     path("photos/<int:pk>/propose/face/", views.propose_add_face, name="propose_add_face"),
     path("faces/<int:face_pk>/propose/identity/", views.propose_identity, name="propose_identity"),
     path(
@@ -30,11 +31,22 @@ urlpatterns = [
     path("persons/<int:pk>/rename/", views.person_rename, name="person_rename"),
     path("persons/<int:pk>/claim/", views.person_claim, name="person_claim"),
     path("persons/<int:pk>/unclaim/", views.person_unclaim, name="person_unclaim"),
+    path("persons/<int:pk>/honorific/", person_views.set_honorific, name="set_honorific"),
+    path("persons/<int:pk>/nicknames/", person_views.add_nickname, name="add_nickname"),
+    path("nicknames/<int:pk>/remove/", person_views.remove_nickname, name="remove_nickname"),
+    path("persons/<int:pk>/relationships/", person_views.add_relationship, name="add_relationship"),
+    path(
+        "relationships/<int:pk>/remove/",
+        person_views.remove_relationship,
+        name="remove_relationship",
+    ),
     path("activity/", views.my_activity, name="my_activity"),
     # Administration
     path("admin/", admin_views.admin_home, name="admin_home"),
     path("admin/event-types/", admin_views.event_types, name="admin_event_types"),
     path("admin/event-types/<int:pk>/", admin_views.event_type_edit, name="admin_event_type_edit"),
+    path("admin/locations/", admin_views.locations, name="admin_locations"),
+    path("admin/locations/<int:pk>/", admin_views.location_edit, name="admin_location_edit"),
     path("admin/thresholds/", admin_views.thresholds, name="admin_thresholds"),
     path("admin/review/", admin_views.review_queue, name="admin_review_queue"),
     path("admin/review/<int:pk>/ok/", admin_views.review_mark_ok, name="admin_review_ok"),

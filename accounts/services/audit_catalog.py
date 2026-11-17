@@ -48,11 +48,11 @@ EVENTS = {
     "person.merge": ("persons", _("Personas fusionadas")),
     "person.avatar": ("persons", _("Foto principal cambiada")),
     "person.rename": ("persons", _("Persona renombrada")),
-    "relationship.propose": ("persons", _("Relación propuesta")),
-    "relationship.vote": ("persons", _("Voto sobre una relación")),
-    "relationship.admin_accept": ("persons", _("Relación aceptada por un administrador")),
-    "relationship.admin_reject": ("persons", _("Relación rechazada por un administrador")),
+    "relationship.add": ("persons", _("Relación añadida")),
     "relationship.delete": ("persons", _("Relación quitada")),
+    "person.honorific": ("persons", _("Honorífico cambiado")),
+    "person.nickname_add": ("persons", _("Apodo añadido")),
+    "person.nickname_remove": ("persons", _("Apodo quitado")),
     LOGIN: ("users", _("Inicio de sesión")),
     FAILED: ("users", _("Intento de acceso fallido")),
     "user.create": ("users", _("Usuario creado")),
@@ -70,6 +70,9 @@ EVENTS = {
     "push.unsubscribe": ("notifications", _("Avisos desactivados en un dispositivo")),
     "event_type.create": ("admin", _("Tipo de evento creado")),
     "event_type.update": ("admin", _("Tipo de evento modificado")),
+    "location.rename": ("admin", _("Ubicación renombrada")),
+    "location.update": ("admin", _("Ubicación activada o desactivada")),
+    "location.merge": ("admin", _("Ubicaciones fusionadas")),
     "settings.thresholds": ("admin", _("Umbrales cambiados")),
     "export.request": ("admin", _("Exportación pedida")),
 }
@@ -78,10 +81,11 @@ TARGET_NAMES = {
     "catalog.photo": _("Foto"),
     "catalog.proposal": _("Propuesta"),
     "catalog.person": _("Persona"),
-    "catalog.relationshipproposal": _("Propuesta de relación"),
+    "catalog.relationship": _("Relación"),
     "catalog.scan": _("Escaneo"),
     "catalog.upload": _("Subida"),
     "catalog.eventtype": _("Tipo de evento"),
+    "catalog.location": _("Ubicación"),
     "accounts.user": _("Usuario"),
 }
 
@@ -205,16 +209,18 @@ def _target_text_and_url(entry, targets):
                 "photo": obj.photo_id,
             }
             return str(text), reverse("photo_detail", args=[obj.photo_id])
-        if kind == "catalog.relationshipproposal":
-            return obj.label(), reverse("person_detail", args=[obj.person_from_id])
+        if kind == "catalog.relationship":
+            return str(obj), reverse("person_detail", args=[obj.person_from_id])
         if kind == "catalog.person":
-            return obj.display_name, reverse("person_detail", args=[obj.pk])
+            return obj.shown_name, reverse("person_detail", args=[obj.pk])
         if kind == "accounts.user":
             return f"@{obj.username}", reverse("user_edit", args=[obj.pk])
         if kind == "catalog.scan":
             return obj.file_name, ""
         if kind == "catalog.upload":
             return obj.original_name, ""
+        if kind == "catalog.location":
+            return obj.name, reverse("admin_location_edit", args=[obj.pk])
         if kind == "catalog.eventtype":
             return str(obj), reverse("admin_event_type_edit", args=[obj.pk])
     except NoReverseMatch:

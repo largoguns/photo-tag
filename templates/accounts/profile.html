@@ -68,12 +68,12 @@
     <details class="setting" id="setting-album">
       <summary>
         {% icon "face" %}
-        <span class="setting-text"><span class="setting-title">{% translate "Tú en el álbum" %}</span><span class="setting-value">{% if my_person %}{{ my_person.display_name }}{% else %}{% translate "Sin identificar" %}{% endif %}</span></span>
+        <span class="setting-text"><span class="setting-title">{% translate "Tú en el álbum" %}</span><span class="setting-value">{% if my_person %}{{ my_person.shown_name }}{% else %}{% translate "Sin identificar" %}{% endif %}</span></span>
         {% icon "keyboard_arrow_down" %}
       </summary>
       <div class="setting-body stack">
         {% if my_person %}
-        <p>{% url 'person_detail' my_person.pk as person_url %}{% blocktranslate with name=my_person.display_name %}Eres <a href="{{ person_url }}">{{ name }}</a>. Elige qué foto tuya se ve en tu perfil:{% endblocktranslate %}</p>
+        <p>{% url 'person_detail' my_person.pk as person_url %}{% blocktranslate with name=my_person.shown_name %}Eres <a href="{{ person_url }}">{{ name }}</a>. Elige qué foto tuya se ve en tu perfil:{% endblocktranslate %}</p>
         {% if profile_faces %}
         <form method="post">
           {% csrf_token %}
@@ -91,7 +91,7 @@
         </form>
         {% else %}<p class="muted">{% translate "Aún no hay fotos tuyas identificadas." %}</p>{% endif %}
         <form method="post" action="{% url 'person_unclaim' my_person.pk %}"
-              data-confirm="{% blocktranslate with name=my_person.display_name %}¿Dejar de identificarte como {{ name }}?{% endblocktranslate %}" data-confirm-ok="{% translate 'No soy yo' %}" data-confirm-variant="danger">
+              data-confirm="{% blocktranslate with name=my_person.shown_name %}¿Dejar de identificarte como {{ name }}?{% endblocktranslate %}" data-confirm-ok="{% translate 'No soy yo' %}" data-confirm-variant="danger">
           {% csrf_token %}<button type="submit" class="button small">{% translate "No soy yo" %}</button>
         </form>
         {% else %}

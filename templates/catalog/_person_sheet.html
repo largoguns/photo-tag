@@ -11,18 +11,18 @@
     <p class="muted sheet-hint">{% translate "Elige una o varias: verás las fotos donde salen todas juntas." %}</p>
     {% if chosen_people %}
     <div class="chips chosen-people">
-      {% for person in chosen_people %}<a class="chip selected" href="{% qs_without params 'person' person.pk %}" aria-label="{% blocktranslate with name=person.display_name %}Quitar a {{ name }}{% endblocktranslate %}">{{ person.display_name }}{% icon "close" %}</a>{% endfor %}
+      {% for person in chosen_people %}<a class="chip selected" href="{% qs_without params 'person' person.pk %}" aria-label="{% blocktranslate with name=person.shown_name %}Quitar a {{ name }}{% endblocktranslate %}">{{ person }}{% icon "close" %}</a>{% endfor %}
     </div>
     {% endif %}
     <input type="search" class="sheet-search" placeholder="{% translate 'Buscar' %}" aria-label="{% translate 'Buscar' %}" data-sheet-search>
     <div class="sheet-body">
       <ul class="option-list">
         {% for person in persons %}
-        <li data-option-label="{{ person.display_name }}">
+        <li data-option-label="{{ person.search_text|default:person.shown_name }}">
           <label class="option">
             <input type="checkbox" name="person" value="{{ person.pk }}" {% if person.pk in chosen_ids %}checked{% endif %}>
             {% if person.avatar_id %}<img src="{% url 'face_image' person.avatar_id %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ person.display_name|first|upper }}</span>{% endif %}
-            <span>{{ person.display_name }}</span>
+            <span>{{ person }}</span>
           </label>
         </li>
         {% endfor %}

@@ -5,7 +5,7 @@ from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import Face, Person, Photo, Proposal
-from catalog.services import relationships
+from catalog.services import person_details, relationships
 
 
 @transaction.atomic
@@ -23,6 +23,7 @@ def merge_persons(admin, source, target):
     Face.objects.filter(person=source).update(person=target)
     Proposal.objects.filter(person=source).update(person=target)
     relationships.move_to(source, target)
+    person_details.move_to(source, target)
     Photo.objects.filter(pk__in=photo_ids).update(catalog_changed_at=timezone.now())
 
     if source.user_id and not target.user_id:
