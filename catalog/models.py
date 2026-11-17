@@ -478,3 +478,186 @@ class FileCleanup(models.Model):
 
     def __str__(self):
         return f"{self.kind}:{self.name}"
+
+
+# ---------------------------------------------------------------------------
+# Relationships between persons (spec section 5.12)
+# ---------------------------------------------------------------------------
+
+
+class RelationshipKind(models.TextChoices):
+    """Relationship types. Labels read from `person_from`: "<from> is <label> of <to>"."""
+
+    PARENT = "parent", _("Progenitor")
+    GRANDPARENT = "grandparent", _("Abuelo")
+    UNCLE = "uncle", _("Tío")
+    PARENT_IN_LAW = "parent_in_law", _("Suegro")
+    SIBLING = "sibling", _("Hermano")
+    COUSIN = "cousin", _("Primo")
+    SIBLING_IN_LAW = "sibling_in_law", _("Cuñado")
+    PARTNER = "partner", _("Pareja")
+    EX_PARTNER = "ex_partner", _("Expareja")
+    GODPARENT = "godparent", _("Padrino")
+    FRIEND = "friend", _("Amigo")
+    COMPADRE = "compadre", _("Compadre")
+    NEIGHBOR = "neighbor", _("Vecino")
+    COWORKER = "coworker", _("Compañero de trabajo")
+    CLASSMATE = "classmate", _("Compañero de clase")
+    ACTIVITY_MATE = "activity_mate", _("Compañero de actividad")
+
+
+ASYMMETRIC_KINDS = (
+    RelationshipKind.PARENT,
+    RelationshipKind.GRANDPARENT,
+    RelationshipKind.UNCLE,
+    RelationshipKind.PARENT_IN_LAW,
+    RelationshipKind.GODPARENT,
+)
+
+
+def _canonical_constraints(prefix):
+    """Stored once per pair: never with oneself, and symmetric kinds with from < to."""
+    return [
+        models.CheckConstraint(
+            condition=~models.Q(person_from=models.F("person_to")),
+            name=f"{prefix}_not_self",
+        ),
+        models.CheckConstraint(
+            condition=models.Q(kind__in=ASYMMETRIC_KINDS)
+            | models.Q(person_from__lt=models.F("person_to")),
+            name=f"{prefix}_symmetric_ordered",
+        ),
+    ]
+
+
+class Relationship(models.Model):
+    """An accepted relationship, stored once in canonical form (see services.kinship)."""
+
+    Kind = RelationshipKind
+
+    person_from = models.ForeignKey(
+        Person, on_delete=models.CASCADE, related_name="relationships_from"
+    )
+    person_to = models.ForeignKey(Person, on_delete=models.CASCADE, related_name="relationships_to")
+    kind = models.CharField(max_length=20, choices=RelationshipKind.choices)
+    # Only for activity mates: "Fútbol", "Coro".
+    activity = models.CharField(max_length=100, blank=True)
+    accepted_proposal = models.ForeignKey(
+        "RelationshipProposal",
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="+",
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["id"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["person_from", "person_to", "kind"], name="unique_relationship"
+            ),
+            *_canonical_constraints("relationship"),
+        ]
+
+    def __str__(self):
+        return relationship_label(self)
+
+
+class RelationshipProposal(models.Model):
+    Kind = RelationshipKind
+    Status = Proposal.Status
+
+    class Action(models.TextChoices):
+        ADD = "add", _("Añadir relación")
+        REMOVE = "remove", _("Quitar relación")
+
+    # Null once a provisional person of a closed proposal is deleted (kept as history).
+    person_from = models.ForeignKey(
+        Person,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="relationship_proposals_from",
+    )
+    person_to = models.ForeignKey(
+        Person,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="relationship_proposals_to",
+    )
+    kind = models.CharField(max_length=20, choices=RelationshipKind.choices)
+    activity = models.CharField(max_length=100, blank=True)
+    action = models.CharField(max_length=10, choices=Action.choices, default=Action.ADD)
+    # The accepted relationship a "remove" proposal wants to delete.
+    relationship = models.ForeignKey(
+        Relationship, null=True, blank=True, on_delete=models.SET_NULL, related_name="proposals"
+    )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relationship_proposals"
+    )
+    created_at = models.DateTimeField(default=timezone.now)
+    status = models.CharField(
+        max_length=12, choices=Proposal.Status.choices, default=Proposal.Status.OPEN, db_index=True
+    )
+    decided_at = models.DateTimeField(null=True, blank=True)
+    decided_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="forced_relationship_decisions",
+    )
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+        constraints = _canonical_constraints("relationship_proposal")
+
+    def __str__(self):
+        return f"{self.get_action_display()} #{self.pk} ({self.get_status_display()})"
+
+    @property
+    def is_open(self):
+        return self.status == self.Status.OPEN
+
+    def label(self):
+        text = relationship_label(self)
+        if self.action == self.Action.REMOVE:
+            return gettext("Quitar: %(label)s") % {"label": text}
+        return text
+
+
+def relationship_label(obj):
+    """'Ana, progenitor de Luis' / 'Ana y Luis: primo' (+ activity), in the active language."""
+    role = str(RelationshipKind(obj.kind).label).lower()
+    gone = gettext("(persona eliminada)")
+    names = {
+        "from": obj.person_from.display_name if obj.person_from else gone,
+        "to": obj.person_to.display_name if obj.person_to else gone,
+        "role": role,
+    }
+    if obj.kind in ASYMMETRIC_KINDS:
+        text = gettext("%(from)s, %(role)s de %(to)s") % names
+    else:
+        text = gettext("%(from)s y %(to)s: %(role)s") % names
+    return f"{text} ({obj.activity})" if obj.activity else text
+
+
+class RelationshipVote(models.Model):
+    proposal = models.ForeignKey(
+        RelationshipProposal, on_delete=models.CASCADE, related_name="votes"
+    )
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="relationship_votes"
+    )
+    value = models.SmallIntegerField(choices=Vote.VALUE_CHOICES)
+    created_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["proposal", "user"], name="unique_relationship_vote_per_user"
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.user} {'+1' if self.value > 0 else '-1'} R#{self.proposal_id}"

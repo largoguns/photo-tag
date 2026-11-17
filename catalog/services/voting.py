@@ -7,11 +7,21 @@ import datetime
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from accounts.services import audit
-from catalog.models import CatalogSettings, EventType, Face, Person, Photo, Proposal, Vote
+from catalog.models import (
+    CatalogSettings,
+    EventType,
+    Face,
+    Person,
+    Photo,
+    Proposal,
+    RelationshipProposal,
+    Vote,
+)
 from catalog.services.names import name_key, normalize_label, normalize_name
 
 Kind = Proposal.Kind
@@ -325,7 +335,7 @@ def _accept(proposal):
         others = Proposal.objects.filter(face=face, status=Status.OPEN).exclude(pk=proposal.pk)
     for other in others:
         _close(other, Status.SUPERSEDED)
-        _cleanup_provisional_person(other.person)
+        cleanup_provisional_person(other.person)
         _cleanup_provisional_event_type(other.event_type)
 
     _mark_changed(photo)
@@ -339,13 +349,13 @@ def _reject(proposal):
         Proposal.objects.filter(face=proposal.face, status=Status.OPEN).update(
             status=Status.SUPERSEDED, decided_at=timezone.now()
         )
-    _cleanup_provisional_person(proposal.person)
+    cleanup_provisional_person(proposal.person)
     _cleanup_provisional_event_type(proposal.event_type)
     photo = Photo.objects.select_for_update().get(pk=proposal.photo_id)
     refresh_photo_status(photo)
 
 
-def _cleanup_provisional_person(person):
+def cleanup_provisional_person(person):
     """Delete a provisional person created by a proposal that did not succeed."""
     if person is None or not person.is_provisional:
         return
@@ -355,6 +365,12 @@ def _cleanup_provisional_person(person):
         or person.user_id
         or person.merged_persons.exists()
         or person.proposals.filter(status__in=[Status.OPEN, Status.ACCEPTED]).exists()
+        or person.relationships_from.exists()
+        or person.relationships_to.exists()
+        or RelationshipProposal.objects.filter(
+            Q(person_from=person) | Q(person_to=person),
+            status__in=[Status.OPEN, Status.ACCEPTED],
+        ).exists()
     )
     if not in_use:
         person.delete()

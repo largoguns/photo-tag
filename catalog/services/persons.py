@@ -5,11 +5,13 @@ from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import Face, Person, Photo, Proposal
+from catalog.services import relationships
 
 
 @transaction.atomic
 def merge_persons(admin, source, target):
-    """Merge `source` into `target`: faces, proposals and user link move to the target."""
+    """Merge `source` into `target`: faces, proposals, relationships and user link move to
+    the target."""
     if source.pk == target.pk:
         raise ValidationError(_("No se puede fusionar una persona consigo misma."))
     source = Person.objects.select_for_update().get(pk=source.pk)
@@ -20,6 +22,7 @@ def merge_persons(admin, source, target):
     photo_ids = set(Face.objects.filter(person=source).values_list("photo_id", flat=True))
     Face.objects.filter(person=source).update(person=target)
     Proposal.objects.filter(person=source).update(person=target)
+    relationships.move_to(source, target)
     Photo.objects.filter(pk__in=photo_ids).update(catalog_changed_at=timezone.now())
 
     if source.user_id and not target.user_id:

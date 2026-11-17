@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-17 21:35+0100\n"
+"POT-Creation-Date: 2026-11-17 22:08+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -184,7 +184,7 @@ msgstr "Photos shared"
 msgid "Fotos descargadas"
 msgstr "Photos downloaded"
 
-#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:77
+#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:83
 msgid "Subida"
 msgstr "Upload"
 
@@ -217,131 +217,155 @@ msgid "Persona renombrada"
 msgstr "Person renamed"
 
 #: accounts/services/audit_catalog.py:51
+msgid "Relación propuesta"
+msgstr "Relationship proposed"
+
+#: accounts/services/audit_catalog.py:52
+msgid "Voto sobre una relación"
+msgstr "Vote on a relationship"
+
+#: accounts/services/audit_catalog.py:53
+msgid "Relación aceptada por un administrador"
+msgstr "Relationship accepted by an administrator"
+
+#: accounts/services/audit_catalog.py:54
+msgid "Relación rechazada por un administrador"
+msgstr "Relationship rejected by an administrator"
+
+#: accounts/services/audit_catalog.py:55
+msgid "Relación quitada"
+msgstr "Relationship removed"
+
+#: accounts/services/audit_catalog.py:56
 msgid "Inicio de sesión"
 msgstr "Sign-in"
 
-#: accounts/services/audit_catalog.py:52
+#: accounts/services/audit_catalog.py:57
 msgid "Intento de acceso fallido"
 msgstr "Failed sign-in attempt"
 
-#: accounts/services/audit_catalog.py:53
+#: accounts/services/audit_catalog.py:58
 msgid "Usuario creado"
 msgstr "User created"
 
-#: accounts/services/audit_catalog.py:54
+#: accounts/services/audit_catalog.py:59
 msgid "Usuario modificado"
 msgstr "User changed"
 
-#: accounts/services/audit_catalog.py:55
+#: accounts/services/audit_catalog.py:60
 msgid "Usuario reactivado"
 msgstr "User reactivated"
 
-#: accounts/services/audit_catalog.py:56
+#: accounts/services/audit_catalog.py:61
 msgid "Usuario desactivado"
 msgstr "User deactivated"
 
-#: accounts/services/audit_catalog.py:57
+#: accounts/services/audit_catalog.py:62
 msgid "Contraseña restablecida"
 msgstr "Password reset"
 
-#: accounts/services/audit_catalog.py:58
+#: accounts/services/audit_catalog.py:63
 msgid "Usuario borrado"
 msgstr "User deleted"
 
-#: accounts/services/audit_catalog.py:59
+#: accounts/services/audit_catalog.py:64
 msgid "Usuario vinculado a una persona"
 msgstr "User linked to a person"
 
-#: accounts/services/audit_catalog.py:60
+#: accounts/services/audit_catalog.py:65
 msgid "Se identificó como una persona"
 msgstr "Identified as a person"
 
-#: accounts/services/audit_catalog.py:61
+#: accounts/services/audit_catalog.py:66
 msgid "Dejó de identificarse como una persona"
 msgstr "Stopped identifying as a person"
 
-#: accounts/services/audit_catalog.py:62
+#: accounts/services/audit_catalog.py:67
 msgid "Foto de perfil cambiada"
 msgstr "Profile photo changed"
 
-#: accounts/services/audit_catalog.py:63
+#: accounts/services/audit_catalog.py:68
 msgid "Superadministrador inicial creado"
 msgstr "Initial superadmin created"
 
-#: accounts/services/audit_catalog.py:64
+#: accounts/services/audit_catalog.py:69
 msgid "Avisos activados en un dispositivo"
 msgstr "Notifications turned on on a device"
 
-#: accounts/services/audit_catalog.py:65
+#: accounts/services/audit_catalog.py:70
 msgid "Avisos desactivados en un dispositivo"
 msgstr "Notifications turned off on a device"
 
-#: accounts/services/audit_catalog.py:66
+#: accounts/services/audit_catalog.py:71
 msgid "Tipo de evento creado"
 msgstr "Event type created"
 
-#: accounts/services/audit_catalog.py:67
+#: accounts/services/audit_catalog.py:72
 msgid "Tipo de evento modificado"
 msgstr "Event type changed"
 
-#: accounts/services/audit_catalog.py:68
+#: accounts/services/audit_catalog.py:73
 msgid "Umbrales cambiados"
 msgstr "Thresholds changed"
 
-#: accounts/services/audit_catalog.py:69
+#: accounts/services/audit_catalog.py:74
 msgid "Exportación pedida"
 msgstr "Export requested"
 
-#: accounts/services/audit_catalog.py:73
+#: accounts/services/audit_catalog.py:78
 #: templates/catalog/_photo_workspace.html:3
 msgid "Foto"
 msgstr "Photo"
 
-#: accounts/services/audit_catalog.py:74 catalog/models.py:210
+#: accounts/services/audit_catalog.py:79 catalog/models.py:210
 msgid "Propuesta"
 msgstr "Proposed"
 
-#: accounts/services/audit_catalog.py:75 templates/catalog/gallery.html:11
+#: accounts/services/audit_catalog.py:80 templates/catalog/gallery.html:11
 #: templates/catalog/gallery.html:52
 msgid "Persona"
 msgstr "Person"
 
-#: accounts/services/audit_catalog.py:76
+#: accounts/services/audit_catalog.py:81
+msgid "Propuesta de relación"
+msgstr "Relationship proposal"
+
+#: accounts/services/audit_catalog.py:82
 msgid "Escaneo"
 msgstr "Scan"
 
-#: accounts/services/audit_catalog.py:78
+#: accounts/services/audit_catalog.py:84
 #: templates/catalog/_photo_workspace.html:191
 msgid "Tipo de evento"
 msgstr "Event type"
 
-#: accounts/services/audit_catalog.py:79 templates/accounts/audit.html:9
+#: accounts/services/audit_catalog.py:85 templates/accounts/audit.html:9
 #: templates/accounts/audit.html:105 templates/accounts/login.html:15
 msgid "Usuario"
 msgstr "Username"
 
-#: accounts/services/audit_catalog.py:83
+#: accounts/services/audit_catalog.py:89
 msgid "Hoy"
 msgstr "Today"
 
-#: accounts/services/audit_catalog.py:84
+#: accounts/services/audit_catalog.py:90
 msgid "Últimos 7 días"
 msgstr "Last 7 days"
 
-#: accounts/services/audit_catalog.py:85
+#: accounts/services/audit_catalog.py:91
 msgid "Últimos 30 días"
 msgstr "Last 30 days"
 
-#: accounts/services/audit_catalog.py:86
+#: accounts/services/audit_catalog.py:92
 msgid "Este año"
 msgstr "This year"
 
-#: accounts/services/audit_catalog.py:192
+#: accounts/services/audit_catalog.py:198
 #, python-format
 msgid "%(name)s (ya no existe)"
 msgstr "%(name)s (no longer exists)"
 
-#: accounts/services/audit_catalog.py:195 catalog/models.py:133
+#: accounts/services/audit_catalog.py:201 catalog/models.py:133
 #: templates/accounts/audit.html:70 templates/catalog/_justified_item.html:7
 #: templates/catalog/_photo_card.html:7
 #: templates/catalog/_photo_workspace.html:33
@@ -354,7 +378,7 @@ msgstr "%(name)s (no longer exists)"
 msgid "Foto %(id)s"
 msgstr "Photo %(id)s"
 
-#: accounts/services/audit_catalog.py:197
+#: accounts/services/audit_catalog.py:203
 #, python-format
 msgid "«%(label)s» en la foto %(photo)s"
 msgstr "“%(label)s” on photo %(photo)s"
@@ -681,7 +705,7 @@ msgstr "Superseded"
 msgid "Administrador que forzó la decisión, si la hubo."
 msgstr "Administrator who forced the decision, if any."
 
-#: catalog/models.py:352
+#: catalog/models.py:352 catalog/models.py:632
 msgid "(persona eliminada)"
 msgstr "(deleted person)"
 
@@ -741,6 +765,93 @@ msgstr "Already uploaded"
 msgid "Error al procesar"
 msgstr "Processing failed"
 
+#: catalog/models.py:491 catalog/services/kinship.py:61
+msgid "Progenitor"
+msgstr "Parent"
+
+#: catalog/models.py:492 catalog/services/kinship.py:63
+msgid "Abuelo"
+msgstr "Grandparent"
+
+#: catalog/models.py:493 catalog/services/kinship.py:65
+msgid "Tío"
+msgstr "Uncle or aunt"
+
+#: catalog/models.py:494 catalog/services/kinship.py:67
+msgid "Suegro"
+msgstr "Parent-in-law"
+
+#: catalog/models.py:495
+msgid "Hermano"
+msgstr "Sibling"
+
+#: catalog/models.py:496
+msgid "Primo"
+msgstr "Cousin"
+
+#: catalog/models.py:497
+msgid "Cuñado"
+msgstr "Sibling-in-law"
+
+#: catalog/models.py:498
+msgid "Pareja"
+msgstr "Partner"
+
+#: catalog/models.py:499
+msgid "Expareja"
+msgstr "Ex-partner"
+
+#: catalog/models.py:500 catalog/services/kinship.py:69
+msgid "Padrino"
+msgstr "Godparent"
+
+#: catalog/models.py:501
+msgid "Amigo"
+msgstr "Friend"
+
+#: catalog/models.py:502
+msgid "Compadre"
+msgstr "Compadre"
+
+#: catalog/models.py:503
+msgid "Vecino"
+msgstr "Neighbour"
+
+#: catalog/models.py:504
+msgid "Compañero de trabajo"
+msgstr "Coworker"
+
+#: catalog/models.py:505
+msgid "Compañero de clase"
+msgstr "Classmate"
+
+#: catalog/models.py:506
+msgid "Compañero de actividad"
+msgstr "Activity mate"
+
+#: catalog/models.py:572
+msgid "Añadir relación"
+msgstr "Add relationship"
+
+#: catalog/models.py:573
+msgid "Quitar relación"
+msgstr "Remove relationship"
+
+#: catalog/models.py:625
+#, python-format
+msgid "Quitar: %(label)s"
+msgstr "Remove: %(label)s"
+
+#: catalog/models.py:639
+#, python-format
+msgid "%(from)s, %(role)s de %(to)s"
+msgstr "%(from)s, %(role)s of %(to)s"
+
+#: catalog/models.py:641
+#, python-format
+msgid "%(from)s y %(to)s: %(role)s"
+msgstr "%(from)s and %(to)s: %(role)s"
+
 #: catalog/presenters.py:108
 msgid "¡La familia ha catalogado todo el álbum!"
 msgstr "The family has catalogued the whole album!"
@@ -761,23 +872,85 @@ msgstr "A quarter of the album is catalogued!"
 msgid "Sin fecha"
 msgstr "Undated"
 
-#: catalog/services/persons.py:14
+#: catalog/services/kinship.py:62
+msgid "Hijo"
+msgstr "Child"
+
+#: catalog/services/kinship.py:64
+msgid "Nieto"
+msgstr "Grandchild"
+
+#: catalog/services/kinship.py:66
+msgid "Sobrino"
+msgstr "Nephew or niece"
+
+#: catalog/services/kinship.py:68
+msgid "Hijo político"
+msgstr "Child-in-law"
+
+#: catalog/services/kinship.py:70
+msgid "Ahijado"
+msgstr "Godchild"
+
+#: catalog/services/persons.py:16
 msgid "No se puede fusionar una persona consigo misma."
 msgstr "A person cannot be merged with themselves."
 
-#: catalog/services/persons.py:18
+#: catalog/services/persons.py:20
 msgid "Solo se pueden fusionar personas activas."
 msgstr "Only active people can be merged."
 
-#: catalog/services/persons.py:57 catalog/services/voting.py:30
+#: catalog/services/persons.py:60 catalog/services/voting.py:40
 msgid "El nombre no puede estar vacío."
 msgstr "The name cannot be empty."
 
-#: catalog/services/persons.py:65
+#: catalog/services/persons.py:68
 #, python-format
 msgid "Ya existe «%(name)s». Si son la misma persona, usa «Fusionar personas»."
 msgstr ""
 "“%(name)s” already exists. If they are the same person, use “Merge people”."
+
+#: catalog/services/relationships.py:58 catalog/services/relationships.py:96
+msgid "Una persona no puede relacionarse consigo misma."
+msgstr "A person cannot be related to themselves."
+
+#: catalog/services/relationships.py:61
+msgid "Esa relación ya está aceptada."
+msgstr "That relationship is already accepted."
+
+#: catalog/services/relationships.py:67
+msgid "Esa persona ya tiene dos progenitores."
+msgstr "That person already has two parents."
+
+#: catalog/services/relationships.py:69
+msgid "Nadie puede ser antepasado de uno de sus antepasados."
+msgstr "Nobody can be an ancestor of one of their own ancestors."
+
+#: catalog/services/relationships.py:74
+msgid "Esa relación ya se deduce de las demás."
+msgstr "That relationship already follows from the others."
+
+#: catalog/services/relationships.py:76
+#, python-format
+msgid "Contradice una relación que ya se deduce: %(role)s."
+msgstr "It contradicts a relationship that already follows: %(role)s."
+
+#: catalog/services/relationships.py:91
+msgid "Tipo de relación no válido."
+msgstr "Invalid relationship type."
+
+#: catalog/services/relationships.py:101
+msgid "Escribe qué actividad comparten."
+msgstr "Write which activity they share."
+
+#: catalog/services/relationships.py:176 catalog/services/voting.py:220
+msgid "Voto no válido."
+msgstr "Invalid vote."
+
+#: catalog/services/relationships.py:179 catalog/services/relationships.py:215
+#: catalog/services/voting.py:223 catalog/services/voting.py:273
+msgid "La propuesta ya está cerrada."
+msgstr "The proposal is already closed."
 
 #: catalog/services/sharing.py:34
 msgid "sin-fecha"
@@ -791,61 +964,53 @@ msgstr "very likely"
 msgid "posible"
 msgstr "possible"
 
-#: catalog/services/voting.py:43
+#: catalog/services/voting.py:53
 msgid "Escribe qué evento es."
 msgstr "Type which event it is."
 
-#: catalog/services/voting.py:56
+#: catalog/services/voting.py:66
 msgid "Año no válido."
 msgstr "Invalid year."
 
-#: catalog/services/voting.py:58
+#: catalog/services/voting.py:68
 msgid "Año fuera de rango."
 msgstr "Year out of range."
 
-#: catalog/services/voting.py:67
+#: catalog/services/voting.py:77
 msgid "Fecha no válida."
 msgstr "Invalid date."
 
-#: catalog/services/voting.py:69
+#: catalog/services/voting.py:79
 msgid "Precisión de fecha no válida."
 msgstr "Invalid date precision."
 
-#: catalog/services/voting.py:127
+#: catalog/services/voting.py:137
 msgid "Cara no válida."
 msgstr "Invalid face."
 
-#: catalog/services/voting.py:133
+#: catalog/services/voting.py:143
 msgid "Esa persona ya está aceptada para esta cara."
 msgstr "That person is already accepted for this face."
 
-#: catalog/services/voting.py:138
+#: catalog/services/voting.py:148
 msgid "Falta el tipo de evento."
 msgstr "The event type is missing."
 
-#: catalog/services/voting.py:145
+#: catalog/services/voting.py:155
 msgid "Ese evento ya está aceptado."
 msgstr "That event is already accepted."
 
-#: catalog/services/voting.py:154
+#: catalog/services/voting.py:164
 msgid "Tipo de propuesta desconocido."
 msgstr "Unknown proposal type."
 
-#: catalog/services/voting.py:185
+#: catalog/services/voting.py:195
 msgid "Recuadro no válido."
 msgstr "Invalid box."
 
-#: catalog/services/voting.py:189
+#: catalog/services/voting.py:199
 msgid "El recuadro es demasiado pequeño."
 msgstr "The box is too small."
-
-#: catalog/services/voting.py:210
-msgid "Voto no válido."
-msgstr "Invalid vote."
-
-#: catalog/services/voting.py:213 catalog/services/voting.py:263
-msgid "La propuesta ya está cerrada."
-msgstr "The proposal is already closed."
 
 #: catalog/views.py:189
 #, python-format
@@ -1857,7 +2022,8 @@ msgstr "Waiting for my vote"
 
 #: templates/catalog/_person_sheet.html:11
 msgid "Elige una o varias: verás las fotos donde salen todas juntas."
-msgstr "Choose one or more: you will see the photos where they all appear together."
+msgstr ""
+"Choose one or more: you will see the photos where they all appear together."
 
 #: templates/catalog/_person_sheet.html:14
 #, python-format

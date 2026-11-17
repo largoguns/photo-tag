@@ -37,7 +37,7 @@ def _remove_photo(photo):
     _queue_photo_files(photo)
     photo.delete()
     for person, event_type in provisional:
-        voting._cleanup_provisional_person(person)
+        voting.cleanup_provisional_person(person)
         voting._cleanup_provisional_event_type(event_type)
 
 
