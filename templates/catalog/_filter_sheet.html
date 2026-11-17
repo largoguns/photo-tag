@@ -9,11 +9,12 @@
   <div class="sheet-body">
     <ul class="option-list">
       <li><a class="option" href="{% qs params key %}" {% if not current %}aria-current="true"{% endif %}><span>{{ all_label }}</span>{% if not current %}{% icon "check" %}{% endif %}</a></li>
-      {% for value, label, avatar in options %}
+      {% for value, label, avatar, count in options %}
       <li data-option-label="{{ label }}">
         <a class="option" href="{% qs params key value %}" {% if current == value|stringformat:"s" %}aria-current="true"{% endif %}>
-          {% if searchable %}{% if avatar %}<img src="{% url 'face_image' avatar %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ label|first|upper }}</span>{% endif %}{% endif %}
+          {% if searchable and not no_avatars %}{% if avatar %}<img src="{% url 'face_image' avatar %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ label|first|upper }}</span>{% endif %}{% endif %}
           <span>{{ label }}</span>
+          {% if count is not None %}<span class="option-count">{{ count }}</span>{% endif %}
           {% if current == value|stringformat:"s" %}{% icon "check" %}{% endif %}
         </a>
       </li>

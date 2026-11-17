@@ -7,7 +7,6 @@ import datetime
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import transaction
-from django.db.models import Q
 from django.utils import timezone
 from django.utils.translation import gettext as _
 
@@ -16,10 +15,10 @@ from catalog.models import (
     CatalogSettings,
     EventType,
     Face,
+    Location,
     Person,
     Photo,
     Proposal,
-    RelationshipProposal,
     Vote,
 )
 from catalog.services.names import name_key, normalize_label, normalize_name
@@ -58,6 +57,22 @@ def resolve_event_type(name, user):
     return EventType.objects.create(name=label, created_by=user, is_provisional=True, order=900)
 
 
+def resolve_location(name, user):
+    """Existing location by name (ignoring accents and case) or a new provisional one.
+
+    The typed text is kept as written, only trimmed: "Casa de Los Tarantos".
+    """
+    text = " ".join(str(name).split())[:150]
+    if not text:
+        raise ValidationError(_("Escribe dónde se hizo la foto."))
+    existing = Location.objects.filter(name_key=name_key(text)).first()
+    if existing:
+        return existing.resolved()
+    return Location.objects.create(
+        name=text, name_key=name_key(text), created_by=user, is_provisional=True
+    )
+
+
 def normalize_date(precision, year, month=None, day=None):
     """Validate a date proposal and return its JSON value."""
     try:
@@ -89,7 +104,7 @@ def _same_field(proposal):
     return qs
 
 
-def _find_duplicate(photo, kind, face, person, event_type, value):
+def _find_duplicate(photo, kind, face, person, event_type, value, location=None):
     qs = Proposal.objects.filter(photo=photo, kind=kind, face=face, status=Status.OPEN)
     if kind == Kind.FACE_IDENTITY:
         return qs.filter(person=person).first()
@@ -105,6 +120,8 @@ def _find_duplicate(photo, kind, face, person, event_type, value):
         )
     if kind == Kind.DATE:
         return next((p for p in qs if p.value == value), None)
+    if kind == Kind.LOCATION:
+        return qs.filter(location=location).first()
     if kind == Kind.REMOVE_FACE:
         return qs.first()
     return None
@@ -121,6 +138,8 @@ def create_proposal(
     person_name=None,
     event_type=None,
     event_name=None,
+    location=None,
+    location_name=None,
     value=None,
 ):
     """Create a proposal (counting as the author's +1) and evaluate it.
@@ -157,13 +176,23 @@ def create_proposal(
         value = normalize_date(
             value.get("precision"), value.get("year"), value.get("month"), value.get("day")
         )
+    elif kind == Kind.LOCATION:
+        if location_name and location_name.strip():
+            location = resolve_location(location_name, user)
+        if location is None:
+            raise ValidationError(_("Escribe dónde se hizo la foto."))
+        location = location.resolved()
+        # Kept so the proposal still reads well if a provisional location is removed.
+        value = {"location_name": location.name}
+        if photo.location_id == location.pk:
+            raise ValidationError(_("Esa ubicación ya está aceptada."))
     elif kind == Kind.ADD_FACE:
         face = _create_proposed_face(user, photo, value)
         value = {"x": face.x, "y": face.y, "w": face.w, "h": face.h}
     else:
         raise ValidationError(_("Tipo de propuesta desconocido."))
 
-    duplicate = _find_duplicate(photo, kind, face, person, event_type, value)
+    duplicate = _find_duplicate(photo, kind, face, person, event_type, value, location)
     if duplicate:
         return cast_vote(user, duplicate, Vote.UP)
 
@@ -174,6 +203,7 @@ def create_proposal(
         value=value,
         person=person,
         event_type=event_type,
+        location=location,
         author=user,
     )
     Vote.objects.create(proposal=proposal, user=user, value=Vote.UP)
@@ -312,6 +342,11 @@ def _accept(proposal):
         if proposal.event_type.is_provisional:
             proposal.event_type.is_provisional = False
             proposal.event_type.save(update_fields=["is_provisional"])
+    elif proposal.kind == Kind.LOCATION:
+        photo.location = proposal.location
+        if proposal.location.is_provisional:
+            proposal.location.is_provisional = False
+            proposal.location.save(update_fields=["is_provisional"])
     elif proposal.kind == Kind.DATE:
         value = proposal.value
         photo.date_precision = value["precision"]
@@ -337,6 +372,7 @@ def _accept(proposal):
         _close(other, Status.SUPERSEDED)
         cleanup_provisional_person(other.person)
         _cleanup_provisional_event_type(other.event_type)
+        cleanup_provisional_location(other.location)
 
     _mark_changed(photo)
 
@@ -351,6 +387,7 @@ def _reject(proposal):
         )
     cleanup_provisional_person(proposal.person)
     _cleanup_provisional_event_type(proposal.event_type)
+    cleanup_provisional_location(proposal.location)
     photo = Photo.objects.select_for_update().get(pk=proposal.photo_id)
     refresh_photo_status(photo)
 
@@ -367,10 +404,6 @@ def cleanup_provisional_person(person):
         or person.proposals.filter(status__in=[Status.OPEN, Status.ACCEPTED]).exists()
         or person.relationships_from.exists()
         or person.relationships_to.exists()
-        or RelationshipProposal.objects.filter(
-            Q(person_from=person) | Q(person_to=person),
-            status__in=[Status.OPEN, Status.ACCEPTED],
-        ).exists()
     )
     if not in_use:
         person.delete()
@@ -391,6 +424,22 @@ def _cleanup_provisional_event_type(event_type):
         event_type.delete()
 
 
+def cleanup_provisional_location(location):
+    """Delete a user-proposed location whose proposals did not succeed."""
+    if location is None or not location.is_provisional:
+        return
+    location.refresh_from_db()
+    in_use = (
+        location.photos.exists()
+        or location.merged_locations.exists()
+        or location.proposals.filter(status__in=[Status.OPEN, Status.ACCEPTED]).exists()
+    )
+    if not in_use:
+        # Closed proposals keep the name in value["location_name"].
+        location.proposals.update(location=None)
+        location.delete()
+
+
 def _mark_changed(photo):
     photo.catalog_changed_at = timezone.now()
     refresh_photo_status(
@@ -400,6 +449,7 @@ def _mark_changed(photo):
             "event_description",
             "date_precision",
             "date_value",
+            "location",
             "catalog_changed_at",
         ],
     )
@@ -434,7 +484,7 @@ def pending_for_user(user):
     return (
         Proposal.objects.filter(status=Status.OPEN, photo__discarded=False)
         .exclude(votes__user=user)
-        .select_related("photo", "person", "event_type", "face")
+        .select_related("photo", "person", "event_type", "location", "face")
     )
 
 
@@ -444,3 +494,8 @@ def photos_pending_for_user(user):
 
 def event_types():
     return EventType.objects.enabled()
+
+
+def locations():
+    """Locations offered as suggestions (accepted, active and not merged)."""
+    return Location.objects.enabled()

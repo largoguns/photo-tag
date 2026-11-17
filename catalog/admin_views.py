@@ -3,6 +3,7 @@
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -12,7 +13,8 @@ from django.views.decorators.http import require_POST
 from accounts.permissions import admin_required
 from accounts.services import audit, audit_catalog
 from catalog.forms import EventTypeForm, MergePersonsForm, ThresholdsForm
-from catalog.models import CatalogSettings, EventType, Photo, Scan
+from catalog.models import CatalogSettings, EventType, Location, Photo, Scan
+from catalog.services import locations as location_service
 from catalog.services.persons import merge_persons
 
 
@@ -58,6 +60,55 @@ def event_type_edit(request, pk):
         return redirect("admin_event_types")
     return render(
         request, "catalog/admin/event_type_form.html", {"form": form, "event_type": event_type}
+    )
+
+
+def _with_photo_count(queryset):
+    return queryset.annotate(photo_count=Count("photos", filter=Q(photos__discarded=False)))
+
+
+@admin_required
+def locations(request):
+    rows = _with_photo_count(
+        Location.objects.filter(merged_into__isnull=True).select_related("created_by")
+    )
+    return render(request, "catalog/admin/locations.html", {"locations": rows})
+
+
+@admin_required
+def location_edit(request, pk):
+    location = get_object_or_404(_with_photo_count(Location.objects.all()), pk=pk)
+    if location.merged_into_id:
+        return redirect("admin_location_edit", pk=location.resolved().pk)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        try:
+            if action == "rename":
+                location_service.rename_location(
+                    request.user, location, request.POST.get("name", "")
+                )
+                messages.success(request, _("Ubicación renombrada."))
+            elif action in ("activate", "deactivate"):
+                location_service.set_active(request.user, location, action == "activate")
+                messages.success(request, _("Ubicación actualizada."))
+            elif action == "merge":
+                target = get_object_or_404(
+                    Location.objects.filter(merged_into__isnull=True).exclude(pk=location.pk),
+                    pk=request.POST.get("target") or 0,
+                )
+                location_service.merge_locations(request.user, location, target)
+                messages.success(
+                    request, _("Ubicaciones fusionadas en «%(name)s».") % {"name": target.name}
+                )
+                return redirect("admin_location_edit", pk=target.pk)
+        except ValidationError as exc:
+            messages.error(request, " ".join(exc.messages))
+        return redirect("admin_location_edit", pk=location.pk)
+    others = Location.objects.filter(merged_into__isnull=True).exclude(pk=location.pk)
+    return render(
+        request,
+        "catalog/admin/location_form.html",
+        {"location": location, "others": others},
     )
 
 
@@ -188,7 +239,7 @@ def merge(request):
         else:
             messages.success(
                 request,
-                _("Personas fusionadas en «%(name)s».") % {"name": target.display_name},
+                _("Personas fusionadas en «%(name)s».") % {"name": target.shown_name},
             )
             return redirect("person_detail", pk=target.pk)
     return render(request, "catalog/admin/merge.html", {"form": form})

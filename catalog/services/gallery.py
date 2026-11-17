@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.utils.translation import gettext
 
-from catalog.models import Face, Person, Photo
+from catalog.models import Face, Location, Person, Photo
 from catalog.services import voting
 
 BLOCK_SIZE = 120
@@ -26,6 +26,23 @@ def selected_people(params):
         if person not in people:
             people.append(person)
     return people
+
+
+def selected_location(params):
+    """The location chosen in the filter (a merged one resolved to its target), or None."""
+    value = params.get("location", "")
+    location = Location.objects.filter(pk=value).first() if value.isdigit() else None
+    return location.resolved() if location else None
+
+
+def location_options():
+    """Locations with visible photos, with how many each one has."""
+    return list(
+        Location.objects.filter(merged_into__isnull=True, is_provisional=False)
+        .annotate(photo_count=Count("photos", filter=Q(photos__discarded=False)))
+        .filter(photo_count__gt=0)
+        .order_by("name")
+    )
 
 
 def gallery_queryset(params, user):
@@ -56,6 +73,9 @@ def gallery_queryset(params, user):
         ).filter(chosen=len(ids))
     if params.get("event", "").isdigit():
         photos = photos.filter(event_type_id=params["event"])
+    if params.get("location", "").isdigit():
+        location = selected_location(params)
+        photos = photos.filter(location=location) if location else photos.none()
     if params.get("decade", "").isdigit():
         decade = int(params["decade"])
         photos = photos.filter(date_value__year__gte=decade, date_value__year__lt=decade + 10)

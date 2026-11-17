@@ -70,14 +70,16 @@ def qs(params, key, value=None):
 
 @register.simple_tag
 def sheet_options(items, kind="choices"):
-    """Normalize filter options to (value, label, avatar_face_id) tuples."""
+    """Normalize filter options to (value, label, avatar_face_id, count) tuples."""
     if kind == "person":
-        return [(p.pk, p.display_name, getattr(p, "avatar_id", None)) for p in items]
+        return [(p.pk, str(p), getattr(p, "avatar_id", None), None) for p in items]
     if kind == "event":
-        return [(e.pk, str(e), None) for e in items]
+        return [(e.pk, str(e), None, None) for e in items]
+    if kind == "location":
+        return [(loc.pk, loc.name, None, getattr(loc, "photo_count", None)) for loc in items]
     if kind == "decade":
-        return [(d, f"{d}s", None) for d in items]
-    return [(value, label, None) for value, label in items]
+        return [(d, f"{d}s", None, None) for d in items]
+    return [(value, label, None, None) for value, label in items]
 
 
 @register.filter

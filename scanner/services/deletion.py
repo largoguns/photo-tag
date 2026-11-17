@@ -29,16 +29,19 @@ def _queue_photo_files(photo):
 
 def _remove_photo(photo):
     """Delete a photo row (faces, proposals and votes cascade) and queue its files."""
-    proposals = Proposal.objects.filter(photo=photo).select_related("person", "event_type")
-    provisional = [(p.person, p.event_type) for p in proposals]
+    proposals = Proposal.objects.filter(photo=photo).select_related(
+        "person", "event_type", "location"
+    )
+    provisional = [(p.person, p.event_type, p.location) for p in proposals]
     from gamification.services import scoring
 
     scoring.photo_removed(photo, deleted=True)
     _queue_photo_files(photo)
     photo.delete()
-    for person, event_type in provisional:
+    for person, event_type, location in provisional:
         voting.cleanup_provisional_person(person)
         voting._cleanup_provisional_event_type(event_type)
+        voting.cleanup_provisional_location(location)
 
 
 def delete_photo(user, photo):

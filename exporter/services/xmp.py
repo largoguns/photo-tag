@@ -3,6 +3,7 @@
 from catalog.models import Face, Photo
 
 EVENT_TAG_ROOT = "Eventos"
+LOCATION_TAG_ROOT = "Ubicaciones"
 APPROXIMATE_DATE_TAG = "Fecha/aproximada"
 NO_DATE_FOLDER = "sin-fecha"
 
@@ -61,6 +62,8 @@ def tags(photo):
         description = _tag_part(photo.event_description)
         if description:
             result.append(f"{event_tag}/{description}")
+    if photo.location_id:
+        result.append(f"{LOCATION_TAG_ROOT}/{_tag_part(photo.location.name)}")
     if photo.date_value and photo.date_precision in (
         Photo.DatePrecision.YEAR,
         Photo.DatePrecision.DECADE,
@@ -111,6 +114,8 @@ def exiftool_args(photo, output_path):
         args.append(f"-XMP-digiKam:TagsList={tag}")
     if photo.event_description:
         args.append(f"-XMP-dc:Description={photo.event_description}")
+    if photo.location_id:
+        args.append(f"-XMP-iptcCore:Location={photo.location.name}")
     date = date_time_original(photo)
     if date:
         args.append(f"-XMP-exif:DateTimeOriginal={date}")

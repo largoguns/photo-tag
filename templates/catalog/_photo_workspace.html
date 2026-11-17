@@ -239,6 +239,30 @@
       </div>
     </details>
 
+    <details class="panel" id="location-panel" open>
+      <summary><span class="panel-title">{% translate "Ubicación" %}</span>
+        {% if photo.location %}<span class="muted">· {{ photo.location }}</span>{% endif %}
+        {% if location_proposals %}<span class="badge">{{ location_proposals|length }}</span>{% endif %}
+      </summary>
+      <div class="panel-body stack">
+        {% if photo.location %}<p>{% translate "Aceptada:" %} <strong>{{ photo.location }}</strong></p>{% endif %}
+        {% if location_proposals %}<ul class="proposals">{% for proposal in location_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        <form method="post" class="inline-form" action="{% url 'propose_location' photo.pk %}" hx-post="{% url 'propose_location' photo.pk %}">
+          {% csrf_token %}
+          <label for="location-name">{% if photo.location or location_proposals %}{% translate "Proponer otra ubicación" %}{% else %}{% translate "¿Dónde se hizo?" %}{% endif %}</label>
+          <div class="input-row">
+            <div class="combobox">
+              <input type="text" id="location-name" name="location" maxlength="150" autocomplete="off" required
+                     role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-name-list"
+                     data-combobox="locations" placeholder="{% translate 'Casa de los abuelos' %}">
+              <ul class="combobox-list" id="location-name-list" role="listbox" hidden></ul>
+            </div>
+            <button type="submit" class="button primary">{% translate "Proponer" %}</button>
+          </div>
+        </form>
+      </div>
+    </details>
+
     {% if user.is_catalog_admin %}
     <details class="panel" id="scan-panel">
       <summary><span class="panel-title">{% translate "Escaneo de origen" %}</span></summary>

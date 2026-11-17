@@ -25,6 +25,7 @@ PROPOSAL_POINTS = {
     "face_identity": ("proposal.identity", 20),
     "event": ("proposal.event", 10),
     "date": ("proposal.date", 10),
+    "location": ("proposal.location", 10),
     "add_face": ("proposal.add_face", 15),
     "remove_face": ("proposal.remove_face", 5),
 }
@@ -36,6 +37,7 @@ REASONS = {
     "proposal.identity_suggested": _("Sugerencia confirmada"),
     "proposal.event": _("Evento aceptado"),
     "proposal.date": _("Fecha aceptada"),
+    "proposal.location": _("Ubicación aceptada"),
     "proposal.add_face": _("Cara nueva aceptada"),
     "proposal.remove_face": _("Falso positivo aceptado"),
     "first_identity": _("Primera identificación de una persona"),

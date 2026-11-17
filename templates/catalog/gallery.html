@@ -8,10 +8,13 @@
       {% if selected_status %}{% icon "check" %}{{ selected_status }}{% else %}{% translate "Estado" %}{% endif %}{% icon "keyboard_arrow_down" %}
     </button>
     <button type="button" class="chip{% if chosen_people %} selected{% endif %}" data-open-sheet="sheet-person" aria-haspopup="dialog">
-      {% if chosen_people %}{% icon "check" %}{{ chosen_people.0.display_name }}{% if chosen_people|length > 1 %} +{{ chosen_people|length|add:"-1" }}{% endif %}{% else %}{% translate "Persona" %}{% endif %}{% icon "keyboard_arrow_down" %}
+      {% if chosen_people %}{% icon "check" %}{{ chosen_people.0 }}{% if chosen_people|length > 1 %} +{{ chosen_people|length|add:"-1" }}{% endif %}{% else %}{% translate "Persona" %}{% endif %}{% icon "keyboard_arrow_down" %}
     </button>
     <button type="button" class="chip{% if selected_event %} selected{% endif %}" data-open-sheet="sheet-event" aria-haspopup="dialog">
       {% if selected_event %}{% icon "check" %}{{ selected_event }}{% else %}{% translate "Evento" %}{% endif %}{% icon "keyboard_arrow_down" %}
+    </button>
+    <button type="button" class="chip{% if selected_location %} selected{% endif %}" data-open-sheet="sheet-location" aria-haspopup="dialog">
+      {% if selected_location %}{% icon "check" %}{{ selected_location }}{% else %}{% translate "Ubicación" %}{% endif %}{% icon "keyboard_arrow_down" %}
     </button>
     <button type="button" class="chip{% if selected_decade %} selected{% endif %}" data-open-sheet="sheet-decade" aria-haspopup="dialog">
       {% if selected_decade %}{% icon "check" %}{{ selected_decade }}{% else %}{% translate "Década" %}{% endif %}{% icon "keyboard_arrow_down" %}
@@ -49,12 +52,14 @@
   </div>
 
   {% translate "Estado" as t_status %}{% translate "Todos" as t_all %}{% translate "Todas" as t_all_f %}
-  {% translate "Persona" as t_person %}{% translate "Evento" as t_event %}{% translate "Década" as t_decade %}
+  {% translate "Persona" as t_person %}{% translate "Evento" as t_event %}{% translate "Década" as t_decade %}{% translate "Ubicación" as t_location %}
   {% sheet_options statuses as status_options %}
   {% include "catalog/_filter_sheet.html" with key="status" title=t_status all_label=t_all options=status_options current=params.status searchable=False %}
   {% include "catalog/_person_sheet.html" %}
   {% sheet_options event_types "event" as event_options %}
   {% include "catalog/_filter_sheet.html" with key="event" title=t_event all_label=t_all options=event_options current=params.event searchable=False %}
+  {% sheet_options locations "location" as location_options %}
+  {% include "catalog/_filter_sheet.html" with key="location" title=t_location all_label=t_all_f options=location_options current=location_param searchable=True no_avatars=True %}
   {% sheet_options decades "decade" as decade_options %}
   {% include "catalog/_filter_sheet.html" with key="decade" title=t_decade all_label=t_all_f options=decade_options current=params.decade searchable=False %}
 </div>

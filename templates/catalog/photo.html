@@ -4,5 +4,6 @@
 {% block content %}
 {% include "catalog/_photo_workspace.html" %}
 {{ people_json|json_script:"people-data" }}
+{{ locations_json|json_script:"locations-data" }}
 <template id="combobox-create-template">{% translate "Crear «%s»" %}</template>
 {% endblock %}

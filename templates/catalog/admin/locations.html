@@ -1,0 +1,22 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Ubicaciones" %}{% endblock %}
+{% block content %}
+{% translate "Ubicaciones" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+<p class="muted">{% translate "Las ubicaciones se crean al proponerlas en las fotos. Aquí puedes corregirlas, unir duplicados o dejar de sugerirlas." %}</p>
+<ul class="list">
+  {% for location in locations %}
+  <li class="list-item{% if not location.active %} inactive{% endif %}">
+    <div class="list-main"><strong>{{ location.name }}</strong>
+      {% if not location.active %}<span class="badge off">{% translate "Inactiva" %}</span>{% endif %}
+      {% if location.is_provisional %}<span class="badge warn">{% translate "Pendiente de votación" %}</span>{% endif %}
+      {% if location.created_by %}<span class="badge">{% blocktranslate with user=location.created_by %}Propuesta por {{ user }}{% endblocktranslate %}</span>{% endif %}
+      <div class="meta muted">{% blocktranslate count counter=location.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</div>
+    </div>
+    <a class="button small" href="{% url 'admin_location_edit' location.pk %}">{% translate "Editar" %}</a>
+  </li>
+  {% empty %}
+  <li class="empty">{% translate "Todavía no hay ubicaciones." %}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

@@ -31,7 +31,7 @@ def photos_to_export():
             Q(exported_at__isnull=True)
             | Q(catalog_changed_at__isnull=False, catalog_changed_at__gt=F("exported_at"))
         )
-        .select_related("event_type")
+        .select_related("event_type", "location")
     )
 
 
