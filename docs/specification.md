@@ -197,6 +197,9 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `Vote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
 | `ScoreEvent` | usuario, motivo, puntos, objeto (tipo e id), fecha. Único por (usuario, motivo, objeto) |
 | `Achievement` | usuario, código del logro, fecha. Único por (usuario, código) |
+| `Relationship` | person_from, person_to, kind, actividad (texto, opcional), propuesta aceptada, fecha. Única por (person_from, person_to, kind). Ver 5.12 |
+| `RelationshipProposal` | person_from, person_to, kind, actividad, acción (`add`/`remove`), relationship (nullable, para `remove`), autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`), decidida_en, decidida_por |
+| `RelationshipVote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
 
 Coordenadas de las caras en píxeles de la foto recortada (esquina superior izquierda + ancho y alto).
 
@@ -226,7 +229,10 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 1. **Login** y **cambio obligatorio de contraseña** en el primer acceso.
 2. **Inicio**: progreso global (fotos catalogadas / total), propuestas abiertas pendientes de mi voto y botón «Siguiente foto sin catalogar».
-3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones; la de persona tiene buscador y caras. Scroll infinito con HTMX.
+3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, década y «pendientes de mi voto») que abren hojas inferiores con las opciones.
+   - **Varias personas**: la hoja de persona (con buscador y caras) permite elegir varias y muestra las fotos donde **salen todas juntas**; el chip dice «Ana +2» y la URL (`?person=12&person=45`) se puede compartir. Las personas fusionadas se resuelven a la persona destino.
+   - **Carga por bloques** (como Google Fotos e Immich), para que miles de fotos no saturen la memoria: la página trae solo el esqueleto (cada sección partida en bloques de hasta 120 fotos, con su recuento y la suma de proporciones para estimar su altura) y los primeros bloques ya llenos. El navegador pide cada bloque (`?block=i`) al acercarse a menos de ~2 pantallas y lo vacía al pasar de ~4, dejando un hueco de su altura medida; así nunca hay más de unos pocos bloques vivos. Lo visible no se mueve cuando un bloque cambia de altura, y al volver desde una foto se reabre en el mismo punto (`?anchor=i`).
+   - **Barra de años** a la derecha: arrastrar recorre toda la galería y tocar un año salta a él; en escritorio, al pasar el ratón, muestra los años con el actual resaltado; en móvil aparece al hacer scroll con una burbuja del año. Los años también son enlaces, accesibles con teclado.
    - **Búsquedas laxas**: todos los buscadores (personas, usuarios, autocompletado de nombres y hoja de persona de la galería) ignoran tildes y mayúsculas y buscan cada palabra por separado en cualquier orden: «ari» encuentra «María» y «lop mar», «María López».
    - **Nombres de persona**: se normalizan al guardarlos (mayúscula inicial en cada palabra salvo las partículas de, del, la, las, los, y, e) y se reutiliza la persona existente aunque cambien tildes o mayúsculas. El campo de nombre sugiere personas existentes con su cara.
    - **Subir**: elección del tipo, selección o arrastre de ficheros, progreso y lista «Mis subidas».
@@ -242,11 +248,12 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - Botón para dibujar una cara nueva y para marcar una cara como falso positivo.
    - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
-5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮».
+5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮». La ficha incluye la sección «Familia y relaciones» y el botón «Ver árbol» (ver 5.12).
 6. **Mi actividad**: mis propuestas y su estado.
 7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema, idioma y avisos. En móvil es una lista de ajustes plegables; en ventanas anchas (≥ 840 px), dos columnas: la tarjeta del usuario con un índice fijo de secciones a la izquierda y todas las secciones abiertas como tarjetas a la derecha.
 8. **Administración**: tipos de evento, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
 9. **Gestión de usuarios** (solo superadmin, ver 4.4).
+10. **Árbol genealógico**: destino propio en la barra de navegación y el rail, y accesible desde la ficha de persona (ver 5.12).
 
 ### 5.6 Cola de revisión
 
@@ -256,7 +263,7 @@ El administrador ve los escaneos con `needs_review` junto a sus recortes y puede
 
 ### 5.7 Auditoría
 
-Toda creación de propuesta, voto, decisión de administrador, fusión de personas y acción de gestión de usuarios queda registrada con usuario y fecha (tabla `AuditLog`).
+Toda creación de propuesta (también de relación, 5.12), voto, decisión de administrador, fusión de personas y acción de gestión de usuarios queda registrada con usuario y fecha (tabla `AuditLog`).
 
 **Pantalla «Auditoría»** (`/accounts/audit/`, solo superadmin; enlazada desde Usuarios con un botón «Actividad» por usuario, desde la ficha de cada usuario y desde Administración): línea de tiempo de todo lo registrado, filtrable con chips por **usuario**, **evento** (uno concreto o una categoría entera: Catalogación, Fotos, Escaneos y subidas, Personas, Usuarios y accesos, Avisos, Administración) y **periodo** (hoy, 7 días, 30 días, este año). Cada entrada muestra un texto legible, un enlace al objeto si sigue existiendo (o su nombre con «ya no existe») y sus detalles. Incluye los inicios de sesión y los intentos fallidos registrados por django-axes (`AXES_ENABLE_ACCESS_FAILURE_LOG`). Filtrando por un usuario aparece su resumen (propuestas por estado, votos a favor y en contra, subidas, escaneos, acciones e inicios de sesión) y las pestañas Historial, Propuestas y Votos. Toda acción que se registre en el código debe tener su etiqueta en el catálogo de eventos (lo comprueba un test).
 
@@ -289,12 +296,13 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 | Fecha o evento aceptados | 10 |
 | Cara nueva aceptada | 15 |
 | Falso positivo aceptado | 5 |
+| Relación aceptada (añadir o quitar, 5.12) | 10 |
 | Primera identidad aceptada de una persona en todo el álbum | +15 |
 | Voto que coincide con el resultado (tope de 20 puntos de votos al día) | 2 |
 
   No cuenta el +1 automático del autor. Rechazar no resta, pero baja el **acierto** (aceptadas / cerradas). Si una propuesta aceptada la sustituye después otra, sus puntos se retiran; al borrar una foto se retiran los de la foto, sus propuestas y sus votos. Un fallo al puntuar nunca interrumpe la votación ni el procesado.
 - **Niveles**: Curioso (0), Aprendiz de archivero (50), Archivero (150), Detective de familia (400), Cronista (900), Memoria de la familia (1800) y Guardián del álbum (3500).
-- **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta) y Racha (7 días seguidos proponiendo o votando).
+- **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta), Genealogista (10/50 relaciones aceptadas) y Racha (7 días seguidos proponiendo o votando).
 - **Avisos**: push inmediato al subir de nivel o conseguir un logro (preferencia «Mis niveles y logros»).
 - **Retos para subir de nivel** (preferencia propia, activada por defecto): a un colaborador que lleva 2 días sin proponer ni votar se le envía, como mucho cada `NOTIFY_CHALLENGE_DAYS` (3) días y fuera de las horas de silencio, el reto que más le motive, sin nombres de personas: que alguien le ha adelantado en el ranking de la semana (a cuántos puntos está), o cuántos puntos le faltan para el siguiente nivel y cuántas propuestas esperan su voto o cuántas fotos quedan por catalogar.
 - **Cinturón**: el avatar de cada colaborador (menú, perfil y ranking) lleva un anillo con el color de su nivel, como los cinturones de un arte marcial (blanco, amarillo, naranja, verde, azul, marrón y negro), que se va llenando en el sentido de las agujas del reloj con el color del nivel siguiente según su progreso.
@@ -305,6 +313,87 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 ### 5.11 Identificarse como persona
 
 Un usuario puede decir «esta persona del álbum soy yo» con el botón **«Soy yo»** de la ficha de la persona (inmediato, queda en la auditoría; el superadmin puede deshacerlo desde la ficha del usuario). Una persona ya vinculada a otro usuario no se puede elegir. Vinculado, en «Mi perfil → Tú en el álbum» elige cualquiera de sus caras como **foto de perfil** (`User.avatar_face`), que solo cambia su avatar (menú, ranking, auditoría), no la foto principal de la persona. Si esa cara deja de ser suya, se usa la foto principal de la persona.
+
+### 5.12 Árbol genealógico y relaciones
+
+Las personas del álbum se relacionan entre sí con el mismo mecanismo de propuesta y votación que los nombres. Con esas relaciones se dibujan dos árboles: el **familiar** y el de **relaciones** (todo lo que no es familia).
+
+**Tipos de relación.** Es un catálogo fijo en el código y no se edita desde la administración. Las etiquetas son **neutras**: no hay género en las personas y se usa el genérico.
+
+| Árbol | Tipo (directo ↔ inverso) | Simétrica |
+|---|---|---|
+| Familiar | Progenitor ↔ Hijo | no |
+| Familiar | Abuelo ↔ Nieto | no |
+| Familiar | Tío ↔ Sobrino | no |
+| Familiar | Suegro ↔ Hijo político | no |
+| Familiar | Hermano, Primo, Cuñado | sí |
+| Familiar | Pareja, Expareja | sí |
+| Relaciones | Padrino ↔ Ahijado | no |
+| Relaciones | Amigo, Compadre, Vecino, Compañero de trabajo, Compañero de clase | sí |
+| Relaciones | Compañero de actividad (con la actividad como texto libre: «fútbol», «coro») | sí |
+
+**Reciprocidad.** Cada relación se guarda una sola vez, en **forma canónica**:
+- Las asimétricas van en sentido descendente: progenitor→hijo, abuelo→nieto, tío→sobrino, suegro→hijo político, padrino→ahijado. Proponer «X es hijo de Y» guarda `parent(Y→X)`.
+- Las simétricas van con `person_from.id < person_to.id`.
+
+Desde cada persona se muestra con la etiqueta que le corresponde: si A es progenitor de B, la ficha de B dice «A · Progenitor» y la de A, «B · Hijo». La forma canónica se garantiza con restricciones de base de datos.
+
+**Propuesta y votación** (mismas reglas que 5.4):
+- Crear una propuesta cuenta como voto +1 del autor. Se aplican los umbrales `VOTE_MIN_APPROVALS` y `VOTE_APPROVAL_RATIO` y la decisión directa del administrador.
+- Por cada par de personas hay como mucho **una relación familiar** aceptada. Las propuestas familiares abiertas para el mismo par compiten entre sí; al aceptarse una, el resto pasan a `superseded`. Una relación familiar aceptada se **reabre** con una propuesta de otro tipo y sigue vigente hasta que esa nueva se acepta. Por ejemplo, Pareja → Expareja.
+- Las relaciones sociales se suman: un par puede ser primo, compañero de trabajo y vecino a la vez, con una relación de cada tipo como mucho.
+- Una relación aceptada se elimina con una propuesta de **«Quitar relación»**, que también se vota.
+- Si la otra persona no existe, se crea como `Person` provisional, igual que al proponer un nombre. Así entran familiares sin fotos, como los bisabuelos. Si la propuesta se rechaza y la persona no tiene otras referencias (caras, propuestas o relaciones), se elimina.
+
+**Validaciones al proponer**, con mensajes comprensibles:
+- No se puede relacionar a una persona consigo misma.
+- No se puede duplicar una relación aceptada ni una propuesta abierta igual.
+- Una persona no puede tener más de dos progenitores aceptados.
+- No se pueden crear ciclos de ascendencia (progenitor y abuelo cuentan como ascendencia).
+- No se puede contradecir una relación familiar deducida, como proponer «Primo» cuando ya se deduce «Hermano».
+
+**Relaciones deducidas.** Las relaciones primarias son Progenitor/Hijo y Pareja. A partir de ellas se deducen, sin votación, hermanos (progenitor común), abuelos, tíos, primos, suegros y cuñados. Se muestran como «deducida». Si alguien propone una relación que ya se deduce, no se crea y se le avisa.
+
+Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol se dibujan como **enlace directo**, con línea discontinua.
+
+**Ficha de persona.** Sección «Familia y relaciones» con:
+- Las relaciones aceptadas, agrupadas por árbol.
+- Las deducidas.
+- Las propuestas abiertas, con 👍 / 👎.
+- El botón «Añadir relación». Abre una hoja inferior para elegir el tipo y buscar a la persona con sus caras, usando la búsqueda laxa de 5.5. En «Compañero de actividad» se pide además la actividad.
+- El botón **«Ver árbol»**, que abre el árbol centrado en esa persona.
+
+**Pantalla «Árbol genealógico»** (`/tree/`). Es un destino propio en la barra de navegación y el rail, con el icono `family_history` en el sprite. Arriba tiene un selector segmentado **Familiar | Relaciones**.
+- **Familiar**: árbol generacional centrado en una persona, con los antepasados arriba y los descendientes abajo.
+  - Los hermanos van en la misma fila y las parejas, una al lado de la otra: la pareja con línea continua y la expareja con línea discontinua gris.
+  - Los hijos cuelgan de la línea que une a sus dos progenitores, con soporte para varias parejas y medio hermanos.
+  - Cada nodo muestra el avatar de la persona y su nombre.
+  - Filtros en chips:
+    - Persona central: por defecto la vinculada con «Soy yo» (5.11); si no hay ninguna, se pide elegir.
+    - Generaciones hacia arriba y hacia abajo: de 1 a 5, por defecto 3.
+    - Tipos (parejas y exparejas, familia política, enlaces directos).
+    - «Mostrar propuestas abiertas», que se dibujan atenuadas y discontinuas.
+- **Relaciones**: red centrada en una persona, con las relaciones directas en un primer anillo y, opcionalmente, las de segundo grado en un segundo anillo. Las líneas se distinguen por tipo. Filtros: tipo de relación, actividad concreta y profundidad (1 o 2).
+- Al tocar un nodo se abre una hoja inferior (panel lateral desde 840 px) con «Centrar aquí», «Ver ficha» y «Añadir relación».
+- El lienzo se mueve y se amplía con arrastre, pellizco, rueda y botones (Pointer Events), y tiene un botón «Centrar». Tiene su propio desplazamiento, así que la página nunca hace scroll horizontal, ni siquiera a 360 px.
+- Hay una alternativa accesible, «Ver como lista»: la misma información en una lista indentada que se recorre con el teclado.
+
+**Integración con el resto de la aplicación:**
+- Las propuestas de relación cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, en «Mi actividad» y en los avisos push (5.9). Si solo hay propuestas de relación pendientes, el aviso abre Inicio. Los textos siguen sin nombres de personas.
+- Se auditan la creación, el voto, la decisión y el borrado de relaciones, con eventos en la categoría «Personas».
+- Gamificación (5.10): las relaciones aceptadas puntúan, cuenta el voto que coincide con el resultado y hay un logro nuevo, Genealogista. Si una relación aceptada se sustituye o se quita, sus puntos se retiran. `rebuild_scores` las incluye.
+- **Fusionar personas** pasa las relaciones a la persona destino. Se descartan las relaciones de la persona consigo misma, se juntan los duplicados y las propuestas que entren en conflicto pasan a `superseded`.
+- Las relaciones no se exportan a Immich (ver 11).
+
+**Implementación:**
+- Toda la lógica va en servicios testeables:
+  - `catalog/services/relationships.py`: proponer, validar, votar y aceptar. Reutiliza `tally`/`outcome` de la votación y bloquea las dos personas con `select_for_update`.
+  - `catalog/services/kinship.py`: deducciones, etiquetas y detección de ciclos. Carga el grafo en memoria con pocas consultas.
+  - `catalog/services/tree_layout.py`: coordenadas de nodos y aristas. El árbol familiar se dispone en reloj de arena por generaciones, compactando los subárboles para que no se solapen. La red de relaciones es radial, por anillos y sin simulación de fuerzas.
+- Solo la tabla `Relationship` alimenta el árbol, la ficha y las deducciones.
+- **Sin dependencias nuevas**: el servidor dibuja el árbol como SVG en línea desde una plantilla, con los avatares que sirven las vistas autenticadas de siempre. Los filtros recargan el SVG con HTMX y el movimiento y el zoom reutilizan el JS propio del visor a pantalla completa.
+- Límites: 5 generaciones en cada sentido y profundidad 2 en la red. Objetivo: menos de 300 ms en el servidor con 1 000 personas.
+- `scripts/agents/seed_demo.py` genera una familia de demo de 3–4 generaciones con parejas, una expareja y relaciones sociales.
 
 ## 6. Exportación a Immich (app `exporter`)
 
@@ -417,6 +506,7 @@ phototag/
 
 - Tests unitarios del recorte con escaneos sintéticos generados en los tests (rectángulos de colores girados sobre fondo blanco): detectar el número correcto de fotos y su ángulo con tolerancia de ±2°.
 - Tests de las reglas de votación: aceptación, rechazo, propuestas concurrentes, reapertura y decisión de administrador.
+- Tests de relaciones (5.12): forma canónica y reciprocidad de etiquetas, votación (aceptar, rechazar, sustituir, quitar y decisión de administrador), cada validación, deducciones, fusión de personas, limpieza de provisionales y disposición del árbol sin solapes (varias parejas, exparejas y medio hermanos).
 - Tests de gestión de usuarios: cambio obligatorio de contraseña, restablecimiento, desactivación y protección del último superadmin.
 - Test de exportación que verifique con `exiftool` que el XMP generado contiene las regiones MWG con coordenadas normalizadas correctas.
 - `ruff` para estilo y linting.
@@ -435,6 +525,7 @@ phototag/
 - Sincronización inversa desde Immich.
 - Comentarios o chat en las fotos.
 - Notificaciones por email.
+- Exportar las relaciones entre personas a Immich (XMP no tiene un estándar para ellas).
 
 ## 12. Plan de implementación sugerido
 
@@ -446,3 +537,4 @@ phototag/
 6. Administración (umbrales, revisión, fusión de personas).
 7. App `exporter` y prueba con Immich.
 8. Copias de seguridad y README de despliegue en Portainer con Tailscale Funnel.
+9. Árbol genealógico y relaciones (5.12), en subfases: modelos y servicios con tests; sección de la ficha y votación; árbol familiar; red de relaciones; integración con Inicio, avisos y gamificación.
