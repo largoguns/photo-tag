@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-15 17:35+0100\n"
+"POT-Creation-Date: 2026-11-17 21:35+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -116,7 +116,8 @@ msgid "Escaneos y subidas"
 msgstr "Scans and uploads"
 
 #: accounts/services/audit_catalog.py:23 templates/base.html:71
-#: templates/catalog/persons.html:2 templates/catalog/persons.html:4
+#: templates/catalog/_person_sheet.html:6 templates/catalog/persons.html:2
+#: templates/catalog/persons.html:4
 msgid "Personas"
 msgstr "People"
 
@@ -301,7 +302,7 @@ msgid "Propuesta"
 msgstr "Proposed"
 
 #: accounts/services/audit_catalog.py:75 templates/catalog/gallery.html:11
-#: templates/catalog/gallery.html:32
+#: templates/catalog/gallery.html:52
 msgid "Persona"
 msgstr "Person"
 
@@ -550,7 +551,7 @@ msgid "Año"
 msgstr "Year"
 
 #: catalog/models.py:75 templates/catalog/gallery.html:17
-#: templates/catalog/gallery.html:32
+#: templates/catalog/gallery.html:52
 msgid "Década"
 msgstr "Decade"
 
@@ -586,7 +587,7 @@ msgstr "possible duplicate of"
 msgid "exportada en"
 msgstr "exported at"
 
-#: catalog/models.py:143 catalog/models.py:369 catalog/presenters.py:78
+#: catalog/models.py:143 catalog/models.py:369 catalog/services/gallery.py:72
 #, python-format
 msgid "Década de %(decade)s"
 msgstr "%(decade)ss"
@@ -651,7 +652,7 @@ msgstr "Face identity"
 #: catalog/models.py:298 templates/accounts/audit.html:13
 #: templates/accounts/audit.html:113
 #: templates/catalog/_photo_workspace.html:181
-#: templates/catalog/gallery.html:14 templates/catalog/gallery.html:32
+#: templates/catalog/gallery.html:14 templates/catalog/gallery.html:52
 msgid "Evento"
 msgstr "Event"
 
@@ -740,25 +741,25 @@ msgstr "Already uploaded"
 msgid "Error al procesar"
 msgstr "Processing failed"
 
-#: catalog/presenters.py:76
-msgid "Sin fecha"
-msgstr "Undated"
-
-#: catalog/presenters.py:137
+#: catalog/presenters.py:108
 msgid "¡La familia ha catalogado todo el álbum!"
 msgstr "The family has catalogued the whole album!"
 
-#: catalog/presenters.py:139
+#: catalog/presenters.py:110
 msgid "¡Ya tenéis tres cuartas partes del álbum catalogadas!"
 msgstr "Three quarters of the album are catalogued!"
 
-#: catalog/presenters.py:141
+#: catalog/presenters.py:112
 msgid "¡La familia ha catalogado la mitad del álbum!"
 msgstr "The family has catalogued half the album!"
 
-#: catalog/presenters.py:143
+#: catalog/presenters.py:114
 msgid "¡Un cuarto del álbum ya está catalogado!"
 msgstr "A quarter of the album is catalogued!"
+
+#: catalog/services/gallery.py:69
+msgid "Sin fecha"
+msgstr "Undated"
 
 #: catalog/services/persons.py:14
 msgid "No se puede fusionar una persona consigo misma."
@@ -846,45 +847,45 @@ msgstr "Invalid vote."
 msgid "La propuesta ya está cerrada."
 msgstr "The proposal is already closed."
 
-#: catalog/views.py:216
+#: catalog/views.py:189
 #, python-format
 msgid ""
 "Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil»."
 msgstr ""
 "You are now %(name)s in the album. Choose your profile photo in “My profile”."
 
-#: catalog/views.py:229
+#: catalog/views.py:202
 #, python-format
 msgid "Ya no estás vinculado a %(name)s."
 msgstr "You are no longer linked to %(name)s."
 
-#: catalog/views.py:244
+#: catalog/views.py:217
 msgid "Nombre actualizado."
 msgstr "Name updated."
 
-#: catalog/views.py:254
+#: catalog/views.py:227
 msgid "Esa cara no es de esta persona."
 msgstr "That face is not this person."
 
-#: catalog/views.py:256
+#: catalog/views.py:229
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:304
+#: catalog/views.py:277
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:411
+#: catalog/views.py:384
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:475
+#: catalog/views.py:448
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:477
+#: catalog/views.py:450
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -1481,11 +1482,12 @@ msgstr "No records match these filters."
 
 #: templates/accounts/audit.html:105 templates/accounts/audit.html:118
 #: templates/catalog/_proposal_activity.html:31
-#: templates/catalog/gallery.html:31
+#: templates/catalog/gallery.html:51
 msgid "Todos"
 msgstr "All"
 
 #: templates/accounts/audit.html:114 templates/catalog/_filter_sheet.html:6
+#: templates/catalog/_person_sheet.html:7
 #: templates/catalog/_photo_workspace.html:61
 #: templates/catalog/person_detail.html:84
 msgid "Cerrar"
@@ -1702,7 +1704,7 @@ msgid "Buscar por usuario o nombre"
 msgstr "Search by username or name"
 
 #: templates/accounts/user_list.html:12 templates/catalog/_filter_sheet.html:8
-#: templates/catalog/persons.html:8
+#: templates/catalog/_person_sheet.html:17 templates/catalog/persons.html:8
 msgid "Buscar"
 msgstr "Search"
 
@@ -1849,17 +1851,26 @@ msgstr "Confirm?"
 msgid "Confirmar"
 msgstr "Confirm"
 
-#: templates/catalog/_gallery_page.html:10
-msgid "No hay fotos con estos filtros."
-msgstr "No photos match these filters."
-
-#: templates/catalog/_gallery_page.html:14
-msgid "Cargar más"
-msgstr "Load more"
-
 #: templates/catalog/_justified_item.html:11
 msgid "Pendiente de mi voto"
 msgstr "Waiting for my vote"
+
+#: templates/catalog/_person_sheet.html:11
+msgid "Elige una o varias: verás las fotos donde salen todas juntas."
+msgstr "Choose one or more: you will see the photos where they all appear together."
+
+#: templates/catalog/_person_sheet.html:14
+#, python-format
+msgid "Quitar a %(name)s"
+msgstr "Remove %(name)s"
+
+#: templates/catalog/_person_sheet.html:32
+msgid "Quitar todas"
+msgstr "Remove all"
+
+#: templates/catalog/_person_sheet.html:33
+msgid "Aplicar"
+msgstr "Apply"
 
 #: templates/catalog/_photo_workspace.html:7
 msgid "Aplicando el giro…"
@@ -1951,7 +1962,7 @@ msgid_plural "%(counter)s caras"
 msgstr[0] "%(counter)s face"
 msgstr[1] "%(counter)s faces"
 
-#: templates/catalog/_photo_workspace.html:97 templates/catalog/gallery.html:46
+#: templates/catalog/_photo_workspace.html:97 templates/catalog/gallery.html:65
 msgid "Compartir ahora"
 msgstr "Share now"
 
@@ -2192,7 +2203,7 @@ msgstr "Reject (admin)"
 
 #: templates/catalog/_proposal_activity.html:4
 #: templates/catalog/_proposal_activity.html:31
-#: templates/catalog/gallery.html:8 templates/catalog/gallery.html:31
+#: templates/catalog/gallery.html:8 templates/catalog/gallery.html:51
 msgid "Estado"
 msgstr "Status"
 
@@ -2545,37 +2556,45 @@ msgid_plural "%(counter)s fotos"
 msgstr[0] "%(counter)s photo"
 msgstr[1] "%(counter)s photos"
 
-#: templates/catalog/gallery.html:31
+#: templates/catalog/gallery.html:37
+msgid "No hay fotos con estos filtros."
+msgstr "No photos match these filters."
+
+#: templates/catalog/gallery.html:41
+msgid "Saltar a un año"
+msgstr "Jump to a year"
+
+#: templates/catalog/gallery.html:51
 msgid "Todas"
 msgstr "All"
 
-#: templates/catalog/gallery.html:44
+#: templates/catalog/gallery.html:63
 msgid "1 seleccionada"
 msgstr "1 selected"
 
-#: templates/catalog/gallery.html:44
+#: templates/catalog/gallery.html:63
 #, python-format
 msgid "%%s seleccionadas"
 msgstr "%%s selected"
 
-#: templates/catalog/gallery.html:45
+#: templates/catalog/gallery.html:64
 #, python-format
 msgid "Máximo %(share_max)s fotos a la vez"
 msgstr "Up to %(share_max)s photos at a time"
 
-#: templates/catalog/gallery.html:47
+#: templates/catalog/gallery.html:66
 msgid "Cancelar selección"
 msgstr "Cancel selection"
 
-#: templates/catalog/gallery.html:49
+#: templates/catalog/gallery.html:68
 msgid "Compartir"
 msgstr "Share"
 
-#: templates/catalog/gallery.html:50
+#: templates/catalog/gallery.html:69
 msgid "Descargar"
 msgstr "Download"
 
-#: templates/catalog/gallery.html:53 templates/catalog/home.html:46
+#: templates/catalog/gallery.html:72 templates/catalog/home.html:46
 #: templates/scanner/upload.html:36
 msgid "Subir"
 msgstr "Upload"

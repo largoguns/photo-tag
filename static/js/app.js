@@ -681,6 +681,332 @@
     sharePhotos(button, [button.dataset.sharePhotos], button.dataset.downloadUrl, button.dataset.logUrl);
   });
 
+  // --- Gallery: blocks loaded near the screen and freed far from it ----------------------
+  // Like Google Photos: the page only has the skeleton (one empty section per block with
+  // the sum of its aspect ratios); blocks within ~2 screens are fetched and those beyond
+  // ~4 screens are emptied, keeping their measured height so the scroll never jumps.
+  let gallery = null;
+  const GALLERY_ANCHOR_KEY = "phototag:gallery-anchor";
+
+  function galleryBase(href) {
+    const url = new URL(href, window.location.href);
+    url.searchParams.delete("anchor");
+    return url.pathname + url.search;
+  }
+
+  function initGallery(root) {
+    if (!root || root.dataset.ready) return;
+    root.dataset.ready = "1";
+    const blocks = [...root.querySelectorAll(".gallery-block")];
+    if (!blocks.length) { gallery = null; return; }
+    const GAP = 3, MAX_IN_FLIGHT = 2;
+    const queue = new Set();
+    let inFlight = 0;
+    let factor = 1; // learnt from loaded blocks: real height / estimate
+    const samples = [];
+    const viewport = () => window.innerHeight || 800;
+    const isLoaded = (block) => block.hasAttribute("data-loaded");
+
+    function estimate(block) {
+      const width = root.clientWidth || 360;
+      const row = currentRowHeight();
+      const rows = Math.max(1, Math.ceil(((Number(block.dataset.ratio) || 1) * row) / width));
+      return Math.round(rows * (row + GAP) * factor);
+    }
+
+    function reserve(block) {
+      if (isLoaded(block)) { block.style.minHeight = ""; return; }
+      block.style.minHeight = `${block.dataset.measured ? Number(block.dataset.measured) : estimate(block)}px`;
+    }
+
+    // The first block that starts on screen (below the top bar): whatever
+    // grows above it, including a block half hidden at the top, is compensated.
+    function screenAnchor() {
+      const line = 80;
+      // Blocks only: section titles are sticky and stay put while things move.
+      return blocks.find((block) => block.getBoundingClientRect().top >= line)
+        || blocks.find((block) => block.getBoundingClientRect().bottom > line) || null;
+    }
+
+    function distance(block) {
+      const rect = block.getBoundingClientRect();
+      if (rect.bottom < 0) return -rect.bottom;
+      if (rect.top > viewport()) return rect.top - viewport();
+      return 0;
+    }
+
+    function pump() {
+      while (inFlight < MAX_IN_FLIGHT && queue.size) {
+        const next = [...queue].sort((a, b) => distance(a) - distance(b))[0];
+        queue.delete(next);
+        if (!next.isConnected || isLoaded(next) || distance(next) > viewport() * 3) continue;
+        load(next);
+      }
+    }
+
+    function load(block) {
+      if (isLoaded(block) || block.dataset.loading) return;
+      block.dataset.loading = "1";
+      inFlight += 1;
+      fetch(root.dataset.blockUrl + block.dataset.block, { headers: { "HX-Request": "true" }, credentials: "same-origin" })
+        .then((response) => (response.ok ? response.text() : Promise.reject(response.status)))
+        .then((html) => {
+          // Keep what is on screen in place while a block above it grows or shrinks.
+          const anchor = screenAnchor();
+          const anchorTop = anchor ? anchor.getBoundingClientRect().top : 0;
+          const estimated = block.dataset.measured ? 0 : block.offsetHeight / factor;
+          block.innerHTML = html;
+          block.setAttribute("data-loaded", "");
+          block.style.minHeight = "";
+          if (anchor && anchor !== block) window.scrollBy(0, anchor.getBoundingClientRect().top - anchorTop);
+          if (estimated) learn(block.offsetHeight / estimated);
+          if (distance(block) > viewport() * 4) unload(block); // went far while loading
+          renderSelection();
+          scheduleRail();
+          settleJump();
+        })
+        .catch(() => {})
+        .finally(() => {
+          delete block.dataset.loading;
+          inFlight -= 1;
+          pump();
+        });
+    }
+
+    // Better estimates for blocks not loaded yet, only below the screen: nothing visible moves.
+    function learn(ratio) {
+      samples.push(ratio);
+      if (samples.length > 12) samples.shift();
+      factor = samples.reduce((a, b) => a + b, 0) / samples.length;
+      blocks.forEach((block) => {
+        if (!isLoaded(block) && !block.dataset.measured && block.getBoundingClientRect().top > viewport()) reserve(block);
+      });
+    }
+
+    // After a fast scroll: free what ended up far and fetch what ended up near (the
+    // observers only report edge crossings, and the queue skipped blocks passed by).
+    function sweep() {
+      blocks.forEach((block) => {
+        if (isLoaded(block) && distance(block) > viewport() * 4) unload(block);
+        else if (!isLoaded(block) && distance(block) <= viewport() * 2) queue.add(block);
+      });
+      pump();
+    }
+    let sweepTimer = null;
+    window.addEventListener("scroll", () => {
+      window.clearTimeout(sweepTimer);
+      sweepTimer = window.setTimeout(() => { if (root.isConnected) sweep(); }, 250);
+    }, { passive: true });
+
+    function unload(block) {
+      if (!isLoaded(block)) return;
+      const height = block.offsetHeight;
+      block.dataset.measured = String(height);
+      block.style.minHeight = `${height}px`;
+      block.innerHTML = ""; // the images go: the browser frees their memory
+      block.removeAttribute("data-loaded");
+    }
+
+    // Placeholders follow the width and the row height; keep the top item in place.
+    function relayout(keepAnchor = true) {
+      const probe = keepAnchor && document.elementFromPoint(root.getBoundingClientRect().left + 10, 90);
+      const anchor = probe && probe.closest ? probe.closest(".gallery-block, .gallery-section-title") : null;
+      const before = anchor ? anchor.getBoundingClientRect().top : 0;
+      blocks.forEach((block) => { delete block.dataset.measured; reserve(block); });
+      if (anchor) window.scrollBy(0, anchor.getBoundingClientRect().top - before);
+      scheduleRail();
+    }
+
+    blocks.forEach(reserve);
+    const near = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (entry.isIntersecting) queue.add(entry.target); else queue.delete(entry.target); });
+      pump();
+    }, { rootMargin: "200% 0px" });
+    const far = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => { if (!entry.isIntersecting) unload(entry.target); });
+    }, { rootMargin: "400% 0px" });
+    blocks.forEach((block) => { near.observe(block); far.observe(block); });
+
+    let lastWidth = root.clientWidth;
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      window.clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(() => {
+        if (!root.isConnected || root.clientWidth === lastWidth) return;
+        lastWidth = root.clientWidth;
+        relayout();
+      }, 150);
+    });
+
+    // Back from a photo: the page came with that block (?anchor=i); put it where it was.
+    const saved = (() => { try { return JSON.parse(sessionStorage.getItem(GALLERY_ANCHOR_KEY) || "null"); } catch (error) { return null; } })();
+    if (saved && saved.base === galleryBase(window.location.href)) {
+      if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+      const item = root.querySelector(`.jitem[data-photo-id="${saved.photo}"]`);
+      if (item) window.requestAnimationFrame(() => window.scrollBy(0, item.getBoundingClientRect().top - saved.top));
+    }
+
+    gallery = { relayout, blocks, root };
+    scheduleRail();
+  }
+
+  // Remember where a photo was opened from (block and position on screen).
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-gallery] .jitem a");
+    if (!link || document.body.classList.contains("selecting")) return;
+    const item = link.closest(".jitem");
+    const block = link.closest(".gallery-block");
+    const url = new URL(window.location.href);
+    url.searchParams.set("anchor", block.dataset.block);
+    history.replaceState(history.state, "", url.pathname + url.search);
+    try {
+      sessionStorage.setItem(GALLERY_ANCHOR_KEY, JSON.stringify({
+        base: galleryBase(url.href), photo: item.dataset.photoId, top: item.getBoundingClientRect().top,
+      }));
+    } catch (error) { /* private mode: no restore */ }
+  });
+
+  // --- Gallery: year rail to jump anywhere (Google Photos style fast scroller) --------------
+  let railFrame = null;
+  let railHideTimer = null;
+
+  function scheduleRail() {
+    if (railFrame) return;
+    railFrame = window.requestAnimationFrame(() => { railFrame = null; positionRail(); });
+  }
+
+  function railParts() {
+    const rail = document.querySelector("[data-year-rail]");
+    return rail ? { rail, thumb: rail.querySelector(".year-rail-thumb"), bubble: rail.querySelector(".year-rail-bubble") } : null;
+  }
+
+  function scrollRange() {
+    return Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+  }
+
+  // Where a section starts on the page. Titles are sticky (a stuck title reports where it
+  // is stuck), so measure the section's first block instead.
+  function sectionTop(title) {
+    const first = title.nextElementSibling || title;
+    return first.getBoundingClientRect().top + window.scrollY - title.offsetHeight;
+  }
+
+  function sectionAt(y) {
+    let current = null;
+    document.querySelectorAll(".gallery-section-title").forEach((title) => {
+      if (sectionTop(title) <= y + 100) current = title;
+    });
+    return current || document.querySelector(".gallery-section-title");
+  }
+
+  // Place each year on the rail where its section starts; hide labels that would overlap.
+  function positionRail() {
+    const parts = railParts();
+    if (!parts) return;
+    const height = parts.rail.clientHeight;
+    let lastTop = -Infinity;
+    parts.rail.querySelectorAll("[data-rail-section]").forEach((link) => {
+      const title = document.getElementById(`section-${link.dataset.railSection}`);
+      if (!title) return;
+      const top = Math.min(1, sectionTop(title) / scrollRange()) * height; // same scale as dragging
+      link.parentElement.style.top = `${top}px`;
+      const visible = top - lastTop >= 22;
+      link.parentElement.classList.toggle("crowded", !visible);
+      if (visible) lastTop = top;
+    });
+    updateRailThumb(parts);
+  }
+
+  function updateRailThumb(parts) {
+    const fraction = Math.min(1, window.scrollY / scrollRange());
+    parts.thumb.style.top = `${fraction * (parts.rail.clientHeight - parts.thumb.offsetHeight)}px`;
+    // The year you are in stays highlighted in the list (desktop hover).
+    const current = sectionAt(window.scrollY);
+    const key = current ? current.dataset.section : "";
+    parts.rail.querySelectorAll("[data-rail-section]").forEach((link) => {
+      link.toggleAttribute("aria-current", link.dataset.railSection === key);
+    });
+  }
+
+  function showRail(parts, label) {
+    parts.rail.classList.add("active");
+    if (label) { parts.bubble.hidden = false; parts.bubble.textContent = label; parts.bubble.style.top = parts.thumb.style.top; }
+    window.clearTimeout(railHideTimer);
+    railHideTimer = window.setTimeout(() => { parts.rail.classList.remove("active"); parts.bubble.hidden = true; }, 1500);
+  }
+
+  window.addEventListener("scroll", () => {
+    const parts = railParts();
+    if (!parts) return;
+    updateRailThumb(parts);
+    const title = sectionAt(window.scrollY);
+    showRail(parts, title ? title.textContent.trim() : "");
+  }, { passive: true });
+
+  // A tap on a year jumps to it; moving the pointer drags along the whole gallery.
+  let railDrag = null;
+  document.addEventListener("pointerdown", (event) => {
+    const rail = event.target.closest("[data-year-rail]");
+    if (!rail) return;
+    railDrag = { rail, startY: event.clientY, moved: false, link: event.target.closest("[data-rail-section]") };
+    rail.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  function dragRail(event) {
+    const box = railDrag.rail.getBoundingClientRect();
+    const fraction = Math.min(1, Math.max(0, (event.clientY - box.top) / box.height));
+    window.scrollTo(0, fraction * scrollRange());
+    railDrag.rail.classList.add("dragging");
+  }
+  // After a jump the blocks around load and their real heights replace the estimates;
+  // keep the chosen year at the top until things settle or the user scrolls again.
+  let jumpTarget = null;
+  function settleJump() {
+    if (!jumpTarget) return;
+    if (Date.now() > jumpTarget.until || !jumpTarget.title.isConnected) { jumpTarget = null; return; }
+    const top = sectionTop(jumpTarget.title) - 64;
+    if (Math.abs(window.scrollY - top) > 2) window.scrollTo(0, top);
+  }
+  function jumpToSection(key) {
+    const title = document.getElementById(`section-${key}`);
+    if (!title) return;
+    jumpTarget = { title, until: Date.now() + 2500 };
+    settleJump();
+  }
+  ["wheel", "touchmove", "keydown"].forEach((type) => window.addEventListener(type, () => { jumpTarget = null; }, { passive: true }));
+  document.addEventListener("pointermove", (event) => {
+    if (!railDrag) return;
+    if (!railDrag.moved && Math.abs(event.clientY - railDrag.startY) < 6) return;
+    railDrag.moved = true;
+    dragRail(event);
+  });
+  ["pointerup", "pointercancel"].forEach((type) => document.addEventListener(type, (event) => {
+    if (!railDrag) return;
+    if (type === "pointerup" && !railDrag.moved) {
+      if (railDrag.link) jumpToSection(railDrag.link.dataset.railSection);
+      else dragRail(event); // a tap on the bar itself
+    }
+    railDrag.rail.classList.remove("dragging");
+    railDrag = null;
+  }));
+  // Keyboards (and the links' own click) still work: jump by script, not by anchor.
+  document.addEventListener("click", (event) => {
+    const link = event.target.closest("[data-rail-section]");
+    if (!link) return;
+    event.preventDefault();
+    if (event.detail === 0) jumpToSection(link.dataset.railSection); // Enter key
+  });
+
+  // Hovering the rail (desktop): the list of years shows, the current one highlighted.
+  document.addEventListener("pointerover", (event) => {
+    const rail = event.target.closest && event.target.closest("[data-year-rail]");
+    if (rail) { const parts = railParts(); parts.bubble.hidden = true; updateRailThumb(parts); }
+  });
+
+  ready(() => initGallery(document.querySelector("[data-gallery]")));
+  document.addEventListener("htmx:afterSettle", () => initGallery(document.querySelector("[data-gallery]")));
+  window.addEventListener("resize", scheduleRail);
+
   // --- Gallery selection mode ------------------------------------------------------------
   const selection = new Set();
   const LONG_PRESS_MS = 500;
@@ -806,6 +1132,7 @@
     const item = anchor && anchor.closest ? anchor.closest(".jitem") : null;
     const before = item ? item.getBoundingClientRect().top : 0;
     document.documentElement.style.setProperty("--row-h", `${height}px`);
+    if (gallery) gallery.relayout(false); // placeholders follow the new row height
     if (item) window.scrollBy(0, item.getBoundingClientRect().top - before);
     storageSet(ROW_KEY, String(height));
   }

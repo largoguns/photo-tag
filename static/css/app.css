@@ -863,3 +863,51 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .avatar-button .level-ring { --ring: 2px; }
 .avatar-button .level-ring > img, .avatar-button .level-ring > .avatar-initial { width: 34px; height: 34px; }
 .podium-step .level-ring, .profile-header .level-ring { --ring: 4px; }
+
+/* Gallery blocks: empty sections keep their estimated height until they are loaded. */
+#gallery-results { overflow-anchor: none; } /* scroll compensation is done in app.js */
+.gallery-block { margin-bottom: 3px; }
+.gallery-block:not([data-loaded]) {
+  background: repeating-linear-gradient(90deg, var(--md-surface-container) 0 30%, transparent 30% 31%);
+  border-radius: 4px; opacity: .6;
+}
+.gallery-section-title { scroll-margin-top: 4.5rem; }
+
+/* Year rail: thin fast scroller on the right; labels on hover (desktop) or while scrolling. */
+.year-rail {
+  position: fixed; z-index: 40; right: 2px; top: 5rem;
+  bottom: calc(var(--nav-h) + var(--nav-gap) * 2 + env(safe-area-inset-bottom));
+  width: 44px; touch-action: none; user-select: none;
+}
+.year-rail ol { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.year-rail li { position: absolute; right: 8px; transform: translateY(-50%); }
+.year-rail li.crowded { display: none; }
+.year-rail a {
+  display: block; padding: 2px 8px; border-radius: 12px; font-size: .75rem; white-space: nowrap; text-decoration: none;
+  background: var(--md-surface-container-high); color: var(--md-on-surface); box-shadow: 0 1px 3px var(--md-shadow);
+}
+.year-rail-thumb {
+  position: absolute; right: 6px; width: 6px; height: 44px; border-radius: 3px;
+  background: var(--md-primary); opacity: 0; transition: opacity .2s;
+}
+.year-rail-bubble {
+  position: absolute; right: 22px; transform: translateY(-25%); padding: .375rem .75rem; border-radius: 16px;
+  background: var(--md-primary); color: var(--md-on-primary); font-weight: 500; white-space: nowrap;
+}
+.year-rail.active .year-rail-thumb, .year-rail:hover .year-rail-thumb { opacity: .9; }
+/* The list of years only on hover with a mouse; touch screens get the thumb and bubble. */
+@media (hover: hover) {
+  .year-rail:hover ol { opacity: 1; pointer-events: auto; }
+}
+.year-rail.dragging .year-rail-thumb { opacity: 1; }
+@media (min-width: 840px) {
+  .year-rail { top: 5rem; bottom: 1rem; right: 4px; }
+}
+.sheet-hint { padding: 0 1.5rem; margin: 0; }
+.chosen-people { padding: .5rem 1.5rem 0; margin: 0; }
+.chosen-people .chip .icon { width: 16px; height: 16px; }
+.person-filter .option { cursor: pointer; }
+.person-filter .option input { width: 20px; height: 20px; accent-color: var(--md-primary); flex: none; }
+.sheet-actions { display: flex; justify-content: flex-end; gap: .5rem; padding: .75rem 1.5rem 1rem; border-top: 1px solid var(--md-outline-variant); }
+.year-rail a[aria-current] { background: var(--md-primary); color: var(--md-on-primary); font-weight: 600; }
+@media (hover: hover) { .year-rail:hover .year-rail-bubble { display: none; } }
