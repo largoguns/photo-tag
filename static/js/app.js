@@ -637,6 +637,9 @@
     const opener = event.target.closest("[data-open-sheet]");
     if (opener) {
       const sheet = document.getElementById(opener.dataset.openSheet);
+      // Opened from a menu (the person's ⋮): the menu closes behind the sheet.
+      const menu = opener.closest("details[open]");
+      if (menu) menu.removeAttribute("open");
       if (sheet && typeof sheet.showModal === "function") sheet.showModal();
       return;
     }

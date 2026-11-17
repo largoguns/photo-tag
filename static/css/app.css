@@ -795,6 +795,9 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
   .settings-wide .setting-body { padding: 0 var(--space) var(--space) calc(var(--space) * 2 + 24px); }
 }
 /* Person page sheets: nicknames and relationships (5.12, 5.13) */
+/* Sheets with forms: content aligned with the title and clear of the edges. */
+.sheet-body.sheet-form { padding: .25rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom)); gap: 1rem; }
+.sheet-form p { margin: 0; }
 .sheet-subtitle { font-size: .9rem; font-weight: 500; margin: .25rem 0 0; color: var(--md-on-surface-variant); }
 .menu-item .menu-count { margin-left: auto; color: var(--md-on-surface-variant); font-variant-numeric: tabular-nums; }
 .relation-add > summary { list-style: none; display: inline-flex; width: auto; }

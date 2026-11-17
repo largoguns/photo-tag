@@ -6,7 +6,7 @@
     <h2 id="sheet-name-title">{% translate "Nombre y tratamiento" %}</h2>
     <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
   </div>
-  <div class="sheet-body stack">
+  <div class="sheet-body sheet-form stack">
     <form method="post" class="stack" action="{% url 'set_honorific' person.pk %}" hx-boost="true">
       {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       <div class="field">
@@ -36,7 +36,7 @@
     <h2 id="sheet-nicknames-title">{% translate "Apodos" %}</h2>
     <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
   </div>
-  <div class="sheet-body stack">
+  <div class="sheet-body sheet-form stack">
     {% if nicknames %}
     <ul class="nickname-list">
       {% for nickname in nicknames %}
@@ -70,7 +70,7 @@
     <h2 id="sheet-family-title">{% translate "Familia y relaciones" %}</h2>
     <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
   </div>
-  <div class="sheet-body stack">
+  <div class="sheet-body sheet-form stack">
     {% for title, relations in relation_groups %}
     {% if relations %}
     <h3 class="sheet-subtitle">{{ title }}</h3>
