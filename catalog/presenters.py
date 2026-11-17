@@ -172,6 +172,7 @@ def person_sheet_context(person):
     social = [r for r in relations if r.tree == kinship.SOCIAL]
     return {
         "nicknames": list(person.nicknames.all()),
+        "relation_count": len(relations),
         "family_relations": family,
         "social_relations": social,
         "relation_groups": [(_("Familia"), family), (_("Relaciones"), social)],

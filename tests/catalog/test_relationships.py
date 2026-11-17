@@ -200,6 +200,7 @@ def test_person_page_keeps_photos_first_and_relationships_in_the_menu(client, al
 
     assert 'data-open-sheet="sheet-family"' in content and 'id="sheet-family"' in content
     assert 'data-open-sheet="sheet-nicknames"' in content
+    assert '<span class="menu-count">1</span>' in content
     sheet = content.split('id="sheet-family"')[1].split("</dialog>")[0]
     assert "Luis" in sheet and "Hijo" in sheet
     assert 'id="people-data"' in content

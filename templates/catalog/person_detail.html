@@ -28,7 +28,7 @@
   <details class="user-menu person-menu">
     <summary class="button text icon-only" aria-label="{% translate 'Más acciones' %}" title="{% translate 'Más acciones' %}">{% icon "more_vert" %}</summary>
     <div class="menu">
-      <button type="button" class="menu-item" data-open-sheet="sheet-family" aria-haspopup="dialog">{% icon "group" %}<span>{% translate "Familia y relaciones" %}</span>{% if family_relations or social_relations %}<span class="menu-count">{{ family_relations|length|add:social_relations|length }}</span>{% endif %}</button>
+      <button type="button" class="menu-item" data-open-sheet="sheet-family" aria-haspopup="dialog">{% icon "group" %}<span>{% translate "Familia y relaciones" %}</span>{% if relation_count %}<span class="menu-count">{{ relation_count }}</span>{% endif %}</button>
       <button type="button" class="menu-item" data-open-sheet="sheet-nicknames" aria-haspopup="dialog">{% icon "badge" %}<span>{% translate "Apodos" %}</span>{% if nicknames %}<span class="menu-count">{{ nicknames|length }}</span>{% endif %}</button>
       {% if avatar_choices|length > 1 %}<button type="button" class="menu-item" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}<span>{% translate "Cambiar foto principal" %}</span></button>{% endif %}
       {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>{% endif %}
