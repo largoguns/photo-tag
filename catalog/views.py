@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Case, Count, F, IntegerField, Q, Value, When
+from django.db.models import Count, Q
 from django.http import (
     FileResponse,
     Http404,
@@ -26,7 +26,7 @@ from catalog.models import EventType, Face, Person, Photo, Proposal, Scan, Vote
 from catalog.services import avatars, names, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
-GALLERY_PAGE_SIZE = 60
+PERSON_PAGE_SIZE = 60
 IMAGE_CACHE = "private, max-age=86400"
 
 
@@ -61,68 +61,32 @@ def home(request):
     )
 
 
-def _gallery_queryset(request):
-    # Newest year first; within a year, precise dates before decade-only ones; undated last.
-    photos = (
-        Photo.objects.visible()
-        .annotate(
-            decade_only=Case(
-                When(date_precision=Photo.DatePrecision.DECADE, then=Value(1)),
-                default=Value(0),
-                output_field=IntegerField(),
-            )
-        )
-        .order_by(F("date_value").desc(nulls_last=True), "decade_only", "-pk")
-    )
-    params = request.GET
-    if params.get("status") in Photo.Status.values:
-        photos = photos.filter(status=params["status"])
-    if params.get("person", "").isdigit():
-        photos = photos.filter(
-            faces__person_id=params["person"], faces__status=Face.Status.ACTIVE
-        ).distinct()
-    if params.get("event", "").isdigit():
-        photos = photos.filter(event_type_id=params["event"])
-    if params.get("decade", "").isdigit():
-        decade = int(params["decade"])
-        photos = photos.filter(date_value__year__gte=decade, date_value__year__lt=decade + 10)
-    if params.get("mine"):
-        photos = photos.filter(pk__in=voting.photos_pending_for_user(request.user).values("pk"))
-    return photos
-
-
-def _gallery_page_context(request):
-    page = Paginator(_gallery_queryset(request), GALLERY_PAGE_SIZE).get_page(
-        request.GET.get("page")
-    )
-    ids = [photo.pk for photo in page]
-    pending = set(
-        voting.photos_pending_for_user(request.user).filter(pk__in=ids).values_list("pk", flat=True)
-    )
-    for photo in page:
-        photo.pending_my_vote = photo.pk in pending
-    groups = presenters.group_photos(page, request.GET.get("last_group", ""))
-    query = request.GET.copy()
-    for name in ("page", "last_group"):
-        query.pop(name, None)
-    return {
-        "page": page,
-        "groups": groups,
-        "last_group": groups[-1]["key"] if groups else request.GET.get("last_group", ""),
-        "query": query.urlencode(),
-    }
-
-
 def gallery(request):
-    context = _gallery_page_context(request)
-    if request.htmx_partial:
-        return render(request, "catalog/_gallery_page.html", context)
+    """Skeleton of every block; the browser loads each block near the screen (?block=i)."""
+    from catalog.services import gallery as gallery_service
 
     params = request.GET
+    photos = gallery_service.gallery_queryset(params, request.user)
+    all_blocks = gallery_service.blocks(photos)
+    if request.htmx_partial and "block" in params:
+        index = params.get("block", "")
+        if not index.isdigit() or int(index) >= len(all_blocks):
+            raise Http404
+        block = all_blocks[int(index)]
+        block.photos = gallery_service.block_photos(block, request.user)
+        return render(request, "catalog/_gallery_block.html", {"block": block})
+
+    # Sent filled with the page: the first blocks, or those around where the user was.
+    anchor = params.get("anchor", "")
+    anchor = min(int(anchor), len(all_blocks) - 1) if anchor.isdigit() and all_blocks else 0
+    for block in all_blocks[max(0, anchor - 1) : anchor + 2]:
+        block.photos = gallery_service.block_photos(block, request.user)
+
     people = list(Person.objects.active().filter(is_provisional=False))
     avatars = presenters.person_avatars([p.pk for p in people])
     for person in people:
         person.avatar_id = avatars.get(person.pk)
+    chosen = gallery_service.selected_people(params)
     event_types = list(EventType.objects.filter(is_provisional=False))
     decades = sorted(
         {d.year // 10 * 10 for d in Photo.objects.visible().dates("date_value", "year")},
@@ -133,24 +97,33 @@ def gallery(request):
         value = params.get(key, "")
         return next((label for option, label in options if str(option) == value), None)
 
-    context.update(
+    query = params.copy()
+    for name in ("block", "anchor", "page"):
+        query.pop(name, None)
+    return render(
+        request,
+        "catalog/gallery.html",
         {
             "params": params,
+            "blocks": all_blocks,
+            "sections": gallery_service.sections(all_blocks),
+            "photo_count": sum(block.count for block in all_blocks),
+            "anchor": anchor,
+            "query": query.urlencode(),
             "statuses": Photo.Status.choices,
             "persons": people,
+            "chosen_people": chosen,
+            "chosen_ids": [person.pk for person in chosen],
             "event_types": event_types,
             "decades": decades,
             "selected_status": selected(Photo.Status.choices, "status"),
-            "selected_person": selected([(p.pk, p.display_name) for p in people], "person"),
             "selected_event": selected([(e.pk, str(e)) for e in event_types], "event"),
             "selected_decade": selected([(d, f"{d}s") for d in decades], "decade"),
             "share_max": settings.SHARE_MAX_PHOTOS,
-            "has_filters": any(
-                params.get(k) for k in ("status", "person", "event", "decade", "mine")
-            ),
-        }
+            "has_filters": bool(chosen)
+            or any(params.get(k) for k in ("status", "event", "decade", "mine")),
+        },
     )
-    return render(request, "catalog/gallery.html", context)
 
 
 def persons(request):
@@ -186,7 +159,7 @@ def person_detail(request, pk):
         .distinct()
         .order_by("pk")
     )
-    page = Paginator(photos, GALLERY_PAGE_SIZE).get_page(request.GET.get("page"))
+    page = Paginator(photos, PERSON_PAGE_SIZE).get_page(request.GET.get("page"))
     return render(
         request,
         "catalog/person_detail.html",

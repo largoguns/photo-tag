@@ -36,6 +36,17 @@ def icon(name, label=""):
 
 
 @register.simple_tag
+def qs_without(params, key, value):
+    """Query string without one of the values of a repeated parameter (e.g. one person)."""
+    query = params.copy()
+    for name in ("page", "anchor", "block"):
+        query.pop(name, None)
+    query.setlist(key, [v for v in query.getlist(key) if v != str(value)])
+    encoded = query.urlencode()
+    return f"?{encoded}" if encoded else "?"
+
+
+@register.simple_tag
 def page_qs(params, number):
     """Query string for page `number`, keeping every other parameter (filters, tabs)."""
     query = params.copy()
@@ -47,7 +58,7 @@ def page_qs(params, number):
 def qs(params, key, value=None):
     """Query string with `key` set to `value` (or removed when None); paging is reset."""
     query = params.copy()
-    for name in ("page", "last_group"):
+    for name in ("page", "last_group", "anchor", "block"):
         query.pop(name, None)
     if value is None or value == "":
         query.pop(key, None)

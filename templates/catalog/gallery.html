@@ -7,8 +7,8 @@
     <button type="button" class="chip{% if selected_status %} selected{% endif %}" data-open-sheet="sheet-status" aria-haspopup="dialog">
       {% if selected_status %}{% icon "check" %}{{ selected_status }}{% else %}{% translate "Estado" %}{% endif %}{% icon "keyboard_arrow_down" %}
     </button>
-    <button type="button" class="chip{% if selected_person %} selected{% endif %}" data-open-sheet="sheet-person" aria-haspopup="dialog">
-      {% if selected_person %}{% icon "check" %}{{ selected_person }}{% else %}{% translate "Persona" %}{% endif %}{% icon "keyboard_arrow_down" %}
+    <button type="button" class="chip{% if chosen_people %} selected{% endif %}" data-open-sheet="sheet-person" aria-haspopup="dialog">
+      {% if chosen_people %}{% icon "check" %}{{ chosen_people.0.display_name }}{% if chosen_people|length > 1 %} +{{ chosen_people|length|add:"-1" }}{% endif %}{% else %}{% translate "Persona" %}{% endif %}{% icon "keyboard_arrow_down" %}
     </button>
     <button type="button" class="chip{% if selected_event %} selected{% endif %}" data-open-sheet="sheet-event" aria-haspopup="dialog">
       {% if selected_event %}{% icon "check" %}{{ selected_event }}{% else %}{% translate "Evento" %}{% endif %}{% icon "keyboard_arrow_down" %}
@@ -23,17 +23,36 @@
     <button type="button" class="chip" data-selection="start">{% icon "checklist" %}{% translate "Seleccionar" %}</button>
   </nav>
 
-  <p class="muted gallery-count">{% blocktranslate count counter=page.paginator.count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</p>
-  <div id="gallery-results" hx-boost="false" data-gallery-zoom>
-    {% include "catalog/_gallery_page.html" %}
+  <p class="muted gallery-count">{% blocktranslate count counter=photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</p>
+  <div class="gallery-frame">
+    <div id="gallery-results" hx-boost="false" data-gallery-zoom data-gallery
+         data-block-url="{% url 'gallery' %}?{% if query %}{{ query }}&{% endif %}block=" data-anchor="{{ anchor }}">
+      {% for block in blocks %}
+      {% if block.header %}<h2 class="gallery-section-title" id="section-{{ block.key }}" data-section="{{ block.key }}">{{ block.label }}</h2>{% endif %}
+      <section class="gallery-block" data-block="{{ block.index }}" data-ratio="{{ block.ratio|css_num }}" data-label="{{ block.label }}"
+               aria-label="{{ block.label }}"{% if block.photos is not None %} data-loaded{% endif %}>
+        {% if block.photos is not None %}{% include "catalog/_gallery_block.html" %}{% endif %}
+      </section>
+      {% empty %}
+      <p class="empty">{% translate "No hay fotos con estos filtros." %}</p>
+      {% endfor %}
+    </div>
+    {% if sections|length > 1 %}
+    <nav class="year-rail" hx-boost="false" aria-label="{% translate 'Saltar a un año' %}" data-year-rail>
+      <span class="year-rail-thumb" aria-hidden="true"></span>
+      <span class="year-rail-bubble" aria-hidden="true" hidden></span>
+      <ol>
+        {% for key, label, count in sections %}<li><a href="#section-{{ key }}" data-rail-section="{{ key }}">{{ label }}</a></li>{% endfor %}
+      </ol>
+    </nav>
+    {% endif %}
   </div>
 
   {% translate "Estado" as t_status %}{% translate "Todos" as t_all %}{% translate "Todas" as t_all_f %}
   {% translate "Persona" as t_person %}{% translate "Evento" as t_event %}{% translate "Década" as t_decade %}
   {% sheet_options statuses as status_options %}
   {% include "catalog/_filter_sheet.html" with key="status" title=t_status all_label=t_all options=status_options current=params.status searchable=False %}
-  {% sheet_options persons "person" as person_options %}
-  {% include "catalog/_filter_sheet.html" with key="person" title=t_person all_label=t_all_f options=person_options current=params.person searchable=True %}
+  {% include "catalog/_person_sheet.html" %}
   {% sheet_options event_types "event" as event_options %}
   {% include "catalog/_filter_sheet.html" with key="event" title=t_event all_label=t_all options=event_options current=params.event searchable=False %}
   {% sheet_options decades "decade" as decade_options %}

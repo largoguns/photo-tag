@@ -144,12 +144,12 @@ def test_gallery_filters_and_infinite_scroll(client, photo, alice, bob, boda):
 
     assert photo.pk in ids(client.get(reverse("gallery"), {"mine": "1"}))
     assert ids(client.get(reverse("gallery"), {"status": "cataloged"})) == []
-    fragment = client.get(reverse("gallery"), {"page": 1}, HTTP_HX_REQUEST="true")
+    fragment = client.get(reverse("gallery"), {"block": 0}, HTTP_HX_REQUEST="true")
     assert "<html" not in fragment.content.decode()
 
 
 def ids(response):
-    return [p.pk for p in response.context["page"]]
+    return [pk for block in response.context["blocks"] for pk in block.ids]
 
 
 def test_next_uncataloged_redirects(client, photo, alice):

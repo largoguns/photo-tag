@@ -9,7 +9,6 @@ from django.conf import settings
 from django.urls import reverse
 
 from catalog.models import Face, Person, Photo, Scan
-from catalog.presenters import group_photos
 
 pytestmark = pytest.mark.django_db
 
@@ -100,34 +99,11 @@ def test_gallery_is_grouped_by_year_newest_first(client, alice, data_dirs):
 
     response = client.get(reverse("gallery"))
 
-    labels = [g["label"] for g in response.context["groups"]]
-    assert labels == ["1990", "1985", "1980", "Década de 1980", "Sin fecha"]
-    assert all(g["header"] for g in response.context["groups"])
-    assert 'class="justified"' in response.content.decode()
-
-
-def test_next_page_continues_section_without_repeating_header():
-    photos = [make_photo(i, datetime.date(1985, 1, 1), "year") for i in range(3)]
-    groups = group_photos(photos, last_group="y1985")
-    assert len(groups) == 1 and groups[0]["header"] is False
-    assert group_photos(photos, last_group="y1990")[0]["header"] is True
-
-
-def test_infinite_scroll_passes_last_group(client, alice, data_dirs, monkeypatch):
-    from catalog import views
-
-    monkeypatch.setattr(views, "GALLERY_PAGE_SIZE", 2)
-    for i in range(3):
-        make_photo(i, datetime.date(1985, 1, 1), "year")
-    client.force_login(alice)
-    content = client.get(reverse("gallery")).content.decode()
-    assert "last_group=y1985" in content
-
-    fragment = client.get(
-        reverse("gallery"), {"page": 2, "last_group": "y1985"}, HTTP_HX_REQUEST="true"
-    ).content.decode()
-    assert "<html" not in fragment
-    assert "gallery-section-title" not in fragment  # same section continues
+    sections = [label for key, label, count in response.context["sections"]]
+    assert sections == ["1990", "1985", "1980", "Década de 1980", "Sin fecha"]
+    content = response.content.decode()
+    assert content.count('class="gallery-section-title"') == 5
+    assert 'class="justified"' in content  # the first blocks come filled with the page
 
 
 def test_filter_chips_and_sheets(client, alice, boda, data_dirs):
