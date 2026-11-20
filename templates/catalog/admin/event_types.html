@@ -3,6 +3,38 @@
 {% block content %}
 {% translate "Tipos de evento" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
 {% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+{% if to_review %}
+<section class="card stack review-event-types" aria-labelledby="review-title">
+  <h2 id="review-title">{% blocktranslate count counter=to_review|length %}Añadido por la familia ({{ counter }}){% plural %}Añadidos por la familia ({{ counter }}){% endblocktranslate %}</h2>
+  <p class="muted">{% translate "Antes se podían escribir tipos nuevos con «Otro…». Revisa cada uno: si era un lugar, pásalo a ubicación; si era algo personal, a «Otro» con ese texto como descripción; si es una variante, fusiónalo; si es un evento de verdad, mantenlo." %}</p>
+  <ul class="list">
+    {% for event in to_review %}
+    <li class="list-item review-row">
+      <div class="list-main">
+        <strong>{{ event.name }}</strong>
+        <div class="meta muted">{% blocktranslate with user=event.created_by count counter=event.photo_count %}{{ counter }} foto · añadido por {{ user }}{% plural %}{{ counter }} fotos · añadido por {{ user }}{% endblocktranslate %} · {% blocktranslate count counter=event.proposal_count %}{{ counter }} propuesta{% plural %}{{ counter }} propuestas{% endblocktranslate %}</div>
+      </div>
+      <form method="post" action="{% url 'admin_event_type_review' event.pk %}" class="review-actions"
+            data-confirm="{% blocktranslate with name=event.name %}¿Aplicar este cambio a «{{ name }}» y a todas sus fotos y propuestas?{% endblocktranslate %}" data-confirm-ok="{% translate 'Aplicar' %}">
+        {% csrf_token %}
+        <label class="visually-hidden" for="review-{{ event.pk }}">{% blocktranslate with name=event.name %}Qué hacer con «{{ name }}»{% endblocktranslate %}</label>
+        <select id="review-{{ event.pk }}" name="action" data-review-action required>
+          <option value="">{% translate "— Qué era —" %}</option>
+          <option value="location">{% translate "Un lugar → ubicación" %}</option>
+          <option value="other">{% translate "Algo personal → «Otro»" %}</option>
+          <option value="merge">{% translate "Una variante → fusionar con…" %}</option>
+          <option value="keep">{% translate "Un evento → mantener" %}</option>
+        </select>
+        <select name="target" data-review-target aria-label="{% translate 'Tipo estándar' %}" hidden>
+          {% for standard_type in standard %}<option value="{{ standard_type.pk }}">{{ standard_type }}</option>{% endfor %}
+        </select>
+        <button type="submit" class="button small primary">{% translate "Aplicar" %}</button>
+      </form>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
 <div class="grid-2">
   <ul class="list">
     {% for event in event_types %}

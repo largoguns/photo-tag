@@ -45,6 +45,11 @@ urlpatterns = [
     path("admin/", admin_views.admin_home, name="admin_home"),
     path("admin/event-types/", admin_views.event_types, name="admin_event_types"),
     path("admin/event-types/<int:pk>/", admin_views.event_type_edit, name="admin_event_type_edit"),
+    path(
+        "admin/event-types/<int:pk>/review/",
+        admin_views.event_type_review,
+        name="admin_event_type_review",
+    ),
     path("admin/locations/", admin_views.locations, name="admin_locations"),
     path("admin/locations/<int:pk>/", admin_views.location_edit, name="admin_location_edit"),
     path("admin/thresholds/", admin_views.thresholds, name="admin_thresholds"),

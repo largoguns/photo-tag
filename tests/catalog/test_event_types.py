@@ -1,17 +1,25 @@
+"""Event types are a standard list; «Otro» + description; review of family-added types."""
+
 import pytest
 from django.urls import reverse
 
-from catalog.models import EventType, Proposal, Vote
-from catalog.services import voting
+from accounts.models import AuditLog
+from catalog.models import EventType, Location, Photo, Proposal, Vote
+from catalog.services import event_types, voting
 from catalog.services.names import normalize_label
 
 pytestmark = pytest.mark.django_db
 
 
-def propose(user, photo, name, description=""):
-    return voting.create_proposal(
-        user, photo, Proposal.Kind.EVENT, event_name=name, value={"description": description}
-    )
+@pytest.fixture
+def other(db):
+    return event_types.other_type()
+
+
+@pytest.fixture
+def junk(alice):
+    """A type typed by the family with the old «Otro…»."""
+    return EventType.objects.create(name="Viaje Mérida", created_by=alice)
 
 
 @pytest.mark.parametrize(
@@ -26,81 +34,116 @@ def test_normalize_label(typed, expected):
     assert normalize_label(typed) == expected
 
 
-def test_other_event_creates_a_provisional_type(photo, alice):
-    proposal = propose(alice, photo, "graduación")
-
-    event_type = proposal.event_type
-    assert event_type.name == "Graduación"
-    assert event_type.is_provisional and event_type.created_by == alice
-    assert proposal.label() == "Graduación"
+# --- Proposing --------------------------------------------------------------------------
 
 
-def test_same_name_reuses_the_type_ignoring_case_and_accents(photo, alice, bob):
-    first = propose(alice, photo, "graduación")
-    second = propose(bob, photo, "GRADUACION")
-    assert second == first  # identical proposal → bob's vote is added
-    assert EventType.objects.filter(name__iexact="graduación").count() == 1
+def test_other_is_standard_and_family_types_are_not_offered(other, junk, boda):
+    offered = list(voting.event_types())
+    assert other in offered and boda in offered and junk not in offered
 
 
-def test_existing_types_are_matched_in_both_languages(photo, alice):
-    assert propose(alice, photo, "wedding").event_type.name == "Boda"
-    assert propose(alice, photo, "boda").event_type.name == "Boda"
-
-
-def test_accepting_makes_the_type_permanent(photo, alice, bob):
-    proposal = propose(alice, photo, "Graduación")
-    voting.cast_vote(bob, proposal, Vote.UP)
-
-    photo.refresh_from_db()
-    assert photo.event_type.name == "Graduación"
-    assert not photo.event_type.is_provisional
-    assert photo.event_type in voting.event_types()
-
-
-def test_rejecting_removes_an_unused_provisional_type(photo, alice, bob, carol):
-    proposal = propose(alice, photo, "Broma")
-    voting.cast_vote(bob, proposal, Vote.DOWN)
-    voting.cast_vote(carol, proposal, Vote.DOWN)
-
-    assert not EventType.objects.filter(name="Broma").exists()
-    proposal.refresh_from_db()
-    assert proposal.event_type is None
-    assert proposal.label() == "Broma"  # the closed proposal still reads well
-
-
-def test_superseded_provisional_type_is_removed(photo, alice, bob, boda):
-    voting.create_proposal(alice, photo, Proposal.Kind.EVENT, event_type=boda)
-    other = propose(bob, photo, "Bautizo de Ana")
-    accepted = Proposal.objects.get(event_type=boda)
-    voting.cast_vote(bob, accepted, Vote.UP)
-
-    other.refresh_from_db()
-    assert other.status == Proposal.Status.SUPERSEDED
-    assert not EventType.objects.filter(name="Bautizo de Ana").exists()
-
-
-def test_other_type_is_hidden_and_provisional_types_not_listed(client, photo, alice):
-    EventType.objects.create(name="Pendiente", is_provisional=True)
+def test_a_typed_name_no_longer_creates_types(client, photo, alice, boda):
     client.force_login(alice)
-    content = client.get(reverse("photo_detail", args=[photo.pk])).content.decode()
-    options = content.split('id="event-type"')[1].split("</select>")[0]
-    assert ">Boda<" in options
-    assert ">Otro<" not in options and "Pendiente" not in options
-    assert 'value="new"' in options and 'name="event_name"' in content
-
-
-def test_propose_new_event_from_the_form(client, photo, alice):
-    client.force_login(alice)
+    count = EventType.objects.count()
     client.post(
         reverse("propose_event", args=[photo.pk]),
-        {"event_type": "new", "event_name": "comunión de pablo", "description": ""},
+        {"event_type": "new", "event_name": "Casa del pueblo"},
+        HTTP_HX_REQUEST="true",
     )
-    proposal = Proposal.objects.get()
-    assert proposal.event_type.name == "Comunión de pablo"
+    assert EventType.objects.count() == count
+    assert not Proposal.objects.exists()
 
 
-def test_admin_list_marks_user_proposed_types(client, admin_user, alice):
-    EventType.objects.create(name="Graduación", is_provisional=True, created_by=alice)
+def test_other_needs_a_description(photo, alice, other):
+    with pytest.raises(Exception, match="descripción"):
+        voting.create_proposal(alice, photo, Proposal.Kind.EVENT, event_type=other)
+    proposal = voting.create_proposal(
+        alice, photo, Proposal.Kind.EVENT, event_type=other, value={"description": "Viaje"}
+    )
+    assert proposal.event_type == other and proposal.value["description"] == "Viaje"
+
+
+def test_event_form_offers_the_standard_list_with_other(client, photo, alice, other, junk):
+    client.force_login(alice)
+    content = client.get(reverse("photo_detail", args=[photo.pk])).content.decode()
+    assert "data-other" in content and "Viaje Mérida" not in content
+    assert 'name="event_name"' not in content and "Otro…" not in content
+
+
+# --- Review of family-added types -------------------------------------------------------
+
+
+def family_photo(photo, junk, alice, bob):
+    """The junk type accepted on a photo, plus an open proposal elsewhere."""
+    Photo.objects.filter(pk=photo.pk).update(event_type=junk, event_description="con Ana")
+    other_photo = Photo.objects.create(
+        scan=photo.scan, file_name="x.jpg", index=9, width=10, height=10
+    )
+    open_proposal = Proposal.objects.create(
+        photo=other_photo, kind=Proposal.Kind.EVENT, event_type=junk, author=alice, value={}
+    )
+    Vote.objects.create(proposal=open_proposal, user=alice, value=Vote.UP)
+    return other_photo, open_proposal
+
+
+def test_to_location(photo, junk, alice, bob, admin_user):
+    other_photo, proposal = family_photo(photo, junk, alice, bob)
+    location = event_types.to_location(admin_user, junk)
+
+    photo.refresh_from_db()
+    proposal.refresh_from_db()
+    assert photo.location == location and photo.event_type is None
+    assert location.name == "Viaje Mérida" and not location.is_provisional
+    assert proposal.kind == Proposal.Kind.LOCATION and proposal.location == location
+    assert proposal.votes.count() == 1  # votes kept
+    assert not EventType.objects.filter(pk=junk.pk).exists()
+    assert AuditLog.objects.filter(action="event_type.to_location").exists()
+
+
+def test_to_location_keeps_an_existing_location(photo, junk, alice, bob, admin_user):
+    family_photo(photo, junk, alice, bob)
+    home = Location.objects.create(name="Casa", name_key="casa")
+    Photo.objects.filter(pk=photo.pk).update(location=home)
+    event_types.to_location(admin_user, junk)
+    photo.refresh_from_db()
+    assert photo.location == home
+
+
+def test_to_other_keeps_the_text_as_description(photo, junk, alice, bob, admin_user, other):
+    other_photo, proposal = family_photo(photo, junk, alice, bob)
+    event_types.to_other(admin_user, junk)
+
+    photo.refresh_from_db()
+    proposal.refresh_from_db()
+    assert photo.event_type == other and photo.event_description == "Viaje Mérida — con Ana"
+    assert proposal.event_type == other and proposal.value["description"] == "Viaje Mérida"
+    assert not EventType.objects.filter(pk=junk.pk).exists()
+
+
+def test_merge_into_a_standard_type(photo, junk, alice, bob, admin_user, boda):
+    other_photo, proposal = family_photo(photo, junk, alice, bob)
+    event_types.merge(admin_user, junk, boda)
+    photo.refresh_from_db()
+    proposal.refresh_from_db()
+    assert photo.event_type == boda and proposal.event_type == boda
+    assert not EventType.objects.filter(pk=junk.pk).exists()
+
+
+def test_keep_makes_it_standard(junk, admin_user):
+    event_types.keep(admin_user, junk)
+    junk.refresh_from_db()
+    assert junk.created_by is None and junk in voting.event_types()
+
+
+def test_review_screen_and_permissions(client, junk, alice, admin_user, boda, photo):
+    client.force_login(alice)
+    url = reverse("admin_event_type_review", args=[junk.pk])
+    assert client.post(url, {"action": "other"}).status_code == 403
+
     client.force_login(admin_user)
     content = client.get(reverse("admin_event_types")).content.decode()
-    assert "Pendiente de votación" in content and "Propuesto por Alicia" in content
+    assert "Añadido por la familia (1)" in content and "Viaje Mérida" in content
+
+    client.post(url, {"action": "merge", "target": boda.pk})
+    assert not EventType.objects.filter(pk=junk.pk).exists()
+    assert "Añadido por la familia" not in client.get(reverse("admin_event_types")).content.decode()

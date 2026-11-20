@@ -42,11 +42,62 @@ def event_types(request):
             request, _("Tipo de evento «%(name)s» creado.") % {"name": event_type.name}
         )
         return redirect("admin_event_types")
+    from catalog.services import event_types as event_type_service
+
     return render(
         request,
         "catalog/admin/event_types.html",
-        {"form": form, "event_types": EventType.objects.select_related("created_by")},
+        {
+            "form": form,
+            "event_types": EventType.objects.filter(created_by__isnull=True),
+            "to_review": event_type_service.family_added(),
+            "standard": EventType.objects.enabled().filter(created_by__isnull=True),
+        },
     )
+
+
+@admin_required
+@require_POST
+def event_type_review(request, pk):
+    """Turn an event type typed by the family into what it really was."""
+    from catalog.services import event_types as event_type_service
+
+    event_type = get_object_or_404(EventType, pk=pk, created_by__isnull=False)
+    name = event_type.name
+    action = request.POST.get("action")
+    if action == "location":
+        location = event_type_service.to_location(request.user, event_type)
+        message = _("«%(name)s» es ahora la ubicación «%(location)s».") % {
+            "name": name,
+            "location": location.name,
+        }
+    elif action == "other":
+        event_type_service.to_other(request.user, event_type)
+        message = _("«%(name)s» es ahora «Otro» con esa descripción.") % {"name": name}
+    elif action == "merge":
+        target = (
+            EventType.objects.filter(
+                pk=request.POST.get("target", ""), created_by__isnull=True
+            ).first()
+            if request.POST.get("target", "").isdigit()
+            else None
+        )
+        if target is None or target.pk == event_type.pk:
+            messages.error(request, _("Elige el tipo estándar con el que fusionarlo."))
+            return redirect("admin_event_types")
+        event_type_service.merge(request.user, event_type, target)
+        message = _("«%(name)s» se ha fusionado con «%(target)s».") % {
+            "name": name,
+            "target": target.name,
+        }
+    elif action == "keep":
+        event_type_service.keep(request.user, event_type)
+        message = _("«%(name)s» forma parte ahora de la lista estándar.") % {"name": name}
+    else:
+        messages.error(request, _("Acción no válida."))
+        return redirect("admin_event_types")
+    messages.success(request, message)
+    return redirect("admin_event_types")
 
 
 @admin_required
