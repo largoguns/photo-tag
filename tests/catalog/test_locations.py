@@ -5,7 +5,7 @@ from django.utils import translation
 
 from accounts.models import AuditLog
 from catalog.models import Location, Photo, Proposal, Vote
-from catalog.services import locations, voting
+from catalog.services import catalog_review, locations, voting
 from exporter.services import xmp
 from gamification.models import ScoreEvent
 from scanner.services import deletion
@@ -54,9 +54,12 @@ def test_merged_location_resolves_to_its_target(photo, alice):
     assert propose(alice, photo, "mdrid").location == target
 
 
-def test_accepting_sets_the_photo_location_and_makes_it_permanent(photo, alice, bob):
+def test_accepting_sets_the_photo_location_and_makes_it_permanent(photo, alice, bob, admin_user):
     proposal = propose(alice, photo, "Playa de Bolonia")
     proposal = voting.cast_vote(bob, proposal, Vote.UP)
+    assert proposal.status == Status.OPEN and proposal.in_review  # new places: not voted
+    catalog_review.accept(admin_user, proposal.location)
+    proposal.refresh_from_db()
 
     assert proposal.status == Status.ACCEPTED
     photo.refresh_from_db()
@@ -78,17 +81,16 @@ def test_location_is_not_required_to_be_cataloged(photo, alice, bob, boda):
     assert photo.status == Photo.Status.CATALOGED
 
 
-def test_rejected_or_superseded_provisional_location_is_deleted(photo, alice, bob, carol):
+def test_rejected_or_superseded_provisional_location_is_deleted(photo, alice, admin_user):
     rejected = propose(alice, photo, "Sitio raro")
-    voting.cast_vote(bob, rejected, Vote.DOWN)
-    voting.cast_vote(carol, rejected, Vote.DOWN)
+    catalog_review.reject(admin_user, rejected.location)
     assert not Location.objects.filter(name="Sitio raro").exists()
     rejected.refresh_from_db()
     assert rejected.label() == "Sitio raro"  # the name is kept in the proposal
 
     loser = propose(alice, photo, "Otro sitio")
     winner = propose(alice, photo, "Buen sitio")
-    voting.cast_vote(bob, winner, Vote.UP)
+    catalog_review.accept(admin_user, winner.location)
     loser.refresh_from_db()
     assert loser.status == Status.SUPERSEDED
     assert list(Location.objects.values_list("name", flat=True)) == ["Buen sitio"]
@@ -97,8 +99,8 @@ def test_rejected_or_superseded_provisional_location_is_deleted(photo, alice, bo
 def test_identical_open_proposal_adds_a_vote(photo, alice, bob):
     first = propose(alice, photo, "Ronda")
     second = propose(bob, photo, "ronda")
-    assert second.pk == first.pk
-    assert second.status == Status.ACCEPTED
+    assert second.pk == first.pk and second.votes.count() == 2
+    assert second.status == Status.OPEN  # still waiting for an administrator
 
 
 def test_deleting_the_photo_cleans_the_provisional_location(photo, alice, admin_user):
@@ -192,6 +194,6 @@ def test_export_writes_the_location(photo, boda):
     assert "-XMP-dc:Subject=Ubicaciones/Casa - campo" in args
 
 
-def test_accepted_location_scores_ten_points(photo, alice, bob):
-    voting.cast_vote(bob, propose(alice, photo, "Huelva"), Vote.UP)
+def test_accepted_location_scores_ten_points(photo, alice, admin_user):
+    catalog_review.accept(admin_user, propose(alice, photo, "Huelva").location)
     assert ScoreEvent.objects.get(user=alice, reason="proposal.location").points == 10
