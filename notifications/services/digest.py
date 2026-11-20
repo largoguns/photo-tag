@@ -41,7 +41,7 @@ class Digest:
             return reverse("next_uncataloged")
         if self.kind == "pending_votes":
             return reverse("gallery") + "?mine=1"
-        return reverse("my_activity")
+        return reverse("home")
 
     def body(self):
         """Generic text in the active language; never includes people's names."""

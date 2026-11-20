@@ -115,7 +115,7 @@ def test_pages_render_in_english(client, photo, superadmin, boda):
     assert "Propose event" in content
     assert "Wedding" in content  # EventType.name_en
     assert "2 faces" in content
-    for name in ["home", "gallery", "persons", "my_activity", "profile", "admin_home"]:
+    for name in ["home", "gallery", "persons", "profile", "admin_home"]:
         assert client.get(reverse(name)).status_code == 200
 
 

@@ -226,7 +226,7 @@ body.scrolled .top-app-bar { background: var(--md-surface-container); box-shadow
 .nav-bar {
   position: fixed; z-index: 50;
   left: var(--nav-gap); right: var(--nav-gap); bottom: calc(var(--nav-gap) + env(safe-area-inset-bottom));
-  height: var(--nav-h); display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+  height: var(--nav-h); display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
   border-radius: 28px; background: var(--md-surface-container); box-shadow: 0 4px 16px var(--md-shadow);
   transition: transform .25s ease;
 }

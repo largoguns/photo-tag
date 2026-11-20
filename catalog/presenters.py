@@ -88,7 +88,7 @@ def person_nicknames(person_ids):
 
 
 def proposal_activity(proposals, params, viewer):
-    """Context for a filterable, paginated list of proposals (Mi actividad, audit screen)."""
+    """Context for a filterable, paginated list of proposals (audit screen)."""
     from django.core.paginator import Paginator
 
     from catalog.models import Proposal

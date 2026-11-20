@@ -123,7 +123,7 @@ def test_resolved_digest_counts_accepted_and_rejected(photo, alice, bob, carol, 
 
     ((_, payload),) = sent
     assert payload["body"] == "1 propuesta tuya aceptada · 1 propuesta tuya rechazada"
-    assert payload["url"] == reverse("my_activity")
+    assert payload["url"] == reverse("home")
 
 
 def test_texts_never_include_person_names(photo, alice, bob, sent):

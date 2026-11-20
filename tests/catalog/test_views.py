@@ -14,7 +14,6 @@ def all_page_urls(photo):
         reverse("gallery"),
         reverse("photo_detail", args=[photo.pk]),
         reverse("persons"),
-        reverse("my_activity"),
         reverse("profile"),
         reverse("photo_image", args=[photo.pk, "400"]),
         reverse("photo_image", args=[photo.pk, "1600"]),

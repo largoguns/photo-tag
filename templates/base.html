@@ -74,10 +74,6 @@
       <span class="nav-indicator">{% if name == 'tree' %}{% icon "family_history-fill" %}{% else %}{% icon "family_history" %}{% endif %}</span>
       <span class="nav-label">{% translate "Árbol" %}</span>
     </a>
-    <a class="nav-item" href="{% url 'my_activity' %}" {% if name == 'my_activity' %}aria-current="page"{% endif %}>
-      <span class="nav-indicator">{% if name == 'my_activity' %}{% icon "history-fill" %}{% else %}{% icon "history" %}{% endif %}</span>
-      <span class="nav-label">{% translate "Actividad" %}</span>
-    </a>
   </nav>
   {% endwith %}
   {% endif %}

@@ -244,14 +244,6 @@ def person_avatar(request, pk):
     return redirect("person_detail", pk=person.pk)
 
 
-def my_activity(request):
-    context = presenters.proposal_activity(
-        Proposal.objects.filter(author=request.user), request.GET, request.user
-    )
-    context["clear_url"] = reverse("my_activity")
-    return render(request, "catalog/my_activity.html", context)
-
-
 # ---------------------------------------------------------------------------
 # Photo screen
 # ---------------------------------------------------------------------------
