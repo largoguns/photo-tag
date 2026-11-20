@@ -105,38 +105,67 @@ def suggestions_for_face(face, limit=3):
     return IdentityIndex().suggestions_for_face(face, limit)
 
 
+def _unknown_faces():
+    return Face.objects.filter(
+        status=Face.Status.ACTIVE,
+        person__isnull=True,
+        embedding__isnull=False,
+        photo__discarded=False,
+    )
+
+
+def _candidates_by_person(person_ids):
+    """{person_id: [(score, face_pk)]} of unidentified faces that look like each person.
+
+    Skips faces in photos where the person already is and faces with an open identity
+    proposal for that person. One query per table, whatever the number of people.
+    """
+    references = {}
+    photos_with = {}
+    for person_id, photo_id, embedding in (
+        _identified_faces()
+        .filter(person_id__in=person_ids)
+        .values_list("person_id", "photo_id", "embedding")
+    ):
+        references.setdefault(person_id, []).append(embedding)
+        photos_with.setdefault(person_id, set()).add(photo_id)
+    if not references:
+        return {}
+    unknown = list(_unknown_faces().values_list("pk", "photo_id", "embedding"))
+    if not unknown:
+        return {}
+    proposed = set(
+        Proposal.objects.filter(
+            person_id__in=references, kind=Proposal.Kind.FACE_IDENTITY, status=Proposal.Status.OPEN
+        ).values_list("person_id", "face_id")
+    )
+    unknown_matrix = _matrix([row[2] for row in unknown])
+    result = {}
+    for person_id, embeddings in references.items():
+        scores = (unknown_matrix @ _matrix(embeddings).T).max(axis=1)
+        result[person_id] = [
+            (float(score), face_pk)
+            for score, (face_pk, photo_id, _) in zip(scores.tolist(), unknown, strict=True)
+            if score >= settings.FACE_MATCH_THRESHOLD
+            and photo_id not in photos_with[person_id]
+            and (person_id, face_pk) not in proposed
+        ]
+    return result
+
+
 def candidate_faces_for_person(person, limit=12):
     """Unidentified faces that look most like `person`, best first."""
-    references = _matrix(
-        list(_identified_faces().filter(person=person).values_list("embedding", flat=True))
-    )
-    if not len(references):
-        return []
-    photos_with_person = _identified_faces().filter(person=person).values("photo_id")
-    already_proposed = Proposal.objects.filter(
-        person=person, kind=Proposal.Kind.FACE_IDENTITY, status=Proposal.Status.OPEN
-    ).values("face_id")
-    unknown = list(
-        Face.objects.filter(
-            status=Face.Status.ACTIVE,
-            person__isnull=True,
-            embedding__isnull=False,
-            photo__discarded=False,
-        )
-        .exclude(photo_id__in=photos_with_person)
-        .exclude(pk__in=already_proposed)
-        .select_related("photo")
-    )
-    if not unknown:
-        return []
-    scores = (_matrix([f.embedding for f in unknown]) @ references.T).max(axis=1)
     ranked = sorted(
-        (
-            (float(score), face)
-            for score, face in zip(scores.tolist(), unknown, strict=True)
-            if score >= settings.FACE_MATCH_THRESHOLD
-        ),
-        key=lambda pair: pair[0],
-        reverse=True,
+        _candidates_by_person([person.pk]).get(person.pk, []), key=lambda pair: -pair[0]
     )[:limit]
-    return [Candidate(face=face, score=round(score, 3)) for score, face in ranked]
+    faces = Face.objects.select_related("photo").in_bulk([face_pk for _, face_pk in ranked])
+    return [Candidate(face=faces[face_pk], score=round(score, 3)) for score, face_pk in ranked]
+
+
+def candidate_counts(person_ids):
+    """{person_id: number of candidate faces} for the persons list (only people with some)."""
+    return {
+        person_id: len(pairs)
+        for person_id, pairs in _candidates_by_person(person_ids).items()
+        if pairs
+    }

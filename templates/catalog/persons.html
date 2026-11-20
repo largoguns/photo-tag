@@ -18,6 +18,9 @@
       {% endif %}
       <span class="person-name">{{ person }}{% if person.nickname_hint %} <span class="muted">· {{ person.nickname_hint }}</span>{% endif %}</span>
       <span class="muted">{% blocktranslate count counter=person.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</span>
+      {% if person.candidate_count %}
+      <span class="badge status-pending" title="{% translate 'Caras sin identificar que se le parecen' %}">{% blocktranslate count counter=person.candidate_count %}{{ counter }} posible cara{% plural %}{{ counter }} posibles caras{% endblocktranslate %}</span>
+      {% endif %}
     </a>
   </li>
   {% empty %}
