@@ -161,3 +161,31 @@ def test_external_next_url_is_ignored(client, people, alice):
         {"person_id": carmen.pk, "next": "https://evil.example/"},
     )
     assert "evil" not in response.url
+
+
+def test_candidate_counts_per_person(people, alice):
+    carmen, paco = people
+    make_face(make_photo("c1"), unit(1, 0.05))
+    make_face(make_photo("c2"), unit(1, 0.1))
+    proposed = make_face(make_photo("c3"), unit(1, 0))
+    voting.create_proposal(
+        alice, proposed.photo, Proposal.Kind.FACE_IDENTITY, face=proposed, person=carmen
+    )
+    nobody = Person.objects.create(display_name="X")
+
+    counts = similarity.candidate_counts([carmen.pk, paco.pk, nobody.pk])
+
+    assert counts == {carmen.pk: 2}
+    assert counts[carmen.pk] == len(similarity.candidate_faces_for_person(carmen))
+
+
+def test_persons_list_flags_people_with_candidates(client, people, alice):
+    carmen, paco = people
+    make_face(make_photo("c1"), unit(1, 0))
+    client.force_login(alice)
+
+    response = client.get(reverse("persons"))
+
+    flags = {p.pk: p.candidate_count for p in response.context["page"]}
+    assert flags == {carmen.pk: 1, paco.pk: 0}
+    assert "1 posible cara" in response.content.decode()
