@@ -147,6 +147,9 @@ class Graph:
         self.partners = defaultdict(set)
         self.ex_partners = defaultdict(set)
         self.siblings = defaultdict(set)  # explicit sibling relationships only
+        self.cousins = defaultdict(set)  # explicit cousin relationships only
+        self.uncles = defaultdict(set)  # explicit: person → their uncles
+        self._closure = None
         self.upper = defaultdict(set)  # ancestors one explicit step away (parent/grandparent)
         self.family = {}  # frozenset(pair) → kind, the explicit family relationship of a pair
         for row in rows:
@@ -166,6 +169,11 @@ class Graph:
             elif kind == K.SIBLING:
                 self.siblings[person_from].add(person_to)
                 self.siblings[person_to].add(person_from)
+            elif kind == K.COUSIN:
+                self.cousins[person_from].add(person_to)
+                self.cousins[person_to].add(person_from)
+            elif kind == K.UNCLE:
+                self.uncles[person_to].add(person_from)
             if kind in ANCESTRY_KINDS:
                 self.upper[person_to].add(person_from)
 
@@ -193,9 +201,73 @@ class Graph:
                 stack.extend(self.upper[current])
         return seen
 
+    def _sibling_component(self, pid):
+        """`pid` and everyone linked to them by explicit sibling relationships (transitive)."""
+        seen, stack = {pid}, [pid]
+        while stack:
+            for other in self.siblings[stack.pop()]:
+                if other not in seen:
+                    seen.add(other)
+                    stack.append(other)
+        return seen
+
     def siblings_of(self, pid):
-        shared = {c for p in self.parents[pid] for c in self.children[p]}
-        return (shared | self.siblings[pid]) - {pid}
+        """Explicit siblings (transitively) and the children of their parents.
+
+        Shared parents are not chained: a half-sibling's half-sibling is no sibling.
+        """
+        component = self._sibling_component(pid)
+        shared = {c for member in component for p in self.parents[member] for c in self.children[p]}
+        return (component | shared) - {pid}
+
+    def _uncles_and_cousins(self):
+        """{person: uncles}, {person: cousins} closed under the family rules, computed once.
+
+        - my parents' siblings and my siblings' explicit uncles are my uncles;
+        - my uncles' children and my siblings' explicit cousins are my cousins;
+        - my cousins' siblings are my cousins, and I am theirs (with my siblings);
+        - my cousins' parents are my uncles.
+        Nothing further: no second cousins and no great-uncles.
+        """
+        if self._closure is not None:
+            return self._closure
+        people = set(self.parents) | set(self.children) | set(self.siblings)
+        people |= set(self.cousins) | set(self.uncles)
+        people |= {u for us in self.uncles.values() for u in us}
+        sibs = {pid: self.siblings_of(pid) for pid in people}
+        uncles = {pid: set() for pid in people}
+        cousins = {pid: set() for pid in people}
+        for pid in people:
+            for p in self.parents[pid]:
+                uncles[pid] |= sibs.get(p) or self.siblings_of(p)
+            for s in sibs[pid] | {pid}:
+                uncles[pid] |= self.uncles[s]
+                cousins[pid] |= self.cousins[s]
+        changed = True
+        while changed:
+            before = sum(map(len, uncles.values())) + sum(map(len, cousins.values()))
+            for pid in people:
+                for s in sibs[pid]:  # siblings share uncles and cousins
+                    uncles[pid] |= uncles.get(s, set())
+                    cousins[pid] |= cousins.get(s, set())
+                for u in list(uncles[pid]):
+                    cousins[pid] |= self.children[u]
+                for c in list(cousins[pid]):
+                    cousins[pid] |= sibs.get(c) or self.siblings_of(c)
+                    uncles[pid] |= self.parents[c]
+                    cousins.setdefault(c, set()).update({pid} | sibs[pid])
+            for pid in people:
+                excluded = {pid} | sibs[pid] | self.parents[pid] | self.children[pid]
+                uncles[pid] -= excluded
+                cousins[pid] -= excluded | uncles[pid]
+            after = sum(map(len, uncles.values())) + sum(map(len, cousins.values()))
+            changed = after != before
+        nephews = defaultdict(set)
+        for pid, ups in uncles.items():
+            for u in ups:
+                nephews[u].add(pid)
+        self._closure = (uncles, cousins, nephews)
+        return self._closure
 
     def deduced(self, pid):
         """{other_id: role} of the family relationships that follow from the primary ones.
@@ -206,14 +278,14 @@ class Graph:
         children = self.children[pid]
         partners = self.partners[pid]
         siblings = self.siblings_of(pid)
-        uncles = {u for p in parents for u in self.siblings_of(p)}
+        all_uncles, all_cousins, all_nephews = self._uncles_and_cousins()
         groups = [
             ("sibling", siblings),
             ("grandparent", {g for p in parents for g in self.parents[p]}),
             ("grandchild", {g for c in children for g in self.children[c]}),
-            ("uncle", uncles),
-            ("nephew", {n for s in siblings for n in self.children[s]}),
-            ("cousin", {c for u in uncles for c in self.children[u]}),
+            ("uncle", all_uncles.get(pid, set())),
+            ("nephew", all_nephews.get(pid, set())),
+            ("cousin", all_cousins.get(pid, set())),
             ("parent_in_law", {p for q in partners for p in self.parents[q]}),
             ("child_in_law", {q for c in children for q in self.partners[c]}),
             (

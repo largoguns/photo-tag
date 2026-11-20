@@ -146,3 +146,63 @@ def test_relations_for_lists_explicit_and_deduced(alice):
         ("Dani", "Compañero de actividad", "social", False),
     ]
     assert relations[2].activity == "Fútbol"
+
+
+# --- Deductions from explicit siblings, cousins and uncles -----------------------------
+# A=1, B=2, C=3, D=4 as in the rules agreed with the family.
+
+
+def test_sibling_of_my_cousin_is_my_cousin():
+    # A is B's sibling and A is C's cousin ⇒ B and C are cousins (both ways).
+    graph = kinship.Graph([(1, 2, K.SIBLING), (1, 3, K.COUSIN)])
+    assert graph.deduced(2)[3] == "cousin"
+    assert graph.deduced(3)[2] == "cousin"
+
+
+def test_parent_of_my_cousin_is_my_uncle():
+    # ... and C is D's child ⇒ D is the uncle of A and of B, who are D's nephews.
+    graph = kinship.Graph([(1, 2, K.SIBLING), (1, 3, K.COUSIN), (4, 3, K.PARENT)])
+    assert graph.deduced(1)[4] == "uncle"
+    assert graph.deduced(2)[4] == "uncle"
+    assert graph.deduced(4)[1] == "nephew" and graph.deduced(4)[2] == "nephew"
+
+
+def test_explicit_siblings_are_transitive():
+    graph = kinship.Graph([(1, 2, K.SIBLING), (2, 3, K.SIBLING)])
+    assert graph.deduced(1)[3] == "sibling"
+    assert graph.deduced(3)[1] == "sibling"
+
+
+def test_half_siblings_are_not_chained():
+    # 1 and 2 share mother 10; 2 and 3 share father 11: 1 and 3 are not siblings.
+    graph = kinship.Graph(
+        [(10, 1, K.PARENT), (10, 2, K.PARENT), (11, 2, K.PARENT), (11, 3, K.PARENT)]
+    )
+    assert graph.deduced(1)[2] == "sibling"
+    assert 3 not in graph.deduced(1)
+
+
+def test_explicit_uncle_of_my_sibling_is_mine():
+    graph = kinship.Graph([(1, 2, K.SIBLING), (4, 1, K.UNCLE), (4, 5, K.PARENT)])
+    assert graph.deduced(2)[4] == "uncle"
+    assert graph.deduced(2)[5] == "cousin"  # the uncle's children are cousins
+    assert graph.deduced(5)[2] == "cousin"
+
+
+def test_cousins_of_my_cousin_are_not_mine():
+    # 2 is a cousin of 1 (one side) and of 3 (the other side): 1 and 3 are not related.
+    graph = kinship.Graph([(1, 2, K.COUSIN), (2, 3, K.COUSIN)])
+    assert 3 not in graph.deduced(1)
+
+
+def test_no_second_cousins_or_great_uncles():
+    # 1's uncle 4 has a cousin 5 and an uncle 6: neither is anything of 1.
+    graph = kinship.Graph([(4, 1, K.UNCLE), (4, 5, K.COUSIN), (6, 4, K.UNCLE)])
+    assert graph.deduced(1) == {}
+
+
+def test_an_explicit_relationship_wins_over_a_deduced_one():
+    graph = kinship.Graph([(1, 2, K.SIBLING), (1, 3, K.COUSIN), (2, 3, K.FRIEND)])
+    assert graph.deduced(2)[3] == "cousin"  # friend is social, the family one is deduced
+    graph = kinship.Graph([(1, 2, K.SIBLING), (1, 3, K.COUSIN), (2, 3, K.SIBLING_IN_LAW)])
+    assert 3 not in graph.deduced(2)  # an explicit family relationship is never overridden
