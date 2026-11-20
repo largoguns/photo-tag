@@ -255,12 +255,11 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.
    - Navegación anterior/siguiente y «siguiente foto sin catalogar».
 5. **Personas**: listado con miniatura de cara y número de fotos; ficha de persona con todas sus fotos y una sección «Puede que aparezca en» con las caras sin identificar más parecidas, cada una con un botón para proponerla. En la ficha, tocar el avatar cambia la foto principal; los administradores pueden **cambiar el nombre** (lápiz junto al nombre; se normaliza y no puede coincidir con otra persona, para eso está «Fusionar»; sus fotos se reexportan) y tienen «Fusionar» en el menú «⋮». La ficha incluye la sección «Familia y relaciones» y el botón «Ver árbol» (ver 5.12), y el honorífico y la sección «Apodos» (ver 5.13).
-6. **Mi actividad**: mis propuestas y su estado.
-7. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema, idioma y avisos. En móvil es una lista de ajustes plegables; en ventanas anchas (≥ 840 px), dos columnas: la tarjeta del usuario con un índice fijo de secciones a la izquierda y todas las secciones abiertas como tarjetas a la derecha.
-8. **Administración**: tipos de evento, ubicaciones, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
+6. **Mi perfil**: cambiar contraseña, nombre a mostrar, tema, idioma y avisos. En móvil es una lista de ajustes plegables; en ventanas anchas (≥ 840 px), dos columnas: la tarjeta del usuario con un índice fijo de secciones a la izquierda y todas las secciones abiertas como tarjetas a la derecha.
+7. **Administración**: tipos de evento, ubicaciones, umbrales, cola de revisión de escaneos, fusión de personas y exportación.
    - **Ubicaciones**: listado con número de fotos y quién propuso cada una. Los administradores pueden **renombrar**, **fusionar** (las fotos y propuestas pasan a la de destino) y **desactivar** (deja de sugerirse). Renombrar o fusionar reexporta las fotos afectadas. Todo queda en la auditoría.
-9. **Gestión de usuarios** (solo superadmin, ver 4.4).
-10. **Árbol genealógico**: destino propio en la barra de navegación y el rail, y accesible desde la ficha de persona (ver 5.12).
+8. **Gestión de usuarios** (solo superadmin, ver 4.4).
+9. **Árbol genealógico**: destino propio en la barra de navegación y el rail, y accesible desde la ficha de persona (ver 5.12).
 
 ### 5.6 Cola de revisión
 
@@ -285,7 +284,7 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 - Tres tipos, activables por usuario: **fotos nuevas para catalogar**, **propuestas pendientes de mi voto** (de otros autores y no votadas) y **mis propuestas aceptadas o rechazadas**.
 - **Resumen agrupado**: el `worker` revisa cada `NOTIFY_POLL_MINUTES` (10) lo ocurrido desde el último aviso de cada tipo y envía como mucho uno por tipo cada `NOTIFY_MIN_INTERVAL_MINUTES` (60). En las horas de silencio `NOTIFY_QUIET_HOURS` (`22-9`, zona `TZ`) no se envía nada; lo acumulado se avisa al terminar.
 - Al activar los avisos no se notifica el histórico anterior.
-- Textos genéricos, sin nombres de personas, en el idioma con el que se suscribió cada dispositivo. Al tocar el aviso se abre la pantalla correspondiente (siguiente foto sin catalogar, galería «pendientes de mi voto» o «Mi actividad»).
+- Textos genéricos, sin nombres de personas, en el idioma con el que se suscribió cada dispositivo. Al tocar el aviso se abre la pantalla correspondiente (siguiente foto sin catalogar, galería «pendientes de mi voto» o, para las propuestas resueltas, Inicio).
 - **Escaneos terminados** (preferencia «Mis escaneos terminados», activada por defecto): quien pulsa «Escanear» recibe un aviso **inmediato**, sin agrupar ni horas de silencio, cuando el escaneo ya está procesado («4 fotos listas del escaneo de las 13:10», que abre la primera foto), si era un duplicado o si falló (con el motivo, abre la pantalla de escaneo). No se muestra si la pantalla de escaneo está a la vista, porque ya enseña el resultado.
 - Las suscripciones caducadas (respuesta 404/410 del servicio push) se eliminan. Sin claves VAPID configuradas la función queda desactivada.
 - Envío con `pywebpush`. Las claves se generan con `python manage.py generate_vapid_keys`.
@@ -387,7 +386,7 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 - Hay una alternativa accesible, «Ver como lista»: la misma información en una lista indentada que se recorre con el teclado.
 
 **Integración con el resto de la aplicación:**
-- Las propuestas de relación cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, en «Mi actividad» y en los avisos push (5.9). Si solo hay propuestas de relación pendientes, el aviso abre Inicio. Los textos siguen sin nombres de personas.
+- Las propuestas de relación cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, y en los avisos push (5.9). Si solo hay propuestas de relación pendientes, el aviso abre Inicio. Los textos siguen sin nombres de personas.
 - Se auditan la creación, el voto, la decisión y el borrado de relaciones, con eventos en la categoría «Personas».
 - Gamificación (5.10): las relaciones aceptadas puntúan, cuenta el voto que coincide con el resultado y hay un logro nuevo, Genealogista. Si una relación aceptada se sustituye o se quita, sus puntos se retiran. `rebuild_scores` las incluye.
 - **Fusionar personas** pasa las relaciones a la persona destino. Se descartan las relaciones de la persona consigo misma, se juntan los duplicados y las propuestas que entren en conflicto pasan a `superseded`.
@@ -409,7 +408,7 @@ Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se prop
 
 - **Honorífico**: un tratamiento opcional que va delante del nombre («Tito», «Tita», «Abuela»). Hay uno como mucho. Se guarda con mayúscula inicial («tito» → «Tito»).
 - **Apodos**: una lista, que puede estar vacía, de motes («Pico pata», «Pico Paco»). Se recortan y se guardan tal cual. No hay dos apodos iguales en la misma persona (sin distinguir tildes ni mayúsculas), pero sí pueden repetirse entre personas distintas.
-- **Nombre visible**: honorífico + nombre a mostrar («Tito» + «Paco» = «Tito Paco»), o solo el nombre a mostrar si no hay honorífico. Se usa en toda la interfaz: recuadros y sugerencias de cara, chips, listado y ficha de personas, árbol, ranking, auditoría y «Mi actividad». Cambiar el nombre a mostrar (5.5) sigue siendo cosa de administradores y no pasa por votación.
+- **Nombre visible**: honorífico + nombre a mostrar («Tito» + «Paco» = «Tito Paco»), o solo el nombre a mostrar si no hay honorífico. Se usa en toda la interfaz: recuadros y sugerencias de cara, chips, listado y ficha de personas, árbol, ranking y auditoría. Cambiar el nombre a mostrar (5.5) sigue siendo cosa de administradores y no pasa por votación.
 - **Búsqueda**: la búsqueda laxa de 5.5 también busca por el honorífico y los apodos. «tito paco» y «pico pata» encuentran a la misma persona. Si el resultado aparece por un apodo, la sugerencia lo indica («Tito Paco · Pico pata»).
 
 **Ficha de persona.** El nombre visible va como título, con un lápiz para proponer otro honorífico o quitarlo. La sección **«Apodos»** muestra los apodos aceptados (cada uno con «Quitar»), las propuestas abiertas con 👍 / 👎 y el botón «Añadir apodo». Los apodos solo se ven en la ficha.
@@ -420,7 +419,7 @@ Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se prop
 - Solo se pueden proponer para personas activas, ni provisionales ni fusionadas.
 
 **Integración con el resto de la aplicación:**
-- Las propuestas cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, en «Mi actividad» y en los avisos push (5.9), con las mismas reglas que las relaciones (5.12).
+- Las propuestas cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, y en los avisos push (5.9), con las mismas reglas que las relaciones (5.12).
 - Se auditan la creación, el voto y la decisión, con eventos en la categoría «Personas».
 - Gamificación (5.10): las propuestas aceptadas puntúan y cuenta el voto que coincide con el resultado. Si un honorífico aceptado se sustituye, sus puntos se retiran. `rebuild_scores` las incluye.
 - **Fusionar personas**: se conserva el honorífico de la persona destino (o el de la absorbida si la destino no tiene) y se juntan los apodos de las dos sin duplicados. Las propuestas abiertas pasan a la persona destino, y las que queden en conflicto o duplicadas pasan a `superseded`.
