@@ -112,7 +112,7 @@ def test_pages_render_in_english(client, photo, superadmin, boda):
     voting.create_proposal(superadmin, photo, Proposal.Kind.EVENT, event_type=boda)
 
     content = client.get(reverse("photo_detail", args=[photo.pk])).content.decode()
-    assert "Propose event" in content
+    assert "Save event" in content  # administrators save directly, they do not propose
     assert "Wedding" in content  # EventType.name_en
     assert "2 faces" in content
     for name in ["home", "gallery", "persons", "profile", "admin_home"]:

@@ -45,6 +45,9 @@ def resolve_person(name, user):
     return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
 
 
+OTHER_EVENT = "Otro"
+
+
 def resolve_event_type(name, user):
     """Existing event type by name (any language, ignoring accents) or a new provisional one."""
     label = normalize_label(name)[:100]
@@ -161,10 +164,12 @@ def create_proposal(
             if face.person_id == person.pk:
                 raise ValidationError(_("Esa persona ya está aceptada para esta cara."))
     elif kind == Kind.EVENT:
-        if event_name and event_name.strip():
-            event_type = resolve_event_type(event_name, user)
+        # Event types are a standard list: a typed name no longer creates one ("Otro" +
+        # the description covers what is not in the list).
         if event_type is None:
-            raise ValidationError(_("Falta el tipo de evento."))
+            raise ValidationError(_("Elige un tipo de evento."))
+        if event_type.name == OTHER_EVENT and not " ".join(value.get("description", "").split()):
+            raise ValidationError(_("Con «Otro», escribe en la descripción qué evento es."))
         value = {
             "description": " ".join(value.get("description", "").split())[:255],
             # Kept so the proposal still reads well if a provisional type is removed.
@@ -194,7 +199,7 @@ def create_proposal(
 
     duplicate = _find_duplicate(photo, kind, face, person, event_type, value, location)
     if duplicate:
-        return cast_vote(user, duplicate, Vote.UP)
+        return _settle_by_admin(user, cast_vote(user, duplicate, Vote.UP))
 
     proposal = Proposal.objects.create(
         photo=photo,
@@ -215,6 +220,14 @@ def create_proposal(
         photo.save(update_fields=["status"])
     evaluate(proposal)
     proposal.refresh_from_db()
+    return _settle_by_admin(user, proposal)
+
+
+def _settle_by_admin(user, proposal):
+    """Administrators do not propose: what they save is accepted at once."""
+    if user.is_catalog_admin and proposal.is_open:
+        admin_decide(user, proposal, accept=True)
+        proposal.refresh_from_db()
     return proposal
 
 
@@ -493,7 +506,8 @@ def photos_pending_for_user(user):
 
 
 def event_types():
-    return EventType.objects.enabled()
+    """The standard list offered in photos (those added by the family await review)."""
+    return EventType.objects.enabled().filter(created_by__isnull=True)
 
 
 def locations():

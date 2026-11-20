@@ -94,8 +94,11 @@ def test_daily_cap_on_vote_points(alice, bob, photo, settings):
 
 
 def test_superadmin_and_admin_do_not_play(superadmin, admin_user, bob, photo):
-    proposal = identity(superadmin, photo)
-    voting.cast_vote(admin_user, proposal, Vote.UP)
+    first, second = photo.faces.all()[:2]
+    accepted = identity(superadmin, photo, face=first)  # accepted at once: admins decide
+    assert accepted.status == Proposal.Status.ACCEPTED
+    proposal = identity(bob, photo, name="Luis", face=second)
+    voting.cast_vote(admin_user, proposal, Vote.DOWN)
     assert not ScoreEvent.objects.filter(user__in=[superadmin, admin_user]).exists()
 
 

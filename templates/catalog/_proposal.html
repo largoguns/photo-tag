@@ -7,12 +7,12 @@
   <div class="vote-buttons">
     <form method="post" action="{% url 'vote' proposal.pk %}" hx-post="{% url 'vote' proposal.pk %}">
       {% csrf_token %}<input type="hidden" name="value" value="up">
-      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}{% if panel %}<input type="hidden" name="panel" value="{{ panel }}">{% endif %}
       <button type="submit" class="vote up" aria-pressed="{% if proposal.my_vote == 1 %}true{% else %}false{% endif %}" aria-label="{% blocktranslate with label=proposal.label votes=proposal.ups %}A favor de {{ label }} ({{ votes }}){% endblocktranslate %}">👍 <span>{{ proposal.ups }}</span></button>
     </form>
     <form method="post" action="{% url 'vote' proposal.pk %}" hx-post="{% url 'vote' proposal.pk %}">
       {% csrf_token %}<input type="hidden" name="value" value="down">
-      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}{% if panel %}<input type="hidden" name="panel" value="{{ panel }}">{% endif %}
       <button type="submit" class="vote down" aria-pressed="{% if proposal.my_vote == -1 %}true{% else %}false{% endif %}" aria-label="{% blocktranslate with label=proposal.label votes=proposal.downs %}En contra de {{ label }} ({{ votes }}){% endblocktranslate %}">👎 <span>{{ proposal.downs }}</span></button>
     </form>
   </div>
@@ -22,14 +22,14 @@
           hx-confirm="{% blocktranslate with label=proposal.label %}¿Aceptar directamente «{{ label }}» sin esperar a más votos?{% endblocktranslate %}"
           data-confirm-ok="{% translate 'Aceptar' %}">
       {% csrf_token %}<input type="hidden" name="decision" value="accept">
-      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}{% if panel %}<input type="hidden" name="panel" value="{{ panel }}">{% endif %}
       <button type="submit" class="button small">{% translate "Aceptar (admin)" %}</button>
     </form>
     <form method="post" action="{% url 'decide' proposal.pk %}" hx-post="{% url 'decide' proposal.pk %}"
           hx-confirm="{% blocktranslate with label=proposal.label %}¿Rechazar directamente «{{ label }}»?{% endblocktranslate %}"
           data-confirm-ok="{% translate 'Rechazar' %}" data-confirm-variant="danger">
       {% csrf_token %}<input type="hidden" name="decision" value="reject">
-      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}
+      {% if face %}<input type="hidden" name="selected_face" value="{{ face.pk }}">{% endif %}{% if panel %}<input type="hidden" name="panel" value="{{ panel }}">{% endif %}
       <button type="submit" class="button small danger">{% translate "Rechazar (admin)" %}</button>
     </form>
   </div>

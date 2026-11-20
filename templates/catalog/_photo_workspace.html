@@ -71,9 +71,9 @@
     <form id="add-face-form" class="draw-form card" method="post" action="{% url 'propose_add_face' photo.pk %}" hx-post="{% url 'propose_add_face' photo.pk %}" hidden>
       {% csrf_token %}
       <input type="hidden" name="x"><input type="hidden" name="y"><input type="hidden" name="w"><input type="hidden" name="h">
-      <p>{% translate "¿Proponer este recuadro como una cara nueva?" %}</p>
+      <p>{% if user.is_catalog_admin %}{% translate "¿Añadir este recuadro como una cara nueva?" %}{% else %}{% translate "¿Proponer este recuadro como una cara nueva?" %}{% endif %}</p>
       <div class="actions">
-        <button type="submit" class="button primary">{% translate "Proponer cara" %}</button>
+        <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Añadir cara" %}{% else %}{% translate "Proponer cara" %}{% endif %}</button>
         <button type="button" class="button" data-action="cancel-draw">{% translate "Cancelar" %}</button>
       </div>
     </form>
@@ -146,13 +146,13 @@
             </form>
             {% endfor %}
           </div>
-          <p class="hint muted">{% translate "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos." %}</p>
+          <p class="hint muted">{% if user.is_catalog_admin %}{% translate "Pulsar una sugerencia la guarda directamente." %}{% else %}{% translate "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos." %}{% endif %}</p>
         </div>
         {% endif %}
         <form method="post" class="inline-form" action="{% url 'propose_identity' face.pk %}" hx-post="{% url 'propose_identity' face.pk %}">
           {% csrf_token %}
           <input type="hidden" name="selected_face" value="{{ face.pk }}">
-          <label for="name-{{ face.pk }}">{% if face.person or face.identity_proposals %}{% translate "Proponer otro nombre" %}{% else %}{% translate "¿Quién es?" %}{% endif %}</label>
+          <label for="name-{{ face.pk }}">{% if not face.person and not face.identity_proposals %}{% translate "¿Quién es?" %}{% elif user.is_catalog_admin %}{% translate "Cambiar el nombre" %}{% else %}{% translate "Proponer otro nombre" %}{% endif %}</label>
           <div class="input-row">
             <div class="combobox">
               <input type="text" id="name-{{ face.pk }}" name="name" autocomplete="off" required
@@ -160,13 +160,13 @@
                      data-person-combobox placeholder="{% translate 'Nombre y apellidos' %}">
               <ul class="combobox-list" id="name-{{ face.pk }}-list" role="listbox" hidden></ul>
             </div>
-            <button type="submit" class="button primary">{% translate "Proponer" %}</button>
+            <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar" %}{% else %}{% translate "Proponer" %}{% endif %}</button>
           </div>
         </form>
         {% if face.status == 'active' %}
         <form method="post" action="{% url 'propose_remove_face' face.pk %}" hx-post="{% url 'propose_remove_face' face.pk %}"
-              hx-confirm="{% blocktranslate with number=face.number %}¿Proponer que el recuadro {{ number }} no es una cara? Se votará como cualquier otra propuesta.{% endblocktranslate %}"
-              data-confirm-ok="{% translate 'Proponer' %}">
+              hx-confirm="{% if user.is_catalog_admin %}{% blocktranslate with number=face.number %}¿Quitar el recuadro {{ number }}? No es una cara.{% endblocktranslate %}{% else %}{% blocktranslate with number=face.number %}¿Proponer que el recuadro {{ number }} no es una cara? Se votará como cualquier otra propuesta.{% endblocktranslate %}{% endif %}"
+              data-confirm-ok="{% if user.is_catalog_admin %}{% translate 'Quitar' %}{% else %}{% translate 'Proponer' %}{% endif %}">
           {% csrf_token %}<input type="hidden" name="selected_face" value="{{ face.pk }}">
           <button type="submit" class="button small">{% translate "No es una cara" %}</button>
         </form>
@@ -177,48 +177,43 @@
     <p class="muted panel">{% translate "No se han detectado caras. Usa «Dibujar cara» si falta alguna." %}</p>
     {% endfor %}
 
-    <details class="panel" id="event-panel" open>
+    <details class="panel" id="event-panel"{% if open_panel == "event" %} open{% endif %}>
       <summary><span class="panel-title">{% translate "Evento" %}</span>
         {% if photo.event_type %}<span class="muted">· {{ photo.event_type }}</span>{% endif %}
         {% if event_proposals %}<span class="badge">{{ event_proposals|length }}</span>{% endif %}
       </summary>
       <div class="panel-body stack">
         {% if photo.event_type %}<p>{% translate "Aceptado:" %} <strong>{{ photo.event_type }}</strong>{% if photo.event_description %} — {{ photo.event_description }}{% endif %}</p>{% endif %}
-        {% if event_proposals %}<ul class="proposals">{% for proposal in event_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        {% if event_proposals %}<ul class="proposals">{% for proposal in event_proposals %}{% include "catalog/_proposal.html" with face=None panel="event" %}{% endfor %}</ul>{% endif %}
         <form method="post" class="stack" action="{% url 'propose_event' photo.pk %}" hx-post="{% url 'propose_event' photo.pk %}">
-          {% csrf_token %}
+          {% csrf_token %}<input type="hidden" name="panel" value="event">
           <div class="field">
             <label for="event-type">{% translate "Tipo de evento" %}</label>
-            <select id="event-type" name="event_type" data-event-type>
+            <select id="event-type" name="event_type" data-event-type required>
               <option value="">{% translate "— Elige —" %}</option>
-              {% for event in event_types %}<option value="{{ event.pk }}">{{ event }}</option>{% endfor %}
-              <option value="new">{% translate "Otro…" %}</option>
+              {% for event in event_types %}<option value="{{ event.pk }}"{% if event.name == "Otro" %} data-other{% endif %}>{{ event }}</option>{% endfor %}
             </select>
           </div>
-          <div class="field" data-event-name>
-            <label for="event-name">{% translate "¿Qué evento es?" %}</label>
-            <input type="text" id="event-name" name="event_name" maxlength="100" autocomplete="off" placeholder="{% translate 'Graduación' %}">
-            <span class="helptext">{% translate "Si no está en la lista. Quedará disponible para todos cuando se acepte por votación." %}</span>
-          </div>
           <div class="field">
-            <label for="event-description">{% translate "Descripción (opcional)" %}</label>
+            <label for="event-description" data-description-label data-other-label="{% translate '¿Qué evento es?' %}">{% translate "Descripción (opcional)" %}</label>
             <input type="text" id="event-description" name="description" maxlength="255" placeholder="{% translate 'Boda de Luis y Ana' %}">
+            <span class="helptext">{% translate "Si no encaja en ningún tipo, elige «Otro» y descríbelo aquí. Los lugares van en Ubicación." %}</span>
           </div>
-          <button type="submit" class="button primary">{% translate "Proponer evento" %}</button>
+          <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar evento" %}{% else %}{% translate "Proponer evento" %}{% endif %}</button>
         </form>
       </div>
     </details>
 
-    <details class="panel" id="date-panel" open>
+    <details class="panel" id="date-panel"{% if open_panel == "date" %} open{% endif %}>
       <summary><span class="panel-title">{% translate "Fecha" %}</span>
         {% if photo.date_value %}<span class="muted">· {{ photo.date_label }}</span>{% endif %}
         {% if date_proposals %}<span class="badge">{{ date_proposals|length }}</span>{% endif %}
       </summary>
       <div class="panel-body stack">
         {% if photo.date_value %}<p>{% translate "Aceptada:" %} <strong>{{ photo.date_label }}</strong></p>{% endif %}
-        {% if date_proposals %}<ul class="proposals">{% for proposal in date_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        {% if date_proposals %}<ul class="proposals">{% for proposal in date_proposals %}{% include "catalog/_proposal.html" with face=None panel="date" %}{% endfor %}</ul>{% endif %}
         <form method="post" class="stack date-form" action="{% url 'propose_date' photo.pk %}" hx-post="{% url 'propose_date' photo.pk %}">
-          {% csrf_token %}
+          {% csrf_token %}<input type="hidden" name="panel" value="date">
           <div class="field">
             <label for="date-precision">{% translate "Precisión" %}</label>
             <select id="date-precision" name="precision" data-date-precision>
@@ -234,22 +229,22 @@
             <label for="date-exact">{% translate "Fecha" %}</label>
             <input type="date" id="date-exact" name="date">
           </div>
-          <button type="submit" class="button primary">{% translate "Proponer fecha" %}</button>
+          <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar fecha" %}{% else %}{% translate "Proponer fecha" %}{% endif %}</button>
         </form>
       </div>
     </details>
 
-    <details class="panel" id="location-panel" open>
+    <details class="panel" id="location-panel"{% if open_panel == "location" %} open{% endif %}>
       <summary><span class="panel-title">{% translate "Ubicación" %}</span>
         {% if photo.location %}<span class="muted">· {{ photo.location }}</span>{% endif %}
         {% if location_proposals %}<span class="badge">{{ location_proposals|length }}</span>{% endif %}
       </summary>
       <div class="panel-body stack">
         {% if photo.location %}<p>{% translate "Aceptada:" %} <strong>{{ photo.location }}</strong></p>{% endif %}
-        {% if location_proposals %}<ul class="proposals">{% for proposal in location_proposals %}{% include "catalog/_proposal.html" with face=None %}{% endfor %}</ul>{% endif %}
+        {% if location_proposals %}<ul class="proposals">{% for proposal in location_proposals %}{% include "catalog/_proposal.html" with face=None panel="location" %}{% endfor %}</ul>{% endif %}
         <form method="post" class="inline-form" action="{% url 'propose_location' photo.pk %}" hx-post="{% url 'propose_location' photo.pk %}">
-          {% csrf_token %}
-          <label for="location-name">{% if photo.location or location_proposals %}{% translate "Proponer otra ubicación" %}{% else %}{% translate "¿Dónde se hizo?" %}{% endif %}</label>
+          {% csrf_token %}<input type="hidden" name="panel" value="location">
+          <label for="location-name">{% if not photo.location and not location_proposals %}{% translate "¿Dónde se hizo?" %}{% elif user.is_catalog_admin %}{% translate "Cambiar la ubicación" %}{% else %}{% translate "Proponer otra ubicación" %}{% endif %}</label>
           <div class="input-row">
             <div class="combobox">
               <input type="text" id="location-name" name="location" maxlength="150" autocomplete="off" required
@@ -257,7 +252,7 @@
                      data-combobox="locations" placeholder="{% translate 'Casa de los abuelos' %}">
               <ul class="combobox-list" id="location-name-list" role="listbox" hidden></ul>
             </div>
-            <button type="submit" class="button primary">{% translate "Proponer" %}</button>
+            <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar" %}{% else %}{% translate "Proponer" %}{% endif %}</button>
           </div>
         </form>
       </div>

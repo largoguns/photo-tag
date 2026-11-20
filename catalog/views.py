@@ -155,9 +155,12 @@ def persons(request):
             found.append(person)
         people = found
     page = Paginator(people, 60).get_page(request.GET.get("page"))
-    avatars = presenters.person_avatars([person.pk for person in page])
+    page_ids = [person.pk for person in page]
+    avatars = presenters.person_avatars(page_ids)
+    candidates = similarity.candidate_counts(page_ids)
     for person in page:
         person.avatar_id = avatars.get(person.pk)
+        person.candidate_count = candidates.get(person.pk, 0)
     return render(request, "catalog/persons.html", {"page": page, "query": query})
 
 
@@ -253,6 +256,9 @@ def _render_photo(request, photo, status=200):
     selected = request.GET.get("face") or request.POST.get("selected_face")
     context = presenters.photo_context(photo, request.user, selected_face=selected)
     context["event_types"] = voting.event_types()
+    # Panels start folded; the one just used stays open (its result or error shows).
+    panel = request.POST.get("panel", "")
+    context["open_panel"] = panel if panel in ("event", "date", "location") else ""
     if not request.htmx_partial:
         context["people_json"] = presenters.people_json()
         context["locations_json"] = [
@@ -350,18 +356,15 @@ def propose_event(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
 
     def action():
-        # "Other…" with a name proposes a new event type; a typed name always wins.
-        event_name = request.POST.get("event_name", "").strip()
         selected = request.POST.get("event_type", "")
-        event_type = None
-        if not event_name and selected.isdigit():
-            event_type = EventType.objects.enabled().filter(pk=selected).first()
+        event_type = (
+            voting.event_types().filter(pk=selected).first() if selected.isdigit() else None
+        )
         voting.create_proposal(
             request.user,
             photo,
             Proposal.Kind.EVENT,
             event_type=event_type,
-            event_name=event_name,
             value={"description": request.POST.get("description", "")},
         )
 

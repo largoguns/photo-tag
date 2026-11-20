@@ -106,13 +106,13 @@ def test_invalid_filters_are_ignored(client, superadmin):
     assert response.status_code == 200
 
 
-def test_summary_and_tabs_of_a_person(client, superadmin, alice, bob, photo):
+def test_summary_and_tabs_of_a_person(client, superadmin, alice, bob, photo, boda):
     face = photo.faces.first()
     proposal = voting.create_proposal(
         bob, photo, Proposal.Kind.FACE_IDENTITY, face=face, person_name="Ana"
     )
     voting.cast_vote(alice, proposal, Vote.DOWN)
-    voting.create_proposal(alice, photo, Proposal.Kind.EVENT, event_name="Boda")
+    voting.create_proposal(alice, photo, Proposal.Kind.EVENT, event_type=boda)
     client.force_login(superadmin)
 
     content = client.get(reverse("audit"), {"user": alice.pk}).content.decode()
