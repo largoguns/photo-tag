@@ -196,7 +196,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `PersonDetailVote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
 | `Location` | nombre, nombre normalizado (único), activa, provisional, propuesta_por (nullable), merged_into (nullable), fecha. Catálogo de lugares en texto («Casa de Los Tarantos»), sin geoposición por ahora |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
-| `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Catálogo editable: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… («Otro» queda inactivo y lo sustituye «Otro…» con nombre) |
+| `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Lista estándar editable por los administradores: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… y «Otro» (con descripción). `propuesto_por` marca los añadidos por la familia antes de cerrar la lista, pendientes de revisión |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
 | `Vote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
 | `ScoreEvent` | usuario, motivo, puntos, objeto (tipo e id), fecha. Único por (usuario, motivo, objeto) |
@@ -227,7 +227,10 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 - Un valor aceptado puede reabrirse con una nueva propuesta; el anterior sigue vigente hasta que la nueva se acepte.
 - Un administrador puede aceptar o rechazar directamente cualquier propuesta (queda registrado).
 - Los umbrales son configurables desde la administración.
-- **Eventos nuevos**: cualquier usuario puede proponer «Otro…» con un nombre. Si coincide con un tipo existente (sin distinguir tildes ni mayúsculas, en español o en inglés), se usa ese tipo; si no, se crea uno **provisional** con el nombre en formato frase. Pasa al catálogo cuando la propuesta se acepta y se elimina si se rechaza o queda sustituida sin que nadie más lo use. Los administradores ven quién lo propuso y pueden editarlo o desactivarlo.
+- **Tipos de evento estándar**: el tipo de evento se elige de una lista estándar (vacaciones, Navidad, fin de año, fiesta escolar, cumpleaños, bautizo, comunión…) que solo amplían los administradores. Lo que no encaja se propone como **«Otro»** con la descripción obligatoria («Viaje a Mérida»); los lugares van en Ubicación. Escribir un nombre ya no crea tipos.
+- **Revisión de los tipos añadidos por la familia** (Administración → Tipos de evento, «Añadidos por la familia»): los tipos que se crearon antes con «Otro…» se revisan uno a uno con cuatro acciones, que arrastran sus fotos y propuestas (abiertas, aceptadas o rechazadas, con sus votos) y quedan en la auditoría: **pasar a ubicación** (sus fotos toman esa ubicación si no tenían otra y sus propuestas pasan a ser de ubicación), **pasar a «Otro»** con el nombre como descripción, **fusionar** con un tipo estándar y **mantener** como estándar. Salvo al mantener, el tipo desaparece. Mientras tanto no se ofrecen al proponer.
+- **Los administradores no proponen**: lo que guarda un administrador o el superadmin en una foto (nombre de una cara, evento, fecha, ubicación, cara dibujada o «no es una cara») se acepta al momento, como propuesta decidida por él; los botones dicen «Guardar».
+- En la vista de foto, los paneles de Evento, Fecha y Ubicación empiezan **plegados**; el que se acaba de usar queda abierto para ver su resultado o su error.
 - **Ubicaciones nuevas**: igual que los eventos nuevos. Si el texto coincide con una `Location` existente (sin distinguir tildes ni mayúsculas), se usa esa; si no, se crea una **provisional** con el texto recortado y las mayúsculas tal como se escribieron. Pasa al catálogo cuando la propuesta se acepta y se elimina si se rechaza o queda sustituida sin que nadie más la use.
 - Una foto pasa a `cataloged` cuando todas sus caras tienen persona aceptada y tiene evento aceptado. La fecha y la ubicación no son obligatorias.
 
@@ -359,7 +362,11 @@ Desde cada persona se muestra con la etiqueta que le corresponde: si A es progen
 - No se pueden crear ciclos de ascendencia (progenitor y abuelo cuentan como ascendencia).
 - No se puede contradecir una relación familiar deducida, como proponer «Primo» cuando ya se deduce «Hermano».
 
-**Relaciones deducidas.** Las relaciones primarias son Progenitor/Hijo y Pareja. A partir de ellas se deducen, sin votación, hermanos (progenitor común), abuelos, tíos, primos, suegros y cuñados. Se muestran como «deducida». Si alguien propone una relación que ya se deduce, no se crea y se le avisa.
+**Relaciones deducidas.** Las relaciones primarias son Progenitor/Hijo y Pareja. A partir de ellas, y de los hermanos, primos y tíos explícitos, se deducen sin votación hermanos, abuelos, tíos, sobrinos, primos, suegros y cuñados. Se muestran como «deducida». Si alguien propone una relación que ya se deduce, no se crea y se le avisa. Reglas:
+- Hermanos: progenitor común o relación explícita, de forma transitiva entre los explícitos (A hermano de B y B de C ⇒ A de C); los medios hermanos no se encadenan.
+- Los hermanos comparten tíos y primos: A hermano de B y A primo de C ⇒ B y C primos; un tío explícito de A lo es también de B.
+- Tíos: los hermanos de mis progenitores y los **progenitores de mis primos** (C hijo de D y C primo de A ⇒ D tío de A y de sus hermanos). Primos: los hijos de mis tíos y los hermanos de mis primos. Sobrinos, el inverso de tíos.
+- No existen «primo segundo» ni «tío abuelo»: el primo de mi primo no es mi primo (salvo que sea su hermano) y nada se deduce más allá.
 
 Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol se dibujan como **enlace directo**, con línea discontinua.
 
