@@ -69,8 +69,8 @@
   color: var(--md-on-surface);
   background: var(--md-surface);
   -webkit-tap-highlight-color: transparent;
-  /* No pinch/double-tap zoom on the page; the photo viewer zooms itself. */
-  touch-action: pan-x pan-y;
+  /* The page zooms (double tap, pinch) except where the app has its own gestures:
+     gallery rows, photo viewer, crop editor, tree and year rail (touch-action below). */
 }
 
 @media (prefers-color-scheme: dark) {

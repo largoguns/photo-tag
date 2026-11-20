@@ -31,11 +31,15 @@ def make_photo(index, date=None, precision="", scan=None):
 # --- App shell ---------------------------------------------------------------------
 
 
-def test_page_zoom_is_disabled():
+def test_page_zoom_is_allowed_except_on_own_gestures():
     base = (BASE_DIR / "templates" / "base.html").read_text()
-    assert "maximum-scale=1, user-scalable=no" in base
+    assert "user-scalable=no" not in base and "maximum-scale" not in base
     css = (BASE_DIR / "static" / "css" / "app.css").read_text()
-    assert "touch-action: pan-x pan-y" in css
+    assert "touch-action: pan-x pan-y" not in css
+    assert "[data-gallery-zoom] { touch-action: pan-y; }" in css
+    for selector in [".viewer-stage", ".crop-canvas", ".tree-canvas"]:
+        rule = css.split(selector + " {", 1)[1].split("}", 1)[0]
+        assert "touch-action: none" in rule, selector
 
 
 def test_shell_has_top_bar_avatar_menu_nav_and_no_more_button(client, superadmin):

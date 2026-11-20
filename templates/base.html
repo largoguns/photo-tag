@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8">
   {# Page zoom is disabled on purpose; photos open in a zoomable viewer instead. #}
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="{% if user.is_authenticated and user.theme != 'auto' %}{{ user.theme }}{% else %}light dark{% endif %}">
   <title>{% block title %}PhotoTag{% endblock %} · PhotoTag</title>
   <meta name="theme-color" content="#f9f9ff" media="(prefers-color-scheme: light)">
