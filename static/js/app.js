@@ -427,26 +427,32 @@
     form.querySelector('[data-date-field="exact"]').hidden = !exact;
   });
 
-  // --- Event proposal: "Other…" reveals the new event name field --------------------
+  // --- Event type review: the target type only for «fusionar con…» ----------------------
+  document.addEventListener("change", (event) => {
+    if (!event.target.matches("[data-review-action]")) return;
+    const target = event.target.form.querySelector("[data-review-target]");
+    if (target) target.hidden = event.target.value !== "merge";
+  });
+
+  // --- Event proposal: with «Otro» the description is what the event is (required) -------
   function syncEventForm(select) {
-    const field = select.closest("form").querySelector("[data-event-name]");
-    if (!field) return;
-    const isNew = select.value === "new";
-    field.hidden = !isNew;
-    field.querySelector("input").required = isNew;
-    if (isNew) field.querySelector("input").focus();
+    const form = select.closest("form");
+    const input = form.querySelector('[name="description"]');
+    const label = form.querySelector("[data-description-label]");
+    if (!input || !label) return;
+    const other = Boolean(select.selectedOptions[0] && select.selectedOptions[0].hasAttribute("data-other"));
+    if (!label.dataset.plainLabel) label.dataset.plainLabel = label.textContent;
+    label.textContent = other ? label.dataset.otherLabel : label.dataset.plainLabel;
+    input.required = other;
+    if (other) input.focus();
   }
 
   document.addEventListener("change", (event) => {
     if (event.target.matches("[data-event-type]")) syncEventForm(event.target);
   });
 
-  // Without JS the name field stays visible; with JS it only shows for "Other…".
   function initEventForms(root) {
-    root.querySelectorAll("[data-event-name]").forEach((field) => {
-      const select = field.closest("form").querySelector("[data-event-type]");
-      field.hidden = !select || select.value !== "new";
-    });
+    root.querySelectorAll("[data-event-type]").forEach(syncEventForm);
   }
   ready(() => initEventForms(document));
   document.addEventListener("htmx:afterSwap", (event) => initEventForms(event.target));
@@ -611,11 +617,17 @@
     }
   });
 
-  // pointerdown (not click) so the choice lands before the input loses focus.
+  // Choose on the option's own click. Choosing on pointerdown closed the list at once and
+  // the click then landed on whatever was underneath (a vote or reject button).
+  // pointerdown only keeps the focus in the input, so the list stays open until then.
   document.addEventListener("pointerdown", (event) => {
+    if (event.target.closest(".combobox-option")) event.preventDefault();
+  });
+  document.addEventListener("click", (event) => {
     const option = event.target.closest(".combobox-option");
     if (!option) return;
     event.preventDefault();
+    event.stopPropagation();
     const input = document.querySelector(`[aria-controls="${option.parentElement.id}"]`);
     if (input) chooseOption(input, option);
   });

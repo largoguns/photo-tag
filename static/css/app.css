@@ -432,6 +432,7 @@ body.selecting .fab { display: none; }
 .person-grid { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .person-card { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: .75rem; text-align: center; background: var(--md-surface-container-low); border-radius: var(--radius); text-decoration: none; color: var(--md-on-surface); min-height: 100%; min-width: 0; }
 .person-card img, .avatar-placeholder { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
+.person-card .badge { white-space: normal; text-align: center; }
 .avatar-placeholder { display: grid; place-items: center; background: var(--md-primary-container); color: var(--md-on-primary-container); font-size: 2rem; font-weight: 500; }
 .person-name { font-weight: 500; overflow-wrap: anywhere; }
 
@@ -992,3 +993,8 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
     border-radius: 28px 0 0 28px;
   }
 }
+
+/* Event types added by the family: one row per type, its action on the right. */
+.review-row { flex-wrap: wrap; }
+.review-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-left: auto; }
+.review-actions select { min-width: 0; max-width: 100%; }
