@@ -158,3 +158,32 @@ def test_targets_that_no_longer_exist_are_named_from_the_details(client, superad
     content = listed(client.get(reverse("audit")))
     assert "scan-viejo.png (ya no existe)" in content
     assert "Foto 998 (ya no existe)" in content
+
+
+@pytest.fixture
+def alice_proposals(alice, photo, boda):
+    voting.create_proposal(alice, photo, Proposal.Kind.EVENT, event_type=boda)
+    voting.create_proposal(
+        alice, photo, Proposal.Kind.DATE, value=voting.normalize_date("year", 1985)
+    )
+
+
+def proposals_tab(client, user, **filters):
+    params = {"user": user.pk, "tab": "proposals", **filters}
+    return client.get(reverse("audit"), params).content.decode()
+
+
+def test_proposals_tab_has_the_gallery_filter_bar(client, superadmin, alice, alice_proposals):
+    client.force_login(superadmin)
+    content = proposals_tab(client, alice)
+    assert 'class="filter-bar"' in content
+    assert 'data-open-sheet="sheet-status"' in content and 'id="sheet-kind"' in content
+    assert "2 propuestas" in content
+
+
+def test_proposals_tab_filters_by_kind_and_status(client, superadmin, alice, alice_proposals):
+    client.force_login(superadmin)
+    content = proposals_tab(client, alice, kind="event")
+    assert "1 propuesta" in content and "Boda" in content and "1985" not in content
+    assert "Ninguna propuesta con estos filtros." in proposals_tab(client, alice, status="rejected")
+    assert "2 propuestas" in proposals_tab(client, alice, kind="x", status="y")
