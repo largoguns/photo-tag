@@ -356,7 +356,9 @@ def propose_event(request, pk):
     photo = get_object_or_404(Photo, pk=pk)
 
     def action():
+        # «Otro…» sends a typed name: an existing type or a new one for review.
         selected = request.POST.get("event_type", "")
+        event_name = request.POST.get("event_name", "").strip() if selected == "new" else ""
         event_type = (
             voting.event_types().filter(pk=selected).first() if selected.isdigit() else None
         )
@@ -365,6 +367,7 @@ def propose_event(request, pk):
             photo,
             Proposal.Kind.EVENT,
             event_type=event_type,
+            event_name=event_name,
             value={"description": request.POST.get("description", "")},
         )
 

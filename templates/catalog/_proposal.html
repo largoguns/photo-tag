@@ -3,7 +3,9 @@
   <div class="proposal-body">
     <span class="proposal-label">{{ proposal.label }}</span>
     <span class="meta muted">{% blocktranslate with author=proposal.author %}propuesta por {{ author }}{% endblocktranslate %}</span>
+    {% if proposal.in_review %}<span class="badge warn" title="{% translate 'Es nuevo: lo decide un administrador, no se vota.' %}">{% translate "En revisión" %}</span>{% endif %}
   </div>
+  {% if not proposal.in_review %}
   <div class="vote-buttons">
     <form method="post" action="{% url 'vote' proposal.pk %}" hx-post="{% url 'vote' proposal.pk %}">
       {% csrf_token %}<input type="hidden" name="value" value="up">
@@ -16,6 +18,7 @@
       <button type="submit" class="vote down" aria-pressed="{% if proposal.my_vote == -1 %}true{% else %}false{% endif %}" aria-label="{% blocktranslate with label=proposal.label votes=proposal.downs %}En contra de {{ label }} ({{ votes }}){% endblocktranslate %}">👎 <span>{{ proposal.downs }}</span></button>
     </form>
   </div>
+  {% endif %}
   {% if user.is_catalog_admin %}
   <div class="admin-decide">
     <form method="post" action="{% url 'decide' proposal.pk %}" hx-post="{% url 'decide' proposal.pk %}"

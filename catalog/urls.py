@@ -52,6 +52,11 @@ urlpatterns = [
     ),
     path("admin/locations/", admin_views.locations, name="admin_locations"),
     path("admin/locations/<int:pk>/", admin_views.location_edit, name="admin_location_edit"),
+    path(
+        "admin/locations/<int:pk>/review/",
+        admin_views.location_review,
+        name="admin_location_review",
+    ),
     path("admin/thresholds/", admin_views.thresholds, name="admin_thresholds"),
     path("admin/review/", admin_views.review_queue, name="admin_review_queue"),
     path("admin/review/<int:pk>/ok/", admin_views.review_mark_ok, name="admin_review_ok"),

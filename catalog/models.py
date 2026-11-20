@@ -408,6 +408,15 @@ class Proposal(models.Model):
     def is_open(self):
         return self.status == self.Status.OPEN
 
+    @property
+    def in_review(self):
+        """A new event type or location: an administrator decides it, not the votes."""
+        if self.kind == self.Kind.EVENT and self.event_type_id:
+            return self.event_type.is_provisional
+        if self.kind == self.Kind.LOCATION and self.location_id:
+            return self.location.is_provisional
+        return False
+
     def label(self):
         """Human readable value in the active language."""
         if self.kind == self.Kind.FACE_IDENTITY:

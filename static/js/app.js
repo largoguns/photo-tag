@@ -427,30 +427,21 @@
     form.querySelector('[data-date-field="exact"]').hidden = !exact;
   });
 
-  // --- Event type review: the target type only for «fusionar con…» ----------------------
-  document.addEventListener("change", (event) => {
-    if (!event.target.matches("[data-review-action]")) return;
-    const target = event.target.form.querySelector("[data-review-target]");
-    if (target) target.hidden = event.target.value !== "merge";
-  });
-
-  // --- Event proposal: with «Otro» the description is what the event is (required) -------
+  // --- Event proposal: «Otro…» reveals the field for the new event (reviewed by an admin) --
   function syncEventForm(select) {
-    const form = select.closest("form");
-    const input = form.querySelector('[name="description"]');
-    const label = form.querySelector("[data-description-label]");
-    if (!input || !label) return;
-    const other = Boolean(select.selectedOptions[0] && select.selectedOptions[0].hasAttribute("data-other"));
-    if (!label.dataset.plainLabel) label.dataset.plainLabel = label.textContent;
-    label.textContent = other ? label.dataset.otherLabel : label.dataset.plainLabel;
-    input.required = other;
-    if (other) input.focus();
+    const field = select.closest("form").querySelector("[data-event-name]");
+    if (!field) return;
+    const isNew = select.value === "new";
+    field.hidden = !isNew;
+    field.querySelector("input").required = isNew;
+    if (isNew && document.activeElement === select) field.querySelector("input").focus();
   }
 
   document.addEventListener("change", (event) => {
     if (event.target.matches("[data-event-type]")) syncEventForm(event.target);
   });
 
+  // Without JS the field stays visible; with JS it only shows for «Otro…».
   function initEventForms(root) {
     root.querySelectorAll("[data-event-type]").forEach(syncEventForm);
   }

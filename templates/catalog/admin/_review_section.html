@@ -1,0 +1,43 @@
+{% load i18n %}
+{# New event types or locations waiting for an administrator: accept (as typed or rewritten), reject, or — events — say it is a place. #}
+{% if entries %}
+<section class="card stack review-entries" aria-labelledby="review-title">
+  <h2 id="review-title">{% blocktranslate count counter=entries|length %}Pendiente de revisión ({{ counter }}){% plural %}Pendientes de revisión ({{ counter }}){% endblocktranslate %}</h2>
+  <p class="muted">{% if kind == "event" %}{% translate "Eventos escritos con «Otro…». No se votan: acéptalos tal cual o con un texto mejor (si coincide con uno existente, se unen), recházalos o, si era un lugar, pásalos a ubicación." %}{% else %}{% translate "Lugares nuevos escritos en las fotos. No se votan: acéptalos tal cual o con un texto mejor (si coincide con uno existente, se unen) o recházalos." %}{% endif %}</p>
+  <ul class="list">
+    {% for entry in entries %}
+    <li class="list-item review-row">
+      <div class="list-main">
+        <strong>{{ entry.name }}</strong>
+        <div class="meta muted">
+          {% if entry.created_by %}{% blocktranslate with user=entry.created_by %}De {{ user }}{% endblocktranslate %} · {% endif %}{% blocktranslate count counter=entry.open_count %}{{ counter }} propuesta{% plural %}{{ counter }} propuestas{% endblocktranslate %} · {% blocktranslate count counter=entry.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}
+          {% if entry.example_photo %} · <a href="{% url 'photo_detail' entry.example_photo %}">{% translate "Ver foto" %}</a>{% endif %}
+        </div>
+      </div>
+      <div class="review-actions">
+        <form method="post" action="{% url review_url entry.pk %}" class="review-accept">
+          {% csrf_token %}<input type="hidden" name="action" value="accept">
+          <label class="visually-hidden" for="review-text-{{ kind }}-{{ entry.pk }}">{% blocktranslate with name=entry.name %}Texto para «{{ name }}»{% endblocktranslate %}</label>
+          <input type="text" id="review-text-{{ kind }}-{{ entry.pk }}" name="text" value="{{ entry.name }}" maxlength="{% if kind == 'event' %}100{% else %}150{% endif %}" required>
+          <button type="submit" class="button small primary">{% translate "Aceptar" %}</button>
+        </form>
+        <form method="post" action="{% url review_url entry.pk %}"
+              data-confirm="{% blocktranslate with name=entry.name %}¿Rechazar «{{ name }}»? Sus propuestas se rechazan y las fotos que lo tuvieran lo pierden.{% endblocktranslate %}"
+              data-confirm-ok="{% translate 'Rechazar' %}" data-confirm-variant="danger">
+          {% csrf_token %}<input type="hidden" name="action" value="reject">
+          <button type="submit" class="button small danger">{% translate "Rechazar" %}</button>
+        </form>
+        {% if kind == "event" %}
+        <form method="post" action="{% url review_url entry.pk %}"
+              data-confirm="{% blocktranslate with name=entry.name %}¿«{{ name }}» es un lugar? Pasará a ser la ubicación de sus fotos.{% endblocktranslate %}"
+              data-confirm-ok="{% translate 'Es un lugar' %}">
+          {% csrf_token %}<input type="hidden" name="action" value="location">
+          <button type="submit" class="button small">{% translate "Es un lugar" %}</button>
+        </form>
+        {% endif %}
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}

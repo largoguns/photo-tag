@@ -45,9 +45,6 @@ def resolve_person(name, user):
     return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
 
 
-OTHER_EVENT = "Otro"
-
-
 def resolve_event_type(name, user):
     """Existing event type by name (any language, ignoring accents) or a new provisional one."""
     label = normalize_label(name)[:100]
@@ -164,12 +161,12 @@ def create_proposal(
             if face.person_id == person.pk:
                 raise ValidationError(_("Esa persona ya está aceptada para esta cara."))
     elif kind == Kind.EVENT:
-        # Event types are a standard list: a typed name no longer creates one ("Otro" +
-        # the description covers what is not in the list).
+        # «Otro…» with a name: an existing type, or a new one that an administrator
+        # reviews (accepts, rejects or rewrites) before anyone can choose it.
+        if event_name and event_name.strip():
+            event_type = resolve_event_type(event_name, user)
         if event_type is None:
             raise ValidationError(_("Elige un tipo de evento."))
-        if event_type.name == OTHER_EVENT and not " ".join(value.get("description", "").split()):
-            raise ValidationError(_("Con «Otro», escribe en la descripción qué evento es."))
         value = {
             "description": " ".join(value.get("description", "").split())[:255],
             # Kept so the proposal still reads well if a provisional type is removed.
@@ -294,7 +291,7 @@ def outcome(ups, downs, min_approvals, ratio):
 
 
 def evaluate(proposal):
-    if not proposal.is_open:
+    if not proposal.is_open or proposal.in_review:  # new type or place: an admin decides
         return proposal.status
     conf = CatalogSettings.load()
     ups, downs = tally(proposal)
@@ -496,6 +493,8 @@ def pending_for_user(user):
     """Open proposals the user has not voted on yet."""
     return (
         Proposal.objects.filter(status=Status.OPEN, photo__discarded=False)
+        .exclude(kind=Kind.EVENT, event_type__is_provisional=True)  # in review: not voted
+        .exclude(kind=Kind.LOCATION, location__is_provisional=True)
         .exclude(votes__user=user)
         .select_related("photo", "person", "event_type", "location", "face")
     )
@@ -506,8 +505,8 @@ def photos_pending_for_user(user):
 
 
 def event_types():
-    """The standard list offered in photos (those added by the family await review)."""
-    return EventType.objects.enabled().filter(created_by__isnull=True)
+    """Event types offered in photos: accepted ones (new ones await an administrator)."""
+    return EventType.objects.enabled()
 
 
 def locations():

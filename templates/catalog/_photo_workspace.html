@@ -191,13 +191,18 @@
             <label for="event-type">{% translate "Tipo de evento" %}</label>
             <select id="event-type" name="event_type" data-event-type required>
               <option value="">{% translate "— Elige —" %}</option>
-              {% for event in event_types %}<option value="{{ event.pk }}"{% if event.name == "Otro" %} data-other{% endif %}>{{ event }}</option>{% endfor %}
+              {% for event in event_types %}<option value="{{ event.pk }}">{{ event }}</option>{% endfor %}
+              <option value="new">{% translate "Otro…" %}</option>
             </select>
           </div>
+          <div class="field" data-event-name>
+            <label for="event-name">{% translate "¿Qué evento es?" %}</label>
+            <input type="text" id="event-name" name="event_name" maxlength="100" autocomplete="off" placeholder="{% translate 'Graduación' %}">
+            <span class="helptext">{% if user.is_catalog_admin %}{% translate "Se añadirá a la lista de eventos." %}{% else %}{% translate "Si no está en la lista. Lo revisará un administrador antes de añadirlo; los lugares van en Ubicación." %}{% endif %}</span>
+          </div>
           <div class="field">
-            <label for="event-description" data-description-label data-other-label="{% translate '¿Qué evento es?' %}">{% translate "Descripción (opcional)" %}</label>
+            <label for="event-description">{% translate "Descripción (opcional)" %}</label>
             <input type="text" id="event-description" name="description" maxlength="255" placeholder="{% translate 'Boda de Luis y Ana' %}">
-            <span class="helptext">{% translate "Si no encaja en ningún tipo, elige «Otro» y descríbelo aquí. Los lugares van en Ubicación." %}</span>
           </div>
           <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar evento" %}{% else %}{% translate "Proponer evento" %}{% endif %}</button>
         </form>
@@ -254,6 +259,7 @@
             </div>
             <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar" %}{% else %}{% translate "Proponer" %}{% endif %}</button>
           </div>
+          {% if not user.is_catalog_admin %}<span class="helptext">{% translate "Elige uno de la lista si ya existe. Un lugar nuevo lo revisará un administrador." %}</span>{% endif %}
         </form>
       </div>
     </details>

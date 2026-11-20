@@ -14,6 +14,7 @@ from accounts.permissions import admin_required
 from accounts.services import audit, audit_catalog
 from catalog.forms import EventTypeForm, MergePersonsForm, ThresholdsForm
 from catalog.models import CatalogSettings, EventType, Location, Photo, Scan
+from catalog.services import catalog_review
 from catalog.services import locations as location_service
 from catalog.services.persons import merge_persons
 
@@ -25,6 +26,10 @@ def admin_home(request):
         "catalog/admin/home.html",
         {
             "review_count": Scan.objects.filter(needs_review=True, reviewed=False).count(),
+            "events_to_review": EventType.objects.filter(is_provisional=True).count(),
+            "locations_to_review": Location.objects.filter(
+                is_provisional=True, merged_into__isnull=True
+            ).count(),
             "settings": CatalogSettings.load(),
             "recent_audit": audit_catalog.recent(15),
             "scanner_configured": bool(settings.SCANNER_URL),
@@ -42,62 +47,61 @@ def event_types(request):
             request, _("Tipo de evento «%(name)s» creado.") % {"name": event_type.name}
         )
         return redirect("admin_event_types")
-    from catalog.services import event_types as event_type_service
-
     return render(
         request,
         "catalog/admin/event_types.html",
         {
             "form": form,
-            "event_types": EventType.objects.filter(created_by__isnull=True),
-            "to_review": event_type_service.family_added(),
-            "standard": EventType.objects.enabled().filter(created_by__isnull=True),
+            "event_types": EventType.objects.filter(is_provisional=False),
+            "to_review": _with_example(catalog_review.pending_event_types()),
         },
     )
+
+
+def _with_example(entries):
+    entries = list(entries)
+    for entry in entries:
+        entry.example_photo = catalog_review.first_photo_id(entry)
+    return entries
+
+
+def _review(request, entry, back):
+    """Accept (as typed or rewritten), reject or — events — turn into a location."""
+    name = entry.name
+    action = request.POST.get("action")
+    try:
+        if action == "accept":
+            accepted = catalog_review.accept(request.user, entry, request.POST.get("text", ""))
+            messages.success(request, _("«%(name)s» aceptado.") % {"name": accepted.name})
+        elif action == "reject":
+            catalog_review.reject(request.user, entry)
+            messages.success(request, _("«%(name)s» rechazado.") % {"name": name})
+        elif action == "location" and isinstance(entry, EventType):
+            location = catalog_review.to_location(request.user, entry)
+            messages.success(
+                request,
+                _("«%(name)s» es ahora la ubicación «%(location)s».")
+                % {"name": name, "location": location.name},
+            )
+        else:
+            messages.error(request, _("Acción no válida."))
+    except ValidationError as exc:
+        messages.error(request, " ".join(exc.messages))
+    return redirect(back)
 
 
 @admin_required
 @require_POST
 def event_type_review(request, pk):
-    """Turn an event type typed by the family into what it really was."""
-    from catalog.services import event_types as event_type_service
+    entry = get_object_or_404(EventType, pk=pk, is_provisional=True)
+    return _review(request, entry, "admin_event_types")
 
-    event_type = get_object_or_404(EventType, pk=pk, created_by__isnull=False)
-    name = event_type.name
-    action = request.POST.get("action")
-    if action == "location":
-        location = event_type_service.to_location(request.user, event_type)
-        message = _("«%(name)s» es ahora la ubicación «%(location)s».") % {
-            "name": name,
-            "location": location.name,
-        }
-    elif action == "other":
-        event_type_service.to_other(request.user, event_type)
-        message = _("«%(name)s» es ahora «Otro» con esa descripción.") % {"name": name}
-    elif action == "merge":
-        target = (
-            EventType.objects.filter(
-                pk=request.POST.get("target", ""), created_by__isnull=True
-            ).first()
-            if request.POST.get("target", "").isdigit()
-            else None
-        )
-        if target is None or target.pk == event_type.pk:
-            messages.error(request, _("Elige el tipo estándar con el que fusionarlo."))
-            return redirect("admin_event_types")
-        event_type_service.merge(request.user, event_type, target)
-        message = _("«%(name)s» se ha fusionado con «%(target)s».") % {
-            "name": name,
-            "target": target.name,
-        }
-    elif action == "keep":
-        event_type_service.keep(request.user, event_type)
-        message = _("«%(name)s» forma parte ahora de la lista estándar.") % {"name": name}
-    else:
-        messages.error(request, _("Acción no válida."))
-        return redirect("admin_event_types")
-    messages.success(request, message)
-    return redirect("admin_event_types")
+
+@admin_required
+@require_POST
+def location_review(request, pk):
+    entry = get_object_or_404(Location, pk=pk, is_provisional=True, merged_into__isnull=True)
+    return _review(request, entry, "admin_locations")
 
 
 @admin_required
@@ -121,9 +125,15 @@ def _with_photo_count(queryset):
 @admin_required
 def locations(request):
     rows = _with_photo_count(
-        Location.objects.filter(merged_into__isnull=True).select_related("created_by")
+        Location.objects.filter(merged_into__isnull=True, is_provisional=False).select_related(
+            "created_by"
+        )
     )
-    return render(request, "catalog/admin/locations.html", {"locations": rows})
+    return render(
+        request,
+        "catalog/admin/locations.html",
+        {"locations": rows, "to_review": _with_example(catalog_review.pending_locations())},
+    )
 
 
 @admin_required

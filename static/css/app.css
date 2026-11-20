@@ -998,3 +998,6 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .review-row { flex-wrap: wrap; }
 .review-actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin-left: auto; }
 .review-actions select { min-width: 0; max-width: 100%; }
+.review-entries { margin-bottom: 1rem; }
+.review-accept { display: flex; gap: .5rem; align-items: center; flex: 1 1 16rem; min-width: 0; }
+.review-accept input[type="text"] { flex: 1; min-width: 0; width: auto; }
