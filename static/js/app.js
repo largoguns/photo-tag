@@ -59,8 +59,11 @@
     }).join(" ");
   }
 
-  // No page zoom (iOS ignores user-scalable=no); the photo viewer zooms on its own.
-  document.addEventListener("gesturestart", (event) => event.preventDefault());
+  // The page zooms, but not over the app's own gestures (iOS ignores touch-action for pinch).
+  const OWN_GESTURES = "[data-gallery-zoom], .photo-frame, .viewer-stage, .crop-canvas, .tree-canvas, .year-rail";
+  document.addEventListener("gesturestart", (event) => {
+    if (event.target.closest && event.target.closest(OWN_GESTURES)) event.preventDefault();
+  });
 
   // --- App shell: elevated top bar and floating nav that hides on scroll -------
   let lastScrollY = window.scrollY;
@@ -1140,13 +1143,22 @@
     }
   });
 
-  // Long press on a photo starts selecting (like Google Photos).
+  // Long press on a photo starts selecting (like Google Photos). Only with one finger:
+  // a second finger means a pinch, which must not select.
+  const pressPointers = new Set();
+  function cancelPress() {
+    if (pressTimer) { window.clearTimeout(pressTimer); pressTimer = null; }
+  }
   document.addEventListener("pointerdown", (event) => {
+    if (event.isPrimary) pressPointers.clear(); // no other finger is down
+    pressPointers.add(event.pointerId);
+    if (pressPointers.size > 1) { cancelPress(); return; }
     const item = event.target.closest(".jitem[data-photo-id]");
     if (!item || document.body.classList.contains("selecting")) return;
     pressStart = { x: event.clientX, y: event.clientY };
     pressTimer = window.setTimeout(() => {
       pressTimer = null;
+      if (pressPointers.size !== 1) return;
       suppressClick = true;
       startSelection(item.dataset.photoId);
       if (navigator.vibrate) navigator.vibrate(20);
@@ -1158,9 +1170,11 @@
       pressTimer = null;
     }
   });
-  ["pointerup", "pointercancel"].forEach((type) => document.addEventListener(type, () => {
-    if (pressTimer) { window.clearTimeout(pressTimer); pressTimer = null; }
+  ["pointerup", "pointercancel"].forEach((type) => document.addEventListener(type, (event) => {
+    pressPointers.delete(event.pointerId);
+    cancelPress();
   }));
+  document.addEventListener("gesturestart", cancelPress); // iOS pinch
   document.addEventListener("contextmenu", (event) => {
     if (event.target.closest(".jitem")) event.preventDefault();
   });
