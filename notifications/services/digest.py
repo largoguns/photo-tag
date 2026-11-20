@@ -24,7 +24,7 @@ logger = logging.getLogger("notifications")
 
 @dataclass
 class Digest:
-    kind: str  # "new_photos" | "pending_votes" | "resolved" | "challenge"
+    kind: str  # "new_photos" | "pending_votes" | "resolved" | "challenge" | "reviews"
     counts: dict
 
     @property
@@ -32,6 +32,8 @@ class Digest:
         return f"phototag-{self.kind}"
 
     def url(self):
+        if self.kind == "reviews":
+            return reverse("admin_event_types" if self.counts["events"] else "admin_locations")
         if self.kind == "challenge":
             return {
                 "overtaken": reverse("ranking"),
@@ -47,6 +49,13 @@ class Digest:
         """Generic text in the active language; never includes people's names."""
         if self.kind == "challenge":
             return challenge_body(self.counts)
+        if self.kind == "reviews":
+            n = self.counts["events"] + self.counts["locations"]
+            return ngettext(
+                "%(count)s evento o lugar nuevo para revisar",
+                "%(count)s eventos o lugares nuevos para revisar",
+                n,
+            ) % {"count": n}
         if self.kind == "new_photos":
             n = self.counts["photos"]
             return ngettext(
@@ -179,6 +188,14 @@ def collect(user, prefs, now=None):
         challenge = challenge_for(user, now or timezone.now())
         if challenge:
             digests.append(Digest("challenge", challenge))
+    if user.is_catalog_admin and prefs.reviews:
+        waiting = Proposal.objects.filter(
+            status=Proposal.Status.OPEN, created_at__gt=prefs.reviews_sent_at
+        )
+        events = waiting.filter(kind=Proposal.Kind.EVENT, event_type__is_provisional=True).count()
+        places = waiting.filter(kind=Proposal.Kind.LOCATION, location__is_provisional=True).count()
+        if events or places:
+            digests.append(Digest("reviews", {"events": events, "locations": places}))
     if prefs.new_photos:
         photos = Photo.objects.visible().filter(created_at__gt=prefs.new_photos_sent_at).count()
         if photos:
