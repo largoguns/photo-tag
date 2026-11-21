@@ -69,8 +69,9 @@
   color: var(--md-on-surface);
   background: var(--md-surface);
   -webkit-tap-highlight-color: transparent;
-  /* The page zooms (double tap, pinch) except where the app has its own gestures:
-     gallery rows, photo viewer, crop editor, tree and year rail (touch-action below). */
+  /* No pinch or double-tap zoom on any page; the app's own gestures (gallery rows, photo
+     viewer, crop editor, tree) zoom by themselves. */
+  touch-action: pan-x pan-y;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -1063,3 +1064,4 @@ button.quiz-option:hover { background: var(--md-surface-container-low); }
 .quiz-banner { display: flex; align-items: center; gap: 1rem; margin-bottom: var(--space); text-decoration: none; color: var(--md-on-surface); min-width: 0; }
 .quiz-banner-text { flex: 1; display: flex; flex-direction: column; gap: .15rem; min-width: 0; }
 .quiz-banner > .icon { flex: none; color: var(--md-on-surface-variant); }
+.person-all-photos { display: flex; width: fit-content; margin: 1rem auto 0; }

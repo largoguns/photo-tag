@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 21:54+0100\n"
+"POT-Creation-Date: 2026-11-21 22:14+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -1196,23 +1196,23 @@ msgstr "In-laws"
 msgid "Enlaces directos"
 msgstr "Direct links"
 
-#: catalog/views.py:206
+#: catalog/views.py:207
 #, python-format
 msgid ""
 "Ahora eres %(name)s en el álbum. Elige tu foto de perfil en «Mi perfil»."
 msgstr ""
 "You are now %(name)s in the album. Choose your profile photo in “My profile”."
 
-#: catalog/views.py:219
+#: catalog/views.py:220
 #, python-format
 msgid "Ya no estás vinculado a %(name)s."
 msgstr "You are no longer linked to %(name)s."
 
-#: catalog/views.py:234
+#: catalog/views.py:235
 msgid "Nombre actualizado."
 msgstr "Name updated."
 
-#: catalog/views.py:239
+#: catalog/views.py:240
 #, python-format
 msgid ""
 "Ya hay otra persona llamada «%(name)s». Si son la misma, usa «Fusionar "
@@ -1221,29 +1221,29 @@ msgstr ""
 "Someone else is already called “%(name)s”. If they are the same person, use "
 "“Merge people”."
 
-#: catalog/views.py:253
+#: catalog/views.py:254
 msgid "Esa cara no es de esta persona."
 msgstr "That face is not this person."
 
-#: catalog/views.py:255
+#: catalog/views.py:256
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:289
+#: catalog/views.py:290
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:412
+#: catalog/views.py:413
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:476
+#: catalog/views.py:477
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:478
+#: catalog/views.py:479
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -2018,7 +2018,7 @@ msgstr "All"
 #: templates/catalog/_person_sheets.html:37
 #: templates/catalog/_person_sheets.html:71
 #: templates/catalog/_photo_workspace.html:61
-#: templates/catalog/person_detail.html:83 templates/catalog/tree.html:82
+#: templates/catalog/person_detail.html:85 templates/catalog/tree.html:82
 msgid "Cerrar"
 msgstr "Close"
 
@@ -2144,7 +2144,7 @@ msgstr ""
 "You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you "
 "shows on your profile:"
 
-#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:93
+#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:95
 #, python-format
 msgid "Cara de la foto %(id)s"
 msgstr "Face from photo %(id)s"
@@ -3272,7 +3272,6 @@ msgid "Volver a Ubicaciones"
 msgstr "Back to Locations"
 
 #: templates/catalog/admin/location_form.html:7
-#: templates/catalog/person_detail.html:50
 msgid "Ver en la galería"
 msgstr "See in gallery"
 
@@ -3620,7 +3619,9 @@ msgstr "Family quiz"
 msgid ""
 "¿Cuánto sabes de la familia? 10 preguntas sobre caras, apodos, fechas y "
 "parentescos."
-msgstr "How well do you know the family? 10 questions about faces, nicknames, dates and kinship."
+msgstr ""
+"How well do you know the family? 10 questions about faces, nicknames, dates "
+"and kinship."
 
 #: templates/catalog/home.html:31
 #, python-format
@@ -3720,11 +3721,16 @@ msgstr "It's %(person)s"
 msgid "Sin fotos."
 msgstr "No photos."
 
-#: templates/catalog/person_detail.html:82
+#: templates/catalog/person_detail.html:77
+#, python-format
+msgid "Ver todas las fotos (%(total)s)"
+msgstr "See all photos (%(total)s)"
+
+#: templates/catalog/person_detail.html:84
 msgid "Foto principal"
 msgstr "Main photo"
 
-#: templates/catalog/person_detail.html:86
+#: templates/catalog/person_detail.html:88
 #, python-format
 msgid "Elige la cara que identifica a %(person)s en toda la app."
 msgstr "Choose the face that identifies %(person)s across the app."
@@ -3925,7 +3931,10 @@ msgid ""
 "Cada acierto es 1 punto y si aciertas las 10 te llevas %(bonus)s más. Cada "
 "día puntúan los %(daily)s primeros de cada tipo; después puedes seguir "
 "jugando por diversión."
-msgstr "Each right answer is 1 point, and getting all 10 right earns %(bonus)s more. Each day the first %(daily)s of each kind score; after that you can keep playing for fun."
+msgstr ""
+"Each right answer is 1 point, and getting all 10 right earns %(bonus)s more. "
+"Each day the first %(daily)s of each kind score; after that you can keep "
+"playing for fun."
 
 #: templates/gamification/quiz_home.html:9
 #: templates/gamification/quiz_play.html:51
