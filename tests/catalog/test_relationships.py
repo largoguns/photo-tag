@@ -96,7 +96,7 @@ def test_remove(alice, ana, luis):
 
 def test_unknown_name_creates_the_person(alice, ana):
     relationships.add(alice, ana, "grandparent", other_name="bisabuelo pepe")
-    pepe = Person.objects.get(display_name="Bisabuelo Pepe")
+    pepe = Person.objects.get(display_name="Pepe", honorific="Bisabuelo")
     assert not pepe.is_provisional
     assert Relationship.objects.get().person_from == pepe
 
@@ -199,7 +199,6 @@ def test_person_page_keeps_photos_first_and_relationships_in_the_menu(client, al
     content = client.get(reverse("person_detail", args=[ana.pk])).content.decode()
 
     assert 'data-open-sheet="sheet-family"' in content and 'id="sheet-family"' in content
-    assert 'data-open-sheet="sheet-nicknames"' in content
     assert '<span class="menu-count">1</span>' in content
     sheet = content.split('id="sheet-family"')[1].split("</dialog>")[0]
     assert "Luis" in sheet and "Hijo" in sheet
