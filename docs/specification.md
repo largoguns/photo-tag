@@ -314,10 +314,12 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 | Honorífico o apodo aceptado (poner, añadir o quitar, 5.13) | 5 |
 | Primera identidad aceptada de una persona en todo el álbum | +15 |
 | Voto que coincide con el resultado (tope de 20 puntos de votos al día) | 2 |
+| Acierto en el quiz familiar (5.14; solo los 3 primeros quizzes de cada tipo al día) | 1 |
+| Pleno en un quiz (10 de 10) | +10 |
 
   No cuenta el +1 automático del autor. Rechazar no resta, pero baja el **acierto** (aceptadas / cerradas). Si una propuesta aceptada la sustituye después otra, sus puntos se retiran; al borrar una foto se retiran los de la foto, sus propuestas y sus votos. Un fallo al puntuar nunca interrumpe la votación ni el procesado.
 - **Niveles**: Curioso (0), Aprendiz de archivero (50), Archivero (150), Detective de familia (400), Cronista (900), Memoria de la familia (1800) y Guardián del álbum (3500).
-- **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta), Genealogista (10/50 relaciones aceptadas) y Racha (7 días seguidos proponiendo o votando).
+- **Logros** (`Achievement`, se anuncian una vez): Primera subida, Primera identificación, Detective (10/50/100 identidades), Cronista (10/50 fechas), Ojo de halcón (5 falsos positivos), Rescatista (25 fotos), Desempate (tu voto decide una propuesta), Genealogista (10/50 relaciones aceptadas) y Racha (7 días seguidos proponiendo o votando), y los del quiz familiar (5.14).
 - **Avisos**: push inmediato al subir de nivel o conseguir un logro (preferencia «Mis niveles y logros»).
 - **Retos para subir de nivel** (preferencia propia, activada por defecto): a un colaborador que lleva 2 días sin proponer ni votar se le envía, como mucho cada `NOTIFY_CHALLENGE_DAYS` (3) días y fuera de las horas de silencio, el reto que más le motive, sin nombres de personas: que alguien le ha adelantado en el ranking de la semana (a cuántos puntos está), o cuántos puntos le faltan para el siguiente nivel y cuántas propuestas esperan su voto o cuántas fotos quedan por catalogar.
 - **Cinturón**: el avatar de cada colaborador (menú, perfil y ranking) lleva un anillo con el color de su nivel, como los cinturones de un arte marcial (blanco, amarillo, naranja, verde, azul, marrón y negro), que se va llenando en el sentido de las agujas del reloj con el color del nivel siguiente según su progreso.
@@ -420,11 +422,15 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se proponen y se votan como el resto de la catalogación.
 
 - **Honorífico**: un tratamiento opcional que va delante del nombre («Tito», «Tita», «Abuela»). Hay uno como mucho. Se guarda con mayúscula inicial («tito» → «Tito»).
+  - **El tratamiento no va en el nombre.** Estas palabras de tratamiento se reconocen sin tildes ni mayúsculas: abuela, abuelo, bisabuela, bisabuelo, tito, tita, tío, tía, yaya, yayo, padrino y madrina.
+    - **Personas nuevas:** si un nombre escrito empieza por una de ellas, se separa al crear la persona («abuela ana» → honorífico «Abuela» + nombre «Ana»). Escribir el nombre visible («Abuela Ana») encuentra a esa persona.
+    - **Personas que ya existen:** Administración → **Tratamientos en el nombre** lista las que lo llevan metido y las separa una a una o todas a la vez, con auditoría y reexportación. Si ya tenían ese mismo honorífico («Abuela Abuela Ana»), solo se limpia el nombre. Las que tienen otro honorífico distinto se dejan para revisarlas a mano. La portada de Administración muestra cuántas quedan.
+    - No se separa si no queda nombre («Abuela» a secas).
 - **Apodos**: una lista, que puede estar vacía, de motes («Pico pata», «Pico Paco»). Se recortan y se guardan tal cual. No hay dos apodos iguales en la misma persona (sin distinguir tildes ni mayúsculas), pero sí pueden repetirse entre personas distintas.
 - **Nombre visible**: honorífico + nombre a mostrar («Tito» + «Paco» = «Tito Paco»), o solo el nombre a mostrar si no hay honorífico. Se usa en toda la interfaz: recuadros y sugerencias de cara, chips, listado y ficha de personas, árbol, ranking y auditoría. Cambiar el nombre a mostrar (5.5) sigue siendo cosa de administradores y no pasa por votación.
 - **Búsqueda**: la búsqueda laxa de 5.5 también busca por el honorífico y los apodos. «tito paco» y «pico pata» encuentran a la misma persona. Si el resultado aparece por un apodo, la sugerencia lo indica («Tito Paco · Pico pata»).
 
-**Ficha de persona.** El nombre visible va como título, con un lápiz para proponer otro honorífico o quitarlo. La sección **«Apodos»** muestra los apodos aceptados (cada uno con «Quitar»), las propuestas abiertas con 👍 / 👎 y el botón «Añadir apodo». Los apodos solo se ven en la ficha.
+**Ficha de persona.** El nombre visible va como título, con un lápiz para proponer otro honorífico o quitarlo. Bajo el nombre, los **apodos** aparecen como chips, seguidos de un chip «+ Apodo». Tocar cualquiera abre la hoja «Apodos», que muestra los apodos aceptados (cada uno con «Quitar»), las propuestas abiertas con 👍 / 👎 y el campo «Añadir apodo» («+ Apodo» lleva directamente a ese campo). Los apodos solo se ven en la ficha.
 
 **Propuesta y votación** (mismas reglas que 5.4: el +1 del autor, `VOTE_MIN_APPROVALS`, `VOTE_APPROVAL_RATIO` y la decisión directa del administrador). Puede proponer cualquier colaborador.
 - **Honorífico** (`set`, con texto vacío para quitarlo): las propuestas abiertas de una misma persona compiten entre sí. Al aceptarse una, el resto pasan a `superseded`. El valor vigente se mantiene hasta que se acepte el nuevo.
@@ -442,6 +448,28 @@ Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se prop
 - La lógica va en `catalog/services/person_details.py` (proponer, validar, votar, aceptar y normalizar). Reutiliza `tally`/`outcome` de la votación y bloquea la persona con `select_for_update`.
 - El nombre visible se calcula en un único sitio del modelo (`Person.shown_name`) y lo usan todas las plantillas, los presentadores, las notificaciones y la auditoría.
 - Sin dependencias nuevas.
+
+### 5.14 Quiz familiar
+
+Un juego para repasar el álbum: **10 preguntas con 4 opciones** construidas solo con datos aceptados. Se entra desde una tarjeta en Inicio y desde el Ranking (`/ranking/quiz/`); no ocupa sitio en la barra de navegación.
+
+| Tipo | Pregunta | Opciones incorrectas |
+|---|---|---|
+| **¿Quién es?** | Una cara recortada (su URL solo lleva el id de la cara) | Personas con cara, sobre todo de la misma época (año medio de sus fotos fechadas) |
+| **Apodos** | «¿De quién es el apodo «Pico pata»?» (solo apodos de una única persona) | Otras personas, con su avatar |
+| **Fechas** | Una foto con fecha: «¿De qué año es?» o, si la fecha es por década, «¿De qué década?» | Años cercanos (±8) o décadas vecinas, nunca futuros |
+| **Parentescos** | «¿Qué es A de B?», con las dos caras; parentescos explícitos o deducidos de la familia (5.12) | Otros parentescos familiares |
+
+- **Cuándo se activa un tipo:** cuando hay datos para 10 preguntas distintas (10 personas identificadas, 10 apodos, 10 fotos con fecha o 10 parentescos). Mientras tanto, la tarjeta dice lo que falta («Faltan apodos: hay 4 de 10»).
+- **Opciones sin ambigüedades:** las 4 opciones son distintas; dos personas con el mismo nombre visible nunca aparecen a la vez.
+- **Flujo:**
+  - al empezar se crea un `QuizAttempt` con las preguntas y la respuesta de cada una, que no llega al navegador hasta contestarla;
+  - cada respuesta se comprueba en el servidor y muestra la buena en verde y, si fallaste, la tuya en rojo;
+  - al final aparecen los aciertos, los puntos y los logros nuevos, con «Otra vez».
+  - Cada intento es solo de su dueño y no se puede volver a contestar una vez terminado.
+- **Puntos** (5.10): 1 por acierto y +10 por un pleno, solo para colaboradores. Cada día puntúan los **3 primeros quizzes de cada tipo**; se decide al empezar, así que abandonar uno no da otra oportunidad. Después se puede seguir jugando sin puntos, y la pantalla lo avisa. `rebuild_scores` conserva los puntos del quiz.
+- **Logros:** Pleno (un 10/10), Memoria de elefante (10 plenos) y, por tipo, Fisonomista, Experto en apodos, Viajero en el tiempo y Raíces (3 plenos de ¿Quién es?, Apodos, Fechas y Parentescos).
+- **Implementación:** la lógica está en `gamification/services/quiz.py` (disponibilidad, generación, respuesta y puntos) y reutiliza `scoring.award`, `achievements` y `kinship`. Sin dependencias nuevas.
 
 ## 6. Exportación a Immich (app `exporter`)
 
