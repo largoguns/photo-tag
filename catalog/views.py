@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count, F, Q
 from django.http import (
     FileResponse,
     Http404,
@@ -26,7 +26,7 @@ from catalog.models import EventType, Face, Person, Photo, Proposal, Scan, Vote
 from catalog.services import avatars, person_details, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
-PERSON_PAGE_SIZE = 60
+PERSON_PREVIEW_PHOTOS = 10  # person page; «Ver todas las fotos» opens the gallery
 IMAGE_CACHE = "private, max-age=86400"
 
 
@@ -168,19 +168,20 @@ def person_detail(request, pk):
     person = get_object_or_404(Person, pk=pk)
     if person.merged_into_id:
         return redirect("person_detail", pk=person.resolved().pk)
+    # A preview: the most recent photos; all of them are in the gallery filtered by person.
     photos = (
         Photo.objects.visible()
         .filter(faces__person=person, faces__status=Face.Status.ACTIVE)
         .distinct()
-        .order_by("pk")
+        .order_by(F("date_value").desc(nulls_last=True), "-pk")
     )
-    page = Paginator(photos, PERSON_PAGE_SIZE).get_page(request.GET.get("page"))
     return render(
         request,
         "catalog/person_detail.html",
         {
             "person": person,
-            "page": page,
+            "photos": list(photos[:PERSON_PREVIEW_PHOTOS]),
+            "photo_count": photos.count(),
             "candidates": similarity.candidate_faces_for_person(person),
             "avatar_id": avatars.avatar_face_id(person),
             "avatar_choices": avatars.selectable_faces(person),

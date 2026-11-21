@@ -47,7 +47,7 @@
 </div>
 {% if person.user %}<p class="muted">{% blocktranslate with linked=person.user %}Usuario vinculado: {{ linked }}{% endblocktranslate %}</p>{% endif %}
 {% if person.notes %}<p>{{ person.notes|linebreaksbr }}</p>{% endif %}
-<p class="muted">{% blocktranslate count counter=page.paginator.count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %} · <a href="{% url 'gallery' %}?person={{ person.pk }}">{% translate "Ver en la galería" %}</a></p>
+<p class="muted">{% blocktranslate count counter=photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</p>
 {% if candidates %}
 <section class="stack candidates" aria-labelledby="candidates-title">
   <h2 id="candidates-title">{% translate "Puede que aparezca en" %}</h2>
@@ -71,9 +71,11 @@
 <h2>{% translate "Fotos" %}</h2>
 {% endif %}
 <ul class="photo-grid">
-  {% for photo in page %}{% include "catalog/_photo_card.html" %}{% empty %}<li class="empty">{% translate "Sin fotos." %}</li>{% endfor %}
+  {% for photo in photos %}{% include "catalog/_photo_card.html" %}{% empty %}<li class="empty">{% translate "Sin fotos." %}</li>{% endfor %}
 </ul>
-{% include "_pagination.html" %}
+{% if photo_count > photos|length %}
+<a class="button person-all-photos" href="{% url 'gallery' %}?person={{ person.pk }}">{% icon "photo_library" %}{% blocktranslate with total=photo_count %}Ver todas las fotos ({{ total }}){% endblocktranslate %}</a>
+{% endif %}
 {% include "catalog/_person_sheets.html" %}
 {% if avatar_id %}
 <dialog class="sheet" id="sheet-avatar" aria-labelledby="sheet-avatar-title">

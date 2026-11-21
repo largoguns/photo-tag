@@ -208,7 +208,38 @@ def test_persons_list_and_detail(client, alice, photo):
 
     content = client.get(reverse("persons")).content.decode()
     assert "Pepe" in content and "1 foto" in content
-    assert client.get(reverse("person_detail", args=[person.pk])).context["page"][0] == photo
+    response = client.get(reverse("person_detail", args=[person.pk]))
+    assert response.context["photos"] == [photo]
+    assert "Ver todas las fotos" not in response.content.decode()  # nothing more to see
+
+
+def test_person_page_shows_ten_recent_photos_and_links_to_the_gallery(client, alice, photo):
+    import datetime
+
+    person = Person.objects.create(display_name="Pepe")
+    scan = photo.scan
+    for index in range(12):
+        extra = Photo.objects.create(
+            scan=scan,
+            file_name=f"extra_{index}.jpg",
+            index=index + 1,
+            width=800,
+            height=600,
+            date_value=datetime.date(1970 + index, 1, 1),
+            date_precision=Photo.DatePrecision.YEAR,
+        )
+        Face.objects.create(photo=extra, x=1, y=1, w=10, h=10, person=person)
+    Face.objects.filter(pk=photo.faces.first().pk).update(person=person)  # undated
+    client.force_login(alice)
+
+    response = client.get(reverse("person_detail", args=[person.pk]))
+
+    photos = response.context["photos"]
+    assert len(photos) == 10 and photos[0].date_value.year == 1981  # newest first
+    assert photo not in photos  # undated photos go last
+    content = response.content.decode()
+    assert "13 fotos" in content and "Ver todas las fotos (13)" in content
+    assert f"{reverse('gallery')}?person={person.pk}" in content
 
 
 def test_admin_decide_from_view(client, admin_user, alice, photo):
