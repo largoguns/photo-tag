@@ -68,7 +68,7 @@ def validate(person_from, person_to, kind, activity=""):
 
 
 @transaction.atomic
-def add(user, subject, role, *, other=None, other_name="", activity=""):
+def add(user, subject, role, *, other=None, other_name="", new_person=False, activity=""):
     """Save '<other> is <role> of <subject>'. An unknown name creates the person (relatives
     without photos, such as great-grandparents). Returns the new relationship."""
     if role not in kinship.ROLES:
@@ -77,7 +77,7 @@ def add(user, subject, role, *, other=None, other_name="", activity=""):
     if subject.is_provisional:
         raise ValidationError(_("Solo se puede hacer con personas ya aceptadas en el álbum."))
     if other is None:
-        other = voting.resolve_person(other_name or "", user)
+        other = voting.resolve_person(other_name or "", user, new=new_person)
     other = other.resolved()
     if subject.pk == other.pk:
         raise ValidationError(_("Una persona no puede relacionarse consigo misma."))

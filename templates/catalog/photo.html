@@ -5,5 +5,5 @@
 {% include "catalog/_photo_workspace.html" %}
 {{ people_json|json_script:"people-data" }}
 {{ locations_json|json_script:"locations-data" }}
-<template id="combobox-create-template">{% translate "Crear «%s»" %}</template>
+{% include "catalog/_combobox_texts.html" %}
 {% endblock %}

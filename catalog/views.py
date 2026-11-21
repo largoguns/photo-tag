@@ -232,6 +232,15 @@ def person_rename(request, pk):
         messages.error(request, exc.messages[0])
     else:
         messages.success(request, _("Nombre actualizado."))
+        if voting.people_named(person.display_name, exclude=person.pk):
+            messages.warning(
+                request,
+                _(
+                    "Ya hay otra persona llamada «%(name)s». "
+                    "Si son la misma, usa «Fusionar personas»."
+                )
+                % {"name": person.display_name},
+            )
     return redirect("person_detail", pk=person.pk)
 
 
@@ -322,6 +331,7 @@ def propose_identity(request, face_pk):
             face=face,
             person=person,
             person_name=request.POST.get("name", ""),
+            new_person=request.POST.get("new_person") == "1",
             # Chosen among the automatic suggestions: scores less (the AI helped).
             value={"suggested": True} if request.POST.get("suggested") else None,
         ),

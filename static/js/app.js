@@ -561,17 +561,31 @@
       text.textContent = label;
       option.appendChild(text);
       list.appendChild(option);
+      return option;
     };
     const avatars = source === "people";
+    const texts = document.getElementById("combobox-texts");
+    const text = (name, value) => (texts && texts.dataset[name] ? texts.dataset[name].replace("%s", value) : value);
+    // Names repeat in a family: namesakes in the list show how many photos each one has.
+    const shownCount = {};
+    matches.forEach(({ item }) => { shownCount[item.shownKey] = (shownCount[item.shownKey] || 0) + 1; });
     matches.forEach(({ item, hint }) => {
-      const label = (item.shown || item.name) + (hint ? ` · ${hint}` : "");
-      add(label, item.name, avatars ? item.avatar : null);
+      let label = (item.shown || item.name) + (hint ? ` · ${hint}` : "");
+      if (avatars && shownCount[item.shownKey] > 1) {
+        label += ` · ${item.photos === 1 ? text("onePhoto", "1") : text("photos", String(item.photos || 0))}`;
+      }
+      const option = add(label, item.name, avatars ? item.avatar : null);
+      if (item.id) option.dataset.personId = item.id;
     });
     const normalized = comboboxNormalize(input, input.value);
-    if (normalized && !items.some((item) => item.key === nameKey(normalized))) {
+    const exists = normalized && items.some((item) => item.key === nameKey(normalized));
+    if (normalized && !exists) {
       const template = document.getElementById("combobox-create-template");
       const label = template ? template.textContent.replace("%s", normalized) : normalized;
       add(label, normalized, avatars ? "" : null, "create");
+    } else if (exists && avatars) {
+      // Someone else with the same name: a new person on purpose.
+      add(text("namesake", normalized), normalized, "", "create").dataset.newPerson = "1";
     }
     list.hidden = list.children.length === 0;
     input.setAttribute("aria-expanded", list.hidden ? "false" : "true");
@@ -588,14 +602,33 @@
     options[next].scrollIntoView({ block: "nearest" });
   }
 
+  // The person chosen travels as `person_id` (names repeat), or `new_person` for a namesake
+  // created on purpose; typing again forgets both.
+  function setPersonFields(input, personId, newPerson) {
+    if (!input.form || comboboxSource(input) !== "people") return;
+    [["person_id", personId], ["new_person", newPerson]].forEach(([name, value]) => {
+      let field = input.form.querySelector(`input[type="hidden"][name="${name}"]`);
+      if (!field && value) {
+        field = document.createElement("input");
+        field.type = "hidden"; field.name = name;
+        input.form.appendChild(field);
+      }
+      if (field) field.value = value;
+    });
+  }
+
   function chooseOption(input, option) {
     input.value = option.dataset.value;
+    setPersonFields(input, option.dataset.personId || "", option.dataset.newPerson || "");
     closeCombobox(input);
     input.focus();
   }
 
   document.addEventListener("input", (event) => {
-    if (event.target.matches(COMBOBOX)) renderCombobox(event.target);
+    if (event.target.matches(COMBOBOX)) {
+      setPersonFields(event.target, "", "");
+      renderCombobox(event.target);
+    }
   });
 
   document.addEventListener("keydown", (event) => {

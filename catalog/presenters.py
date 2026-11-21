@@ -128,16 +128,25 @@ def family_milestone(percent):
 
 
 def people_json(exclude=None):
-    """Active people for the name autocomplete: `name` is the value sent (matched by
-    voting.resolve_person); `shown` and `nicknames` are for display and search. Avatars
+    """Active people for the name autocomplete. Names can repeat, so choosing one sends its
+    `id`; `name` is what a typed name is matched against (voting.resolve_person); `shown`,
+    `nicknames` and `photos` are for display, search and telling namesakes apart. Avatars
     are face crops behind the login."""
+    from django.db.models import Count, Q
     from django.urls import reverse
 
-    from catalog.models import Person
+    from catalog.models import Face, Person
 
     people = list(
         Person.objects.active()
         .exclude(pk=exclude)
+        .annotate(
+            photo_count=Count(
+                "faces__photo",
+                filter=Q(faces__status=Face.Status.ACTIVE, faces__photo__discarded=False),
+                distinct=True,
+            )
+        )
         .order_by("display_name")
         .only("pk", "display_name", "honorific")
     )
@@ -147,8 +156,10 @@ def people_json(exclude=None):
     face_url = reverse("face_image", args=[0]).replace("/0/", "/{id}/")
     return [
         {
+            "id": person.pk,
             "name": person.display_name,
             "shown": person.shown_name,
+            "photos": person.photo_count,
             "nicknames": nicknames.get(person.pk, []),
             "avatar": face_url.replace("{id}", str(avatars[person.pk]))
             if person.pk in avatars

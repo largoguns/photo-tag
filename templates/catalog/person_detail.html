@@ -101,5 +101,5 @@
 {% endwith %}
 </div>
 {{ people_json|json_script:"people-data" }}
-<template id="combobox-create-template">{% translate "Crear «%s»" %}</template>
+{% include "catalog/_combobox_texts.html" %}
 {% endblock %}

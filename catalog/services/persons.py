@@ -54,7 +54,7 @@ def photo_count(person):
 @transaction.atomic
 def rename_person(admin, person, name):
     """Give `person` a new display name (normalized). Photos are re-exported with it."""
-    from catalog.services.names import name_key, normalize_name
+    from catalog.services.names import normalize_name
 
     new = normalize_name(name)
     if not new:
@@ -62,13 +62,8 @@ def rename_person(admin, person, name):
     old = person.display_name
     if new == old:
         return person
-    key = name_key(new)
-    for other in Person.objects.active().exclude(pk=person.pk).only("id", "display_name"):
-        if name_key(other.display_name) == key:
-            raise ValidationError(
-                _("Ya existe «%(name)s». Si son la misma persona, usa «Fusionar personas».")
-                % {"name": other.display_name}
-            )
+    # Names repeat in a family (a grandmother and her granddaughter, both Ana): it is
+    # allowed, and the view only warns (voting.people_named).
     person.display_name = new
     person.save(update_fields=["display_name"])
     # The person's name travels in the XMP of every photo where they appear.

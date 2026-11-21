@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-20 19:46+0100\n"
+"POT-Creation-Date: 2026-11-21 21:08+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -938,7 +938,7 @@ msgstr "%(from)s and %(to)s: %(role)s"
 msgid "apodo"
 msgstr "nickname"
 
-#: catalog/person_views.py:94
+#: catalog/person_views.py:95
 msgid "Relación guardada."
 msgstr "Relationship saved."
 
@@ -958,11 +958,11 @@ msgstr "The family has catalogued half the album!"
 msgid "¡Un cuarto del álbum ya está catalogado!"
 msgstr "A quarter of the album is catalogued!"
 
-#: catalog/presenters.py:178 templates/catalog/_person_sheets.html:119
+#: catalog/presenters.py:189 templates/catalog/_person_sheets.html:119
 msgid "Familia"
 msgstr "Family"
 
-#: catalog/presenters.py:178 templates/catalog/_person_sheets.html:122
+#: catalog/presenters.py:189 templates/catalog/_person_sheets.html:122
 #: templates/catalog/tree.html:9
 msgid "Relaciones"
 msgstr "Relationships"
@@ -992,7 +992,7 @@ msgid "Ahijado"
 msgstr "Godchild"
 
 #: catalog/services/locations.py:25 catalog/services/persons.py:61
-#: catalog/services/voting.py:39
+#: catalog/services/voting.py:47
 msgid "El nombre no puede estar vacío."
 msgstr "The name cannot be empty."
 
@@ -1028,12 +1028,6 @@ msgstr "A person cannot be merged with themselves."
 #: catalog/services/persons.py:20
 msgid "Solo se pueden fusionar personas activas."
 msgstr "Only active people can be merged."
-
-#: catalog/services/persons.py:69
-#, python-format
-msgid "Ya existe «%(name)s». Si son la misma persona, usa «Fusionar personas»."
-msgstr ""
-"“%(name)s” already exists. If they are the same person, use “Merge people”."
 
 #: catalog/services/relationships.py:47 catalog/services/relationships.py:83
 msgid "Una persona no puede relacionarse consigo misma."
@@ -1080,67 +1074,72 @@ msgstr "very likely"
 msgid "posible"
 msgstr "possible"
 
-#: catalog/services/voting.py:52
+#: catalog/services/voting.py:51
+#, python-format
+msgid "Hay varias personas llamadas «%(name)s»: elige la correcta en la lista."
+msgstr "There are several people called “%(name)s”: choose the right one from the list."
+
+#: catalog/services/voting.py:63
 msgid "Escribe qué evento es."
 msgstr "Type which event it is."
 
-#: catalog/services/voting.py:67 catalog/services/voting.py:185
+#: catalog/services/voting.py:78 catalog/services/voting.py:197
 msgid "Escribe dónde se hizo la foto."
 msgstr "Write where the photo was taken."
 
-#: catalog/services/voting.py:81
+#: catalog/services/voting.py:92
 msgid "Año no válido."
 msgstr "Invalid year."
 
-#: catalog/services/voting.py:83
+#: catalog/services/voting.py:94
 msgid "Año fuera de rango."
 msgstr "Year out of range."
 
-#: catalog/services/voting.py:92
+#: catalog/services/voting.py:103
 msgid "Fecha no válida."
 msgstr "Invalid date."
 
-#: catalog/services/voting.py:94
+#: catalog/services/voting.py:105
 msgid "Precisión de fecha no válida."
 msgstr "Invalid date precision."
 
-#: catalog/services/voting.py:156
+#: catalog/services/voting.py:168
 msgid "Cara no válida."
 msgstr "Invalid face."
 
-#: catalog/services/voting.py:162
+#: catalog/services/voting.py:174
 msgid "Esa persona ya está aceptada para esta cara."
 msgstr "That person is already accepted for this face."
 
-#: catalog/services/voting.py:169
+#: catalog/services/voting.py:181
 msgid "Elige un tipo de evento."
 msgstr "Choose an event type."
 
-#: catalog/services/voting.py:176
+#: catalog/services/voting.py:188
 msgid "Ese evento ya está aceptado."
 msgstr "That event is already accepted."
 
-#: catalog/services/voting.py:190
+#: catalog/services/voting.py:202
 msgid "Esa ubicación ya está aceptada."
 msgstr "That location is already accepted."
 
-#: catalog/services/voting.py:195
+#: catalog/services/voting.py:207
 msgid "Tipo de propuesta desconocido."
 msgstr "Unknown proposal type."
 
-#: catalog/services/voting.py:235
+#: catalog/services/voting.py:247
 msgid "Recuadro no válido."
 msgstr "Invalid box."
 
-#: catalog/services/voting.py:239
+#: catalog/services/voting.py:251
 msgid "El recuadro es demasiado pequeño."
 msgstr "The box is too small."
 
-#: catalog/services/voting.py:260
+#: catalog/services/voting.py:272
 msgid "Voto no válido."
 msgstr "Invalid vote."
 
-#: catalog/services/voting.py:263 catalog/services/voting.py:313
+#: catalog/services/voting.py:275 catalog/services/voting.py:325
 msgid "La propuesta ya está cerrada."
 msgstr "The proposal is already closed."
 
@@ -1199,29 +1198,36 @@ msgstr "You are no longer linked to %(name)s."
 msgid "Nombre actualizado."
 msgstr "Name updated."
 
-#: catalog/views.py:244
+#: catalog/views.py:239
+#, python-format
+msgid ""
+"Ya hay otra persona llamada «%(name)s». Si son la misma, usa «Fusionar "
+"personas»."
+msgstr "Someone else is already called “%(name)s”. If they are the same person, use “Merge people”."
+
+#: catalog/views.py:253
 msgid "Esa cara no es de esta persona."
 msgstr "That face is not this person."
 
-#: catalog/views.py:246
+#: catalog/views.py:255
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:280
+#: catalog/views.py:289
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:402
+#: catalog/views.py:412
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:466
+#: catalog/views.py:476
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:468
+#: catalog/views.py:478
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -2218,6 +2224,25 @@ msgstr "Confirm?"
 msgid "Confirmar"
 msgstr "Confirm"
 
+#: templates/catalog/_combobox_texts.html:3
+#, python-format
+msgid "Crear «%%s»"
+msgstr "Create “%%s”"
+
+#: templates/catalog/_combobox_texts.html:4
+#, python-format
+msgid "Otra persona llamada «%%s»"
+msgstr "Someone else called “%%s”"
+
+#: templates/catalog/_combobox_texts.html:4
+msgid "1 foto"
+msgstr "1 photo"
+
+#: templates/catalog/_combobox_texts.html:4
+#, python-format
+msgid "%%s fotos"
+msgstr "%%s photos"
+
 #: templates/catalog/_justified_item.html:11
 msgid "Pendiente de mi voto"
 msgstr "Waiting for my vote"
@@ -2394,12 +2419,12 @@ msgid "Mostrar caras"
 msgstr "Show faces"
 
 #: templates/catalog/_photo_workspace.html:66
-#: templates/catalog/_tree_svg.html:30 templates/catalog/crop.html:27
+#: templates/catalog/_tree_svg.html:31 templates/catalog/crop.html:27
 msgid "Acercar"
 msgstr "Zoom in"
 
 #: templates/catalog/_photo_workspace.html:67
-#: templates/catalog/_tree_svg.html:31 templates/catalog/crop.html:28
+#: templates/catalog/_tree_svg.html:32 templates/catalog/crop.html:28
 msgid "Alejar"
 msgstr "Zoom out"
 
@@ -2592,7 +2617,9 @@ msgstr "It will be added to the list of events."
 msgid ""
 "Si no está en la lista. Lo revisará un administrador antes de añadirlo; los "
 "lugares van en Ubicación."
-msgstr "If it is not in the list. An administrator will review it before adding it; places go in Location."
+msgstr ""
+"If it is not in the list. An administrator will review it before adding it; "
+"places go in Location."
 
 #: templates/catalog/_photo_workspace.html:204
 msgid "Descripción (opcional)"
@@ -2647,7 +2674,9 @@ msgstr "Grandparents' house"
 msgid ""
 "Elige uno de la lista si ya existe. Un lugar nuevo lo revisará un "
 "administrador."
-msgstr "Choose one from the list if it exists. An administrator will review a new place."
+msgstr ""
+"Choose one from the list if it exists. An administrator will review a new "
+"place."
 
 #: templates/catalog/_photo_workspace.html:269
 msgid "Escaneo de origen"
@@ -2808,15 +2837,15 @@ msgstr "Family tree"
 msgid "Red de relaciones"
 msgstr "Relationship network"
 
-#: templates/catalog/_tree_svg.html:32
+#: templates/catalog/_tree_svg.html:33
 msgid "Centrar"
 msgstr "Centre"
 
-#: templates/catalog/_tree_svg.html:35
+#: templates/catalog/_tree_svg.html:36
 msgid "Leyenda"
 msgstr "Legend"
 
-#: templates/catalog/_tree_svg.html:40
+#: templates/catalog/_tree_svg.html:41
 #, python-format
 msgid ""
 "Todavía no hay familia de %(name)s. Añádela desde su ficha, en «Familia y "
@@ -2825,7 +2854,7 @@ msgstr ""
 "There is no family of %(name)s yet. Add it from their profile, in “Family "
 "and relationships”."
 
-#: templates/catalog/_tree_svg.html:40
+#: templates/catalog/_tree_svg.html:41
 #, python-format
 msgid "Todavía no hay relaciones de %(name)s con estos filtros."
 msgstr "There are no relationships of %(name)s with these filters yet."
@@ -2842,13 +2871,19 @@ msgid ""
 "Eventos escritos con «Otro…». No se votan: acéptalos tal cual o con un texto "
 "mejor (si coincide con uno existente, se unen), recházalos o, si era un "
 "lugar, pásalos a ubicación."
-msgstr "Events typed with “Other…”. They are not voted: accept them as they are or with a better text (if it matches an existing one, they are merged), reject them or, if it was a place, turn them into a location."
+msgstr ""
+"Events typed with “Other…”. They are not voted: accept them as they are or "
+"with a better text (if it matches an existing one, they are merged), reject "
+"them or, if it was a place, turn them into a location."
 
 #: templates/catalog/admin/_review_section.html:6
 msgid ""
 "Lugares nuevos escritos en las fotos. No se votan: acéptalos tal cual o con "
 "un texto mejor (si coincide con uno existente, se unen) o recházalos."
-msgstr "New places typed in photos. They are not voted: accept them as they are or with a better text (if it matches an existing one, they are merged) or reject them."
+msgstr ""
+"New places typed in photos. They are not voted: accept them as they are or "
+"with a better text (if it matches an existing one, they are merged) or "
+"reject them."
 
 #: templates/catalog/admin/_review_section.html:13
 #, python-format
@@ -2879,7 +2914,9 @@ msgstr "Text for “%(name)s”"
 msgid ""
 "¿Rechazar «%(name)s»? Sus propuestas se rechazan y las fotos que lo tuvieran "
 "lo pierden."
-msgstr "Reject “%(name)s”? Its proposals are rejected and the photos that had it lose it."
+msgstr ""
+"Reject “%(name)s”? Its proposals are rejected and the photos that had it "
+"lose it."
 
 #: templates/catalog/admin/_review_section.html:32
 #, python-format
@@ -3462,11 +3499,6 @@ msgstr "Main photo"
 #, python-format
 msgid "Elige la cara que identifica a %(person)s en toda la app."
 msgstr "Choose the face that identifies %(person)s across the app."
-
-#: templates/catalog/person_detail.html:104 templates/catalog/photo.html:8
-#, python-format
-msgid "Crear «%%s»"
-msgstr "Create “%%s”"
 
 #: templates/catalog/persons.html:6
 msgid "Buscar personas"

@@ -32,16 +32,27 @@ Status = Proposal.Status
 # ---------------------------------------------------------------------------
 
 
-def resolve_person(name, user):
-    """Return an existing active person by name, or a new provisional one."""
+def people_named(name, exclude=None):
+    """Active people whose name matches ignoring accents and case ("adri" = "ADRÍ")."""
+    key = name_key(name)
+    people = Person.objects.active().exclude(pk=exclude).order_by("id")
+    return [p for p in people.only("id", "display_name") if name_key(p.display_name) == key]
+
+
+def resolve_person(name, user, *, new=False):
+    """The person a typed name refers to. Names can repeat in a family: the only match is
+    used, none (or `new`) creates a provisional person, and several ask to choose one."""
     name = normalize_name(name)
     if not name:
         raise ValidationError(_("El nombre no puede estar vacío."))
-    # Accent- and case-insensitive: "adri", "Adri" and "ADRÍ" are the same person.
-    key = name_key(name)
-    for person in Person.objects.active().order_by("id").only("id", "display_name"):
-        if name_key(person.display_name) == key:
-            return Person.objects.get(pk=person.pk)
+    matches = [] if new else people_named(name)
+    if len(matches) > 1:
+        raise ValidationError(
+            _("Hay varias personas llamadas «%(name)s»: elige la correcta en la lista.")
+            % {"name": name}
+        )
+    if matches:
+        return Person.objects.get(pk=matches[0].pk)
     return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
 
 
@@ -136,6 +147,7 @@ def create_proposal(
     face=None,
     person=None,
     person_name=None,
+    new_person=False,
     event_type=None,
     event_name=None,
     location=None,
@@ -156,7 +168,7 @@ def create_proposal(
             raise ValidationError(_("Cara no válida."))
         if kind == Kind.FACE_IDENTITY:
             if person is None:
-                person = resolve_person(person_name or "", user)
+                person = resolve_person(person_name or "", user, new=new_person)
             person = person.resolved()
             if face.person_id == person.pk:
                 raise ValidationError(_("Esa persona ya está aceptada para esta cara."))

@@ -88,6 +88,7 @@ def add_relationship(request, pk):
             request.POST.get("role", ""),
             other=other,
             other_name=request.POST.get("name", ""),
+            new_person=request.POST.get("new_person") == "1",
             activity=request.POST.get("activity", ""),
         )
 
