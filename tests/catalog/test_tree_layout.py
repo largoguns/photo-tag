@@ -192,3 +192,44 @@ def test_large_family_is_fast():
     layout = tree_layout.family_tree(Graph(rows), level[0], up=5, down=5)
     assert time.perf_counter() - start < 0.3
     assert_no_overlaps(layout)
+
+
+def _bars(layout):
+    """Horizontal parent lines as (y, start x of the family, left, right)."""
+    bars = set()
+    for edge in layout.edges:
+        if edge.style != "parent":
+            continue
+        start, rest = edge.d[1:].split(" V", 1)
+        sx = float(start.split(",")[0])
+        mid, rest = rest.split(" H", 1)
+        cx = float(rest.split(" V")[0])
+        bars.add((float(mid), sx, min(sx, cx), max(sx, cx)))
+    return bars
+
+
+def test_each_partner_sits_on_their_parents_side_and_family_lines_do_not_merge():
+    # Two grandmothers with no relation between them: 60 → mum (63); 61 → dad (62) and his
+    # sister 64 (partner 65). Dad and mum have 66 (focus) and 67.
+    rows = [
+        (60, 63, K.PARENT),
+        (61, 62, K.PARENT),
+        (61, 64, K.PARENT),
+        (64, 65, K.PARTNER),
+        (62, 63, K.PARTNER),
+        (62, 66, K.PARENT),
+        (63, 66, K.PARENT),
+        (62, 67, K.PARENT),
+        (63, 67, K.PARENT),
+    ]
+    layout = tree_layout.family_tree(Graph(rows), 66)
+    pos = positions(layout)
+    assert_no_overlaps(layout)
+    dad, mum, aunt = pos[62][0], pos[63][0], pos[64][0]
+    assert not min(dad, aunt) < mum < max(dad, aunt)  # mum is not between dad and his sister
+    # Lines of different families never overlap at the same height.
+    bars = _bars(layout)
+    for y1, s1, l1, r1 in bars:
+        for y2, s2, l2, r2 in bars:
+            if y1 == y2 and s1 != s2:
+                assert r1 < l2 or r2 < l1, (y1, (l1, r1), (l2, r2))

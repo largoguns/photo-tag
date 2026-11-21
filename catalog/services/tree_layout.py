@@ -26,6 +26,7 @@ SLOT = 128  # horizontal room for one person (node and name)
 ROW = 168  # vertical distance between generations
 NODE_R = 28  # avatar radius
 LABEL = 30  # room for the name under the avatar
+LANE_STEP = 12  # vertical gap between the lines of families that would overlap
 MARGIN = 72
 MAX_FAMILY_NODES = 400
 MAX_SOCIAL_NODES = 200
@@ -232,6 +233,7 @@ def family_tree(graph, focus, up=3, down=3, partners=True, in_laws=True, direct=
             cursor += place(u, cursor)
 
     _nudge_parents(units, level, center, children_units)
+    _order_couples(graph, gen, units, unit_of, level, center)
 
     # Coordinates.
     top = min(level)
@@ -284,6 +286,46 @@ def _nudge_parents(units, level, center, children_units):
             center[u] = min(max(target, low), high) if low <= high else center[u]
 
 
+def _order_couples(graph, gen, units, unit_of, level, center):
+    """When both partners have parents in the tree, each one goes on their parents' side,
+    so a partner never sits between the other one and their siblings."""
+    for u, members in enumerate(units):
+        if len(members) < 2:
+            continue
+        parent_x = {}
+        for member in members:
+            xs = [
+                center[unit_of[p]]
+                for p in graph.parents[member]
+                if p in gen and gen[p] == level[u] - 1
+            ]
+            if xs:
+                parent_x[member] = sum(xs) / len(xs)
+        if len(parent_x) < 2:
+            continue
+        with_parents = sorted(parent_x, key=lambda m: (parent_x[m], m))
+        members[:] = with_parents + [m for m in members if m not in parent_x]
+
+
+def _parent_lanes(families):
+    """Height offset of each family's horizontal line: lines of one row that would overlap
+    go at different heights, so two families never look like one."""
+    lane_end = []  # per row: rightmost x used by each lane
+    lanes = {}
+    for key, (left, right) in sorted(families.items(), key=lambda item: item[1]):
+        for lane, end in enumerate(lane_end):
+            if left > end + 1:
+                lane_end[lane] = right
+                break
+        else:
+            lane = len(lane_end)
+            lane_end.append(right)
+        lanes[key] = lane
+    count = len(lane_end)
+    step = min(LANE_STEP, (ROW - 2 * NODE_R - LABEL - 2 * LANE_STEP) / max(count - 1, 1))
+    return {key: (lane - (count - 1) / 2) * step for key, lane in lanes.items()}
+
+
 def _family_edges(graph, gen, units, unit_of, x_of, y_of, focus, explicit):
     edges = []
     # Partners side by side (a line behind any member in between).
@@ -300,22 +342,34 @@ def _family_edges(graph, gen, units, unit_of, x_of, y_of, focus, explicit):
                 edges.append(
                     Edge(f"M{x_of[left] + NODE_R},{y_of[a]} H{x_of[right] - NODE_R}", style)
                 )
-    # Children from their parents (from the middle of a couple when both are in it).
+    # Children from their parents (from the middle of a couple when both are in it). The
+    # children of the same parents share one horizontal line.
+    families = defaultdict(list)  # (parents, row) → children
     for child in gen:
         parents = [p for p in graph.parents[child] if p in gen and gen[p] == gen[child] - 1]
-        if not parents:
-            continue
-        cx, cy = x_of[child], y_of[child] - NODE_R
         groups = defaultdict(list)
         for parent in parents:
             groups[unit_of[parent]].append(parent)
         for members in groups.values():
-            if len(members) == 2:
-                sx = (x_of[members[0]] + x_of[members[1]]) / 2
-                sy = y_of[members[0]]
-            else:
-                sx, sy = x_of[members[0]], y_of[members[0]] + NODE_R + LABEL
-            mid = cy - (ROW - NODE_R * 2 - LABEL) / 2
+            families[(tuple(sorted(members)), gen[child])].append(child)
+    starts, rows = {}, defaultdict(dict)
+    for key, children in families.items():
+        members = sorted(key[0], key=lambda p: x_of[p])
+        if len(members) == 2:
+            sx, sy = (x_of[members[0]] + x_of[members[1]]) / 2, y_of[members[0]]
+        else:
+            sx, sy = x_of[members[0]], y_of[members[0]] + NODE_R + LABEL
+        starts[key] = (sx, sy)
+        xs = [sx] + [x_of[c] for c in children]
+        rows[key[1]][key] = (min(xs), max(xs))
+    offsets = {}
+    for families_of_row in rows.values():
+        offsets.update(_parent_lanes(families_of_row))
+    for key, children in families.items():
+        sx, sy = starts[key]
+        for child in sorted(children, key=lambda c: x_of[c]):
+            cx, cy = x_of[child], y_of[child] - NODE_R
+            mid = cy - (ROW - NODE_R * 2 - LABEL) / 2 + offsets[key]
             edges.append(Edge(f"M{sx},{sy} V{mid} H{cx} V{cy}", "parent"))
     # Explicit in-law and direct links of the central person.
     for other, (_role, kind, _activity) in explicit.items():
