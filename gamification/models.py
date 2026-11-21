@@ -45,3 +45,39 @@ class Achievement(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.code}"
+
+
+class QuizAttempt(models.Model):
+    """One family quiz (spec section 5.14): 10 questions with 4 options.
+
+    `questions` keeps, per question, what is shown (text, images, options) and the index of
+    the right option, which never reaches the browser before answering. `scored` is decided
+    when it starts (only the first quizzes of each type per day give points).
+    """
+
+    class Kind(models.TextChoices):
+        FACES = "faces", "faces"
+        NICKNAMES = "nicknames", "nicknames"
+        DATES = "dates", "dates"
+        KINSHIP = "kinship", "kinship"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="quiz_attempts"
+    )
+    kind = models.CharField(max_length=20, choices=Kind.choices)
+    questions = models.JSONField(default=list)
+    answers = models.JSONField(default=list)  # option index chosen for each question
+    correct = models.PositiveSmallIntegerField(default=0)
+    scored = models.BooleanField(default=False)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    finished_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at", "-id"]
+
+    def __str__(self):
+        return f"{self.user} {self.kind} {self.correct}/{len(self.questions)}"
+
+    @property
+    def is_finished(self):
+        return self.finished_at is not None

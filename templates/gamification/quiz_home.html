@@ -1,0 +1,33 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Quiz familiar" %}{% endblock %}
+{% block content %}
+{% translate "Quiz familiar" as page_title %}{% translate "Volver al ranking" as back_label %}{% url 'ranking' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+<p class="muted">
+  {% blocktranslate %}10 preguntas con 4 opciones sobre la familia y el álbum.{% endblocktranslate %}
+  {% if is_player %}{% blocktranslate %}Cada acierto es 1 punto y si aciertas las 10 te llevas {{ bonus }} más. Cada día puntúan los {{ daily }} primeros de cada tipo; después puedes seguir jugando por diversión.{% endblocktranslate %}
+  {% else %}{% translate "Juegas sin puntos: el ranking es solo para colaboradores." %}{% endif %}
+</p>
+<ul class="quiz-kinds">
+  {% for card in cards %}
+  <li class="card quiz-kind{% if not card.availability.ready %} unavailable{% endif %}">
+    <span class="quiz-kind-icon" aria-hidden="true">{% icon card.icon %}</span>
+    <div class="quiz-kind-main">
+      <h2>{{ card.label }}</h2>
+      <p class="muted">{{ card.hint }}</p>
+      {% if not card.availability.ready %}
+      <p class="quiz-kind-state">{{ card.availability.missing }}</p>
+      {% elif is_player %}
+      <p class="quiz-kind-state">{% if card.scored_left %}{% blocktranslate count counter=card.scored_left %}Hoy te queda {{ counter }} con puntos.{% plural %}Hoy te quedan {{ counter }} con puntos.{% endblocktranslate %}{% else %}{% translate "Hoy ya no puntúa: juega por diversión." %}{% endif %}</p>
+      {% endif %}
+    </div>
+    {% if card.availability.ready %}
+    <form method="post" action="{% url 'quiz_start' %}">
+      {% csrf_token %}<input type="hidden" name="kind" value="{{ card.kind }}">
+      <button type="submit" class="button primary">{% translate "Jugar" %}</button>
+    </form>
+    {% endif %}
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}

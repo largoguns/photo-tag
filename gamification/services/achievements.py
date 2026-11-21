@@ -10,6 +10,12 @@ from django.utils.translation import gettext_lazy as _
 from gamification.models import Achievement, ScoreEvent
 
 IDENTITY = ("proposal.identity", "proposal.identity_suggested")
+QUIZ_PERFECT = (
+    "quiz_perfect_faces",
+    "quiz_perfect_nicknames",
+    "quiz_perfect_dates",
+    "quiz_perfect_kinship",
+)
 
 
 @dataclass(frozen=True)
@@ -85,6 +91,48 @@ BADGES = [
         1,
     ),
     Badge("streak_7", _("Racha"), _("Propón o vota 7 días seguidos"), "history", (), 7),
+    # Family quiz (spec 5.14): counted from the perfect-score bonuses.
+    Badge("quiz_perfect", _("Pleno"), _("Acierta las 10 de un quiz"), "quiz", QUIZ_PERFECT, 1),
+    Badge(
+        "quiz_elephant",
+        _("Memoria de elefante"),
+        _("10 plenos en el quiz"),
+        "quiz",
+        QUIZ_PERFECT,
+        10,
+    ),
+    Badge(
+        "quiz_faces",
+        _("Fisonomista"),
+        _("3 plenos en «¿Quién es?»"),
+        "face",
+        ("quiz_perfect_faces",),
+        3,
+    ),
+    Badge(
+        "quiz_nicknames",
+        _("Experto en apodos"),
+        _("3 plenos en «Apodos»"),
+        "badge",
+        ("quiz_perfect_nicknames",),
+        3,
+    ),
+    Badge(
+        "quiz_dates",
+        _("Viajero en el tiempo"),
+        _("3 plenos en «Fechas»"),
+        "calendar_month",
+        ("quiz_perfect_dates",),
+        3,
+    ),
+    Badge(
+        "quiz_kinship",
+        _("Raíces"),
+        _("3 plenos en «Parentescos»"),
+        "family_history",
+        ("quiz_perfect_kinship",),
+        3,
+    ),
 ]
 BY_CODE = {badge.code: badge for badge in BADGES}
 

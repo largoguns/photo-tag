@@ -1,7 +1,10 @@
 {% extends "base.html" %}{% load i18n catalog_tags gamification_tags %}
 {% block title %}{% translate "Ranking" %}{% endblock %}
 {% block content %}
-<h1>{% translate "Ranking" %}</h1>
+<div class="page-header">
+  <h1>{% translate "Ranking" %}</h1>
+  <a class="button small" href="{% url 'quiz_home' %}">{% icon "quiz" %}{% translate "Quiz familiar" %}</a>
+</div>
 <nav class="segmented audit-tabs" aria-label="{% translate 'Periodo' %}">
   <a href="{{ tab_urls.week }}" {% if period == "week" %}aria-current="page"{% endif %}><span><span>{% translate "Esta semana" %}</span></span></a>
   <a href="{{ tab_urls.month }}" {% if period == "month" %}aria-current="page"{% endif %}><span><span>{% translate "Este mes" %}</span></span></a>
@@ -35,5 +38,5 @@
   <li class="empty">{% translate "Todavía no hay colaboradores." %}</li>
   {% endfor %}
 </ol>
-<p class="muted">{% translate "Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, propuestas aceptadas y votos que coinciden con el resultado." %}</p>
+<p class="muted">{% translate "Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, propuestas aceptadas y votos que coinciden con el resultado." %} {% translate "También suman los aciertos del quiz familiar." %}</p>
 {% endblock %}

@@ -20,6 +20,12 @@
 </section>
 {% endif %}
 
+<a class="card quiz-banner" href="{% url 'quiz_home' %}">
+  <span class="quiz-kind-icon" aria-hidden="true">{% icon "quiz" %}</span>
+  <span class="quiz-banner-text"><strong>{% translate "Quiz familiar" %}</strong><span class="muted">{% translate "¿Cuánto sabes de la familia? 10 preguntas sobre caras, apodos, fechas y parentescos." %}</span></span>
+  {% icon "chevron_right" %}
+</a>
+
 <section class="stack" aria-labelledby="pending-title">
   <div class="page-header">
     <h2 id="pending-title">{% blocktranslate %}Pendientes de mi voto ({{ pending_count }}){% endblocktranslate %}</h2>

@@ -1,0 +1,67 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Quiz familiar" %} · {{ kind_label }}{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+{% translate "Volver al quiz" as back_label %}{% url 'quiz_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=kind_label %}
+{# Answering swaps only this card (the answer is checked on the server). #}
+<section id="quiz-card" class="card stack quiz-card" aria-live="polite">
+  {% if question %}
+  <div class="quiz-progress">
+    <span class="muted">{% blocktranslate %}Pregunta {{ number }} de {{ total }}{% endblocktranslate %}</span>
+    <progress max="{{ total }}" value="{% if feedback %}{{ number }}{% else %}{{ number|add:-1 }}{% endif %}"></progress>
+  </div>
+  {% if question.images %}
+  <div class="quiz-images{% if question.images|length > 1 %} pair{% endif %}">
+    {% for image in question.images %}{% if image %}<img src="{{ image }}" alt="" class="quiz-image">{% else %}<span class="quiz-image placeholder" aria-hidden="true">?</span>{% endif %}{% endfor %}
+  </div>
+  {% endif %}
+  <h2 class="quiz-question">{{ question.text }}</h2>
+  {% if feedback %}
+  <ul class="quiz-options" aria-label="{% translate 'Opciones' %}">
+    {% for option in question.options %}
+    <li class="quiz-option{% if forloop.counter0 == question.answer %} right{% elif forloop.counter0 == chosen %} wrong{% endif %}">
+      {% if option.avatar %}<img src="{{ option.avatar }}" alt="" width="40" height="40">{% endif %}
+      <span>{{ option.label }}</span>
+      {% if forloop.counter0 == question.answer %}{% icon "check" %}{% elif forloop.counter0 == chosen %}{% icon "close" %}{% endif %}
+    </li>
+    {% endfor %}
+  </ul>
+  <p class="quiz-feedback {% if right %}right{% else %}wrong{% endif %}">{% if right %}{% translate "¡Correcto!" %}{% else %}{% translate "¡Casi! La buena está en verde." %}{% endif %}</p>
+  <a class="button primary quiz-next" href="{% url 'quiz_play' attempt.pk %}" autofocus>{% if attempt.is_finished %}{% translate "Ver resultado" %}{% else %}{% translate "Siguiente" %}{% endif %}</a>
+  {% else %}
+  <form method="post" action="{% url 'quiz_answer' attempt.pk %}" hx-post="{% url 'quiz_answer' attempt.pk %}"
+        hx-target="#quiz-card" hx-select="#quiz-card" hx-swap="outerHTML">
+    {% csrf_token %}
+    <ul class="quiz-options" aria-label="{% translate 'Opciones' %}">
+      {% for option in question.options %}
+      <li><button type="submit" name="option" value="{{ forloop.counter0 }}" class="quiz-option">
+        {% if option.avatar %}<img src="{{ option.avatar }}" alt="" width="40" height="40">{% endif %}
+        <span>{{ option.label }}</span>
+      </button></li>
+      {% endfor %}
+    </ul>
+  </form>
+  {% endif %}
+  {% else %}
+  <div class="quiz-result">
+    <p class="quiz-score">{% blocktranslate with correct=attempt.correct %}{{ correct }} de {{ total }}{% endblocktranslate %}</p>
+    <p>{% if perfect %}{% translate "¡Pleno! Lo has acertado todo." %}{% elif attempt.correct >= 7 %}{% translate "¡Muy bien! Conoces bien a la familia." %}{% elif attempt.correct >= 4 %}{% translate "No está mal. ¡A por más!" %}{% else %}{% translate "Toca repasar el álbum." %}{% endif %}</p>
+    {% if points %}<p class="quiz-points">{% blocktranslate count counter=points %}+{{ counter }} punto{% plural %}+{{ counter }} puntos{% endblocktranslate %}</p>
+    {% elif not attempt.scored %}<p class="muted">{% if user.is_player %}{% translate "Este quiz no daba puntos: hoy ya habías jugado los que puntúan." %}{% else %}{% translate "Juegas sin puntos: el ranking es solo para colaboradores." %}{% endif %}</p>{% endif %}
+    {% if badges %}
+    <ul class="quiz-badges" aria-label="{% translate 'Logros nuevos' %}">
+      {% for badge in badges %}<li class="badge ok">{% icon badge.icon %}{{ badge.name }}</li>{% endfor %}
+    </ul>
+    {% endif %}
+  </div>
+  <div class="actions">
+    <form method="post" action="{% url 'quiz_start' %}">
+      {% csrf_token %}<input type="hidden" name="kind" value="{{ attempt.kind }}">
+      <button type="submit" class="button primary">{% translate "Otra vez" %}</button>
+    </form>
+    <a class="button" href="{% url 'quiz_home' %}">{% translate "Otros quizzes" %}</a>
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

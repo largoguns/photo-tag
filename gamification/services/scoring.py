@@ -43,6 +43,11 @@ REASONS = {
     "first_identity": _("Primera identificación de una persona"),
     "vote": _("Voto acertado"),
     "tiebreak": _("Desempate"),
+    "quiz": _("Aciertos en el quiz"),
+    "quiz_perfect_faces": _("Pleno en «¿Quién es?»"),
+    "quiz_perfect_nicknames": _("Pleno en «Apodos»"),
+    "quiz_perfect_dates": _("Pleno en «Fechas»"),
+    "quiz_perfect_kinship": _("Pleno en «Parentescos»"),
 }
 
 
@@ -269,6 +274,12 @@ def rebuild():
     ).select_related("author", "person")
     for proposal in closed.order_by("decided_at", "pk"):
         proposal_closed(proposal, None, notify=False)
+    from gamification.models import QuizAttempt
+    from gamification.services import quiz
+
+    finished = QuizAttempt.objects.filter(scored=True, finished_at__isnull=False)
+    for attempt in finished.select_related("user").order_by("finished_at", "pk"):
+        quiz.award(attempt, notify=False)
     from accounts.models import Role, User
 
     for user in User.objects.filter(role=Role.COLLABORATOR):
