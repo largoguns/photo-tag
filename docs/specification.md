@@ -373,7 +373,7 @@ Desde cada persona se muestra con la etiqueta que le corresponde: si A es progen
 - Tíos: los hermanos de mis progenitores y los **progenitores de mis primos** (C hijo de D y C primo de A ⇒ D tío de A y de sus hermanos). Primos: los hijos de mis tíos y los hermanos de mis primos. Sobrinos, el inverso de tíos.
 - No existen «primo segundo» ni «tío abuelo»: el primo de mi primo no es mi primo (salvo que sea su hermano) y nada se deduce más allá.
 
-Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol se dibujan como **enlace directo**, con línea discontinua.
+Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol no se unen con ninguna línea: mientras falte el eslabón, la persona aparece en su fila, junto a las demás, con su parentesco respecto a la persona central bajo el nombre («primo»). Cuando el eslabón se añade, cuelga de él y la etiqueta desaparece.
 
 **Ficha de persona.** Sección «Familia y relaciones» con:
 - Las relaciones aceptadas, agrupadas por árbol.
@@ -386,6 +386,7 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 - **Familiar**: árbol generacional centrado en una persona, con los antepasados arriba y los descendientes abajo.
   - Los hermanos van en la misma fila y las parejas, una al lado de la otra: la pareja con línea continua y la expareja con línea discontinua gris.
   - Los hijos cuelgan de la línea que une a sus dos progenitores, con soporte para varias parejas y medio hermanos.
+  - Cuando los dos miembros de una pareja tienen padres en el árbol, cada uno va del lado de su familia y sus hermanos quedan a ese lado: nadie queda entre una persona y sus hermanos. Las líneas horizontales de dos familias nunca se solapan; si coincidirían, van a distinta altura.
   - Cada nodo muestra el avatar de la persona y su nombre.
   - Filtros en chips:
     - Persona central: por defecto la vinculada con «Soy yo» (5.11); si no hay ninguna, se pide elegir.

@@ -21,6 +21,7 @@
           <text class="node-initial-text" x="{{ item.node.x|css_num }}" y="{{ item.node.y|css_num }}" text-anchor="middle" dominant-baseline="central">{{ item.person.display_name|first|upper }}</text>
           {% endif %}
           <text class="node-name" x="{{ item.node.x|css_num }}" y="{{ item.name_y|css_num }}" text-anchor="middle">{{ item.short_name }}</text>
+          {% if item.node.unlinked and item.role %}<text class="node-role" x="{{ item.node.x|css_num }}" y="{{ item.role_y|css_num }}" text-anchor="middle">{{ item.role|lower }}</text>{% endif %}
         </a>
         {% endfor %}
       </g>

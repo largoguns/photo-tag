@@ -954,7 +954,6 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .tree-svg .edge-partner { stroke: var(--md-primary); stroke-width: 3; }
 .tree-svg .edge-ex_partner { stroke: var(--md-outline); stroke-dasharray: 6 6; }
 .tree-svg .edge-parent { stroke: var(--md-on-surface-variant); }
-.tree-svg .edge-direct, .tree-svg .edge-in_law { stroke: var(--md-tertiary, var(--md-primary)); stroke-dasharray: 3 6; }
 .tree-svg .edge-friend { stroke: var(--md-primary); }
 .tree-svg .edge-compadre { stroke: var(--md-tertiary, var(--md-primary)); stroke-dasharray: 10 4; }
 .tree-svg .edge-godparent { stroke: var(--md-secondary, var(--md-outline)); stroke-dasharray: 2 4; }
@@ -969,6 +968,8 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .tree-node .node-initial-text { fill: var(--md-on-primary-container); font-size: 20px; font-weight: 500; }
 .tree-node .node-name { fill: var(--md-on-surface); font-size: 14px; }
 .tree-node.focus .node-name { font-weight: 700; }
+/* Kinship of someone the tree cannot join yet (e.g. a cousin whose parent is missing). */
+.tree-node .node-role { fill: var(--md-primary); font-size: 12px; }
 .tree-node:focus-visible { outline: none; }
 .tree-node:focus-visible .node-ring { stroke: var(--md-primary); stroke-width: 4; }
 .tree-controls { position: absolute; right: .75rem; bottom: .75rem; display: flex; flex-direction: column; gap: .5rem; }

@@ -111,3 +111,15 @@ def test_lonely_person(client, alice):
     client.force_login(alice)
     content = get(client, person=alone.pk)
     assert "Todavía no hay familia de Sola" in content
+
+
+def test_a_relative_without_the_people_in_between_shows_the_kinship(client, alice, family):
+    paco = family["Paco"]
+    susi = Person.objects.create(display_name="Susi")
+    relationships.add(alice, paco, "cousin", other=susi)
+    client.force_login(alice)
+
+    content = get(client, person=paco.pk)
+
+    assert 'class="node-role"' in content and ">primo</text>" in content
+    assert content.count('class="node-role"') == 1  # Lola is joined through their parents

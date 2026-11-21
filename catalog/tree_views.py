@@ -138,6 +138,7 @@ def tree(request):
                 "image_x": node.x - tree_layout.NODE_R,
                 "image_y": node.y - tree_layout.NODE_R,
                 "name_y": node.y + tree_layout.NODE_R + 18,
+                "role_y": node.y + tree_layout.NODE_R + 34,
             }
         )
     levels = {}
