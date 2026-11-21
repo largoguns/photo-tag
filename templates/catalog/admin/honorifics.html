@@ -1,0 +1,32 @@
+{% extends "base.html" %}{% load i18n %}
+{% block title %}{% translate "Tratamientos en el nombre" %}{% endblock %}
+{% block main_class %}container narrow{% endblock %}
+{% block content %}
+{% translate "Tratamientos en el nombre" as page_title %}{% translate "Volver a Administración" as back_label %}{% url 'admin_home' as back_url %}
+{% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
+<p class="muted">{% translate "Personas con «Abuela», «Tito»… escrito en el nombre. Al separarlo pasa a su tratamiento y se sigue viendo igual («Abuela Ana»), pero el nombre queda limpio. Las fotos se reexportan y queda en la auditoría." %}</p>
+{% if pending %}
+<form method="post" class="actions"
+      data-confirm="{% blocktranslate count counter=pending|length %}¿Separar el tratamiento de {{ counter }} persona?{% plural %}¿Separar el tratamiento de las {{ counter }} personas?{% endblocktranslate %}"
+      data-confirm-ok="{% translate 'Separar todas' %}">
+  {% csrf_token %}<input type="hidden" name="person" value="all">
+  <button type="submit" class="button primary">{% translate "Separar todas" %}</button>
+</form>
+<ul class="list honorific-list">
+  {% for person, honorific, name in pending %}
+  <li class="list-item">
+    <div class="list-main">
+      <a href="{% url 'person_detail' person.pk %}"><strong>{{ person }}</strong></a>
+      <div class="meta muted">{% blocktranslate %}Tratamiento «{{ honorific }}» · nombre «{{ name }}»{% endblocktranslate %}</div>
+    </div>
+    <form method="post">
+      {% csrf_token %}<input type="hidden" name="person" value="{{ person.pk }}">
+      <button type="submit" class="button small">{% translate "Separar" %}</button>
+    </form>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">{% translate "No hay ninguna: todos los tratamientos están en su sitio." %}</p>
+{% endif %}
+{% endblock %}

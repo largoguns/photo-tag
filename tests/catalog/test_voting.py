@@ -40,7 +40,7 @@ def test_creating_a_proposal_counts_as_authors_vote(photo, alice):
 
     assert proposal.status == Status.OPEN
     assert list(proposal.votes.values_list("user__username", "value")) == [("alice", 1)]
-    assert Person.objects.get(display_name="Abuela Carmen").is_provisional
+    assert Person.objects.get(display_name="Carmen", honorific="Abuela").is_provisional
     photo.refresh_from_db()
     assert photo.status == Photo.Status.IN_PROGRESS
 
@@ -54,7 +54,7 @@ def test_two_users_voting_same_name_accept_it(photo, alice, bob):
 
     assert proposal.status == Status.ACCEPTED
     face.refresh_from_db()
-    assert face.person.display_name == "Abuela Carmen"
+    assert face.person.shown_name == "Abuela Carmen"
     assert not face.person.is_provisional
 
 

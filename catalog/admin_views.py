@@ -8,15 +8,47 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext as _
+from django.utils.translation import ngettext
 from django.views.decorators.http import require_POST
 
 from accounts.permissions import admin_required
 from accounts.services import audit, audit_catalog
 from catalog.forms import EventTypeForm, MergePersonsForm, ThresholdsForm
 from catalog.models import CatalogSettings, EventType, Location, Photo, Scan
-from catalog.services import catalog_review
+from catalog.services import catalog_review, person_details
 from catalog.services import locations as location_service
 from catalog.services.persons import merge_persons
+
+
+@admin_required
+def honorifics(request):
+    """People with a form of address inside the name ("Abuela Ana"): separate it into the
+    honorific, one by one or all at once (spec 5.13)."""
+    if request.method == "POST":
+        pending = person_details.honorifics_in_names()
+        chosen = request.POST.get("person", "")
+        if chosen != "all":
+            pending = [item for item in pending if str(item[0].pk) == chosen]
+        done = 0
+        for person, _honorific, _name in pending:
+            try:
+                person_details.separate_honorific(request.user, person)
+            except ValidationError as exc:
+                messages.error(request, f"{person}: {exc.messages[0]}")
+            else:
+                done += 1
+        if done:
+            messages.success(
+                request,
+                ngettext("%(count)s persona actualizada.", "%(count)s personas actualizadas.", done)
+                % {"count": done},
+            )
+        return redirect("admin_honorifics")
+    return render(
+        request,
+        "catalog/admin/honorifics.html",
+        {"pending": person_details.honorifics_in_names()},
+    )
 
 
 @admin_required
@@ -30,6 +62,7 @@ def admin_home(request):
             "locations_to_review": Location.objects.filter(
                 is_provisional=True, merged_into__isnull=True
             ).count(),
+            "honorifics_in_names": len(person_details.honorifics_in_names()),
             "settings": CatalogSettings.load(),
             "recent_audit": audit_catalog.recent(15),
             "scanner_configured": bool(settings.SCANNER_URL),

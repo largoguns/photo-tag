@@ -160,6 +160,11 @@ def test_person_page_sets_honorific_and_nicknames(client, paco, alice):
     assert "<h1>Tito Paco</h1>" in content
     sheet = content.split('id="sheet-nicknames"')[1].split("</dialog>")[0]
     assert "Pico" in sheet
+    # Nicknames are under the name, as chips that open the sheet; not in the ⋮ menu.
+    header = content.split('class="chips person-nicknames"')[1].split("</ul>")[0]
+    assert ">Pico</button>" in header and 'data-sheet-focus="nickname-text"' in header
+    menu = content.split('class="user-menu person-menu"')[1].split("</details>")[0]
+    assert "sheet-nicknames" not in menu
 
     nickname = PersonNickname.objects.get()
     client.post(reverse("remove_nickname", args=[nickname.pk]), {"next": url})
@@ -167,3 +172,67 @@ def test_person_page_sets_honorific_and_nicknames(client, paco, alice):
 
     response = client.post(reverse("add_nickname", args=[paco.pk]), {"nickname": " "}, follow=True)
     assert "Escribe el apodo" in response.content.decode()
+
+
+# --- Forms of address inside the name ("Abuela Ana") ----------------------------------
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("Abuela Ana", ("Abuela", "Ana")),
+        ("TÍA Lola", ("TÍA", "Lola")),
+        ("Tito Paco Martín", ("Tito", "Paco Martín")),
+        ("Abuela", ("", "Abuela")),  # nothing would be left of the name
+        ("Ana Abuela", ("", "Ana Abuela")),
+        ("Titanic", ("", "Titanic")),
+    ],
+)
+def test_split_honorific(name, expected):
+    from catalog.services.names import split_honorific
+
+    assert split_honorific(name) == expected
+
+
+def test_a_typed_form_of_address_goes_to_the_honorific(alice):
+    from catalog.services import voting
+
+    person = voting.resolve_person("abuela ana", alice)
+    assert (person.honorific, person.display_name, person.shown_name) == (
+        "Abuela",
+        "Ana",
+        "Abuela Ana",
+    )
+    # Typing the shown name finds that same person instead of creating another one.
+    assert voting.resolve_person("Abuela Ana", alice) == person
+
+
+def test_admin_separates_honorifics_written_in_the_name(client, admin_user, alice):
+    grandma = Person.objects.create(display_name="Abuela Ana")
+    doubled = Person.objects.create(display_name="Abuela Isabel", honorific="Abuela")
+    other = Person.objects.create(display_name="Tito Paco", honorific="Padrino")  # decided by hand
+    Person.objects.create(display_name="Ana")
+    url = reverse("admin_honorifics")
+
+    client.force_login(alice)
+    assert client.get(url).status_code == 403
+
+    client.force_login(admin_user)
+    assert "2 por separar" in client.get(reverse("admin_home")).content.decode()
+    content = client.get(url).content.decode()
+    assert "Abuela Ana" in content and "Abuela Abuela Isabel" in content
+    assert "Padrino Tito Paco" not in content
+
+    client.post(url, {"person": grandma.pk})
+    grandma.refresh_from_db()
+    assert (grandma.honorific, grandma.display_name) == ("Abuela", "Ana")  # Ana already exists
+    assert AuditLog.objects.filter(action="person.honorific").exists()
+    assert AuditLog.objects.filter(action="person.rename").exists()
+
+    response = client.post(url, {"person": "all"}, follow=True)
+    assert "1 persona actualizada" in response.content.decode()
+    doubled.refresh_from_db()
+    other.refresh_from_db()
+    assert (doubled.honorific, doubled.display_name) == ("Abuela", "Isabel")
+    assert other.display_name == "Tito Paco"
+    assert "No hay ninguna" in client.get(url).content.decode()

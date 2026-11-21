@@ -76,4 +76,5 @@ urlpatterns = [
         "admin/scans/<int:pk>/reprocess/", admin_views.scan_reprocess, name="admin_scan_reprocess"
     ),
     path("admin/merge/", admin_views.merge, name="admin_merge"),
+    path("admin/honorifics/", admin_views.honorifics, name="admin_honorifics"),
 ]

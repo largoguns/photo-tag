@@ -85,7 +85,7 @@ def test_two_users_vote_same_name_through_the_web(client, photo, alice, bob):
     client.post(reverse("vote", args=[proposal.pk]), {"value": "up"})
 
     face.refresh_from_db()
-    assert face.person.display_name == "Abuelo Paco"
+    assert face.person.shown_name == "Abuelo Paco"
 
 
 def test_htmx_actions_return_the_workspace_fragment(client, photo, alice):

@@ -21,7 +21,7 @@ from catalog.models import (
     Proposal,
     Vote,
 )
-from catalog.services.names import name_key, normalize_label, normalize_name
+from catalog.services.names import name_key, normalize_label, normalize_name, split_honorific
 
 Kind = Proposal.Kind
 Status = Proposal.Status
@@ -33,15 +33,21 @@ Status = Proposal.Status
 
 
 def people_named(name, exclude=None):
-    """Active people whose name matches ignoring accents and case ("adri" = "ADRÍ")."""
+    """Active people whose name or shown name ("Abuela Ana") matches, ignoring accents and
+    case ("adri" = "ADRÍ")."""
     key = name_key(name)
     people = Person.objects.active().exclude(pk=exclude).order_by("id")
-    return [p for p in people.only("id", "display_name") if name_key(p.display_name) == key]
+    return [
+        p
+        for p in people.only("id", "display_name", "honorific")
+        if key in (name_key(p.display_name), name_key(p.shown_name))
+    ]
 
 
 def resolve_person(name, user, *, new=False):
     """The person a typed name refers to. Names can repeat in a family: the only match is
-    used, none (or `new`) creates a provisional person, and several ask to choose one."""
+    used, none (or `new`) creates a provisional person, and several ask to choose one.
+    A form of address typed first goes to the honorific: "abuela ana" → "Abuela" + "Ana"."""
     name = normalize_name(name)
     if not name:
         raise ValidationError(_("El nombre no puede estar vacío."))
@@ -53,7 +59,10 @@ def resolve_person(name, user, *, new=False):
         )
     if matches:
         return Person.objects.get(pk=matches[0].pk)
-    return Person.objects.create(display_name=name, created_by=user, is_provisional=True)
+    honorific, rest = split_honorific(name)
+    return Person.objects.create(
+        display_name=rest, honorific=honorific, created_by=user, is_provisional=True
+    )
 
 
 def resolve_event_type(name, user):

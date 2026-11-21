@@ -12,7 +12,7 @@ from django.utils.translation import gettext as _
 
 from accounts.services import audit
 from catalog.models import Person, PersonNickname
-from catalog.services.names import matches, name_key, normalize_label
+from catalog.services.names import matches, name_key, normalize_label, split_honorific
 
 
 def normalize_honorific(text):
@@ -81,6 +81,44 @@ def move_to(source, target):
             nickname.person = target
             nickname.save(update_fields=["person"])
             target_keys.add(nickname.text_key)
+
+
+# ---------------------------------------------------------------------------
+# Forms of address written inside the name ("Abuela Ana"): administration tool
+# ---------------------------------------------------------------------------
+
+
+def honorifics_in_names():
+    """[(person, honorific, name)] of accepted people whose name starts with a form of
+    address that belongs in the honorific. Skipped when they already have a different
+    honorific (an administrator decides that one by hand)."""
+    result = []
+    people = Person.objects.active().filter(is_provisional=False).order_by("display_name", "id")
+    for person in people:
+        honorific, rest = split_honorific(person.display_name)
+        if not honorific:
+            continue
+        if person.honorific and name_key(person.honorific) != name_key(honorific):
+            continue
+        result.append((person, normalize_honorific(honorific), rest))
+    return result
+
+
+@transaction.atomic
+def separate_honorific(admin, person):
+    """'Abuela Ana' → honorific 'Abuela' + name 'Ana' (or only the name, when the
+    honorific was already set: 'Abuela Abuela Ana'). Audited and photos re-exported."""
+    from catalog.services.persons import rename_person
+
+    person = Person.objects.get(pk=person.pk)
+    honorific, rest = split_honorific(person.display_name)
+    if not honorific:
+        return person
+    if not person.honorific:
+        person = set_honorific(admin, person, honorific)
+    elif name_key(person.honorific) != name_key(honorific):
+        raise ValidationError(_("Ya tiene otro tratamiento: cámbialo a mano."))
+    return rename_person(admin, person, rest)
 
 
 def search_persons(persons, query):

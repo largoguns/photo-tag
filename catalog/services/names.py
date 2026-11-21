@@ -53,6 +53,33 @@ def normalize_label(text):
     return text[0].upper() + text[1:]
 
 
+# Forms of address that go in the honorific, not in the name (spec 5.13): "Abuela Ana" is
+# the honorific "Abuela" and the name "Ana". Compared with name_key (no accents, no case).
+HONORIFIC_WORDS = {
+    "abuela",
+    "abuelo",
+    "bisabuela",
+    "bisabuelo",
+    "tito",
+    "tita",
+    "tio",
+    "tia",
+    "yaya",
+    "yayo",
+    "padrino",
+    "madrina",
+}
+
+
+def split_honorific(name):
+    """'Abuela Ana' → ('Abuela', 'Ana'); ('', name) when it does not start with a form of
+    address or nothing would be left of the name ('Abuela' alone)."""
+    words = " ".join(str(name).split()).split(" ")
+    if len(words) > 1 and name_key(words[0]) in HONORIFIC_WORDS:
+        return words[0], " ".join(words[1:])
+    return "", " ".join(words)
+
+
 def matches(query, *texts):
     """Loose search: every word of `query` appears somewhere in `texts`, ignoring accents
     and case ("ari" finds "María", "lop mar" finds "María López")."""
