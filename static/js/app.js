@@ -59,11 +59,8 @@
     }).join(" ");
   }
 
-  // The page zooms, but not over the app's own gestures (iOS ignores touch-action for pinch).
-  const OWN_GESTURES = "[data-gallery-zoom], .photo-frame, .viewer-stage, .crop-canvas, .tree-canvas, .year-rail";
-  document.addEventListener("gesturestart", (event) => {
-    if (event.target.closest && event.target.closest(OWN_GESTURES)) event.preventDefault();
-  });
+  // No page zoom (iOS ignores user-scalable=no); the app's own gestures zoom by themselves.
+  document.addEventListener("gesturestart", (event) => event.preventDefault());
 
   // --- App shell: elevated top bar and floating nav that hides on scroll -------
   let lastScrollY = window.scrollY;

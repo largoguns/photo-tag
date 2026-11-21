@@ -31,11 +31,13 @@ def make_photo(index, date=None, precision="", scan=None):
 # --- App shell ---------------------------------------------------------------------
 
 
-def test_page_zoom_is_allowed_except_on_own_gestures():
+def test_page_zoom_is_disabled_and_own_gestures_keep_working():
     base = (BASE_DIR / "templates" / "base.html").read_text()
-    assert "user-scalable=no" not in base and "maximum-scale" not in base
+    assert "maximum-scale=1, user-scalable=no" in base
     css = (BASE_DIR / "static" / "css" / "app.css").read_text()
-    assert "touch-action: pan-x pan-y" not in css
+    assert "touch-action: pan-x pan-y" in css
+    js = (BASE_DIR / "static" / "js" / "app.js").read_text()
+    assert 'addEventListener("gesturestart", (event) => event.preventDefault())' in js
     assert "[data-gallery-zoom] { touch-action: pan-y; }" in css
     for selector in [".viewer-stage", ".crop-canvas", ".tree-canvas"]:
         rule = css.split(selector + " {", 1)[1].split("}", 1)[0]
