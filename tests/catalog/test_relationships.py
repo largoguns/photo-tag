@@ -233,6 +233,24 @@ def test_errors_are_shown_on_the_person_page(client, alice, ana):
     assert "consigo misma" in response.content.decode()
 
 
+def test_namesakes_from_the_person_page(client, alice, ana, luis):
+    other_luis = person("Luis")
+    client.force_login(alice)
+    url = reverse("add_relationship", args=[ana.pk])
+
+    response = client.post(url, {"name": "Luis", "role": "sibling"}, follow=True)
+    assert "varias personas llamadas «Luis»" in response.content.decode()
+    assert not Relationship.objects.exists()
+
+    client.post(url, {"name": "Luis", "person_id": other_luis.pk, "role": "sibling"})
+    relationship = Relationship.objects.get()
+    assert other_luis.pk in (relationship.person_from_id, relationship.person_to_id)
+    assert luis.pk not in (relationship.person_from_id, relationship.person_to_id)
+
+    client.post(url, {"name": "Luis", "new_person": "1", "role": "cousin"})
+    assert Person.objects.filter(display_name="Luis").count() == 3
+
+
 def test_login_is_required(client, ana):
     response = client.post(reverse("add_relationship", args=[ana.pk]), {"role": "friend"})
     assert response.status_code == 302 and "login" in response.url

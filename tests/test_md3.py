@@ -150,6 +150,9 @@ def test_people_json_includes_avatars(client, alice, photo):
     response = client.get(reverse("photo_detail", args=[photo.pk]))
     entry = next(p for p in response.context["people_json"] if p["name"] == "Carmen")
     assert entry["avatar"] == reverse("face_image", args=[face.pk])
+    # Names repeat: the id is what a choice sends, and the photo count tells namesakes apart.
+    assert entry["id"] == person.pk and entry["photos"] == 1
+    assert 'id="combobox-texts"' in response.content.decode()
 
 
 def test_hidden_attribute_always_wins():

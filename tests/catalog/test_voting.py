@@ -344,6 +344,29 @@ def test_existing_person_is_reused_ignoring_case_and_accents(photo, alice, typed
     assert voting.resolve_person(typed, alice) == existing
 
 
+def test_namesakes_typed_by_hand_must_be_chosen(photo, alice):
+    grandma = Person.objects.create(display_name="Ana")
+    granddaughter = Person.objects.create(display_name="Ana")
+    with pytest.raises(ValidationError, match="varias personas llamadas «Ana»"):
+        voting.resolve_person("ana", alice)
+    face = photo.faces.first()
+    # Chosen in the list: the exact person travels, not the name.
+    proposal = voting.create_proposal(
+        alice, photo, Proposal.Kind.FACE_IDENTITY, face=face, person=granddaughter
+    )
+    assert proposal.person == granddaughter and proposal.person != grandma
+
+
+def test_a_namesake_can_be_created_on_purpose(photo, alice):
+    existing = Person.objects.create(display_name="Ana")
+    face = photo.faces.first()
+    proposal = voting.create_proposal(
+        alice, photo, Proposal.Kind.FACE_IDENTITY, face=face, person_name="Ana", new_person=True
+    )
+    assert proposal.person != existing and proposal.person.display_name == "Ana"
+    assert proposal.person.is_provisional
+
+
 def test_new_person_names_are_normalized(photo, alice):
     person = voting.resolve_person("maría josé DE LA cruz", alice)
     assert person.display_name == "María José de la Cruz"

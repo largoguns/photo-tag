@@ -101,16 +101,22 @@ def test_admin_renames_a_person_and_photos_are_re_exported(client, admin_user, m
     assert entry.details == {"old": "María", "new": "María de la Luz"}
 
 
-def test_rename_refuses_the_name_of_another_person(client, admin_user, maria):
+def test_rename_allows_a_repeated_name_with_a_warning(client, admin_user, maria):
+    # A grandmother and her granddaughter can both be called Pedro… or Ana.
     person, small, big = maria
     Person.objects.create(display_name="Pedro")
     client.force_login(admin_user)
     response = client.post(
         reverse("person_rename", args=[person.pk]), {"display_name": "PEDRO"}, follow=True
     )
-    assert "Fusionar personas" in response.content.decode()
+    content = response.content.decode()
+    assert "message-warning" in content and "Fusionar personas" in content
     person.refresh_from_db()
-    assert person.display_name == "María"
+    assert person.display_name == "Pedro"
+
+    client.post(reverse("person_rename", args=[person.pk]), {"display_name": "Pedro Luis"})
+    response = client.get(reverse("person_detail", args=[person.pk]))
+    assert "message-warning" not in response.content.decode()  # no namesake, no warning
 
 
 def test_collaborators_cannot_rename(client, alice, maria):
