@@ -120,8 +120,10 @@ def test_in_laws_and_direct_links_filters():
     rows = [*ROWS, (60, 3, K.PARENT_IN_LAW), (3, 61, K.COUSIN)]
     full = tree_layout.family_tree(graph(rows), 3)
     assert {60, 61} <= {n.person_id for n in full.nodes}
-    assert {"in_law", "direct"} <= {e.style for e in full.edges}
     assert full.node(60).level == -1 and full.node(61).level == 0
+    # Nothing joins them yet: no line, they show their kinship under the name instead.
+    assert full.node(60).unlinked and full.node(61).unlinked
+    assert {e.style for e in full.edges} <= {"partner", "ex_partner", "parent"}
 
     bare = tree_layout.family_tree(graph(rows), 3, in_laws=False, direct=False)
     assert not {60, 61} & {n.person_id for n in bare.nodes}
@@ -233,3 +235,55 @@ def test_each_partner_sits_on_their_parents_side_and_family_lines_do_not_merge()
         for y2, s2, l2, r2 in bars:
             if y1 == y2 and s1 != s2:
                 assert r1 < l2 or r2 < l1, (y1, (l1, r1), (l2, r2))
+
+
+def _family_of_the_screenshots():
+    """Grandmother 60 → dad 62 and aunt 64 (ex-partner 65, daughter 73); grandmother 61 →
+    mum 63. Dad and mum → 66 (focus), 67, 68. 77: a cousin whose parent is not in the tree.
+    The focus has explicit links to a sibling, the cousins and a sibling-in-law."""
+    rows = [
+        (60, 62, K.PARENT),
+        (60, 64, K.PARENT),
+        (61, 63, K.PARENT),
+        (62, 63, K.PARTNER),
+        (64, 65, K.EX_PARTNER),
+        (64, 73, K.PARENT),
+        (65, 73, K.PARENT),
+        (68, 69, K.PARTNER),
+        (66, 68, K.SIBLING),
+        (66, 73, K.COUSIN),
+        (66, 77, K.COUSIN),
+        (66, 69, K.SIBLING_IN_LAW),
+    ]
+    for child in (66, 67, 68):
+        rows += [(62, child, K.PARENT), (63, child, K.PARENT)]
+    return tree_layout.family_tree(Graph(rows), 66)
+
+
+def test_a_child_marrying_into_another_family_sits_on_its_edge():
+    layout = _family_of_the_screenshots()
+    pos = positions(layout)
+    assert_no_overlaps(layout)
+    grandma_dad, grandma_mum = pos[60][0], pos[61][0]
+    dad, mum, aunt = pos[62][0], pos[63][0], pos[64][0]
+    assert grandma_dad < grandma_mum and aunt < dad < mum
+    # No family line crosses another one.
+    bars = _bars(layout)
+    for y1, s1, l1, r1 in bars:
+        for y2, s2, l2, r2 in bars:
+            if y1 == y2 and s1 != s2:
+                assert r1 < l2 or r2 < l1
+
+
+def test_only_relatives_the_tree_cannot_join_are_marked():
+    layout = _family_of_the_screenshots()
+    unlinked = {n.person_id for n in layout.nodes if n.unlinked}
+    assert unlinked == {77}  # siblings, the cousin 73 and the sibling-in-law are joined
+    assert layout.node(77).role == "cousin"
+
+
+def test_unlinked_people_sit_next_to_their_row():
+    layout = _family_of_the_screenshots()
+    row = sorted(n.x for n in layout.nodes if n.y == layout.node(77).y)
+    gaps = [b - a for a, b in zip(row, row[1:], strict=False)]
+    assert layout.node(77).x == row[-1] and gaps[-1] == SLOT

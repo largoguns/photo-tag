@@ -61,6 +61,7 @@ class Node:
     role: str = ""  # role relative to the central person (kinship.ROLES), "" if none
     activity: str = ""
     focus: bool = False
+    unlinked: bool = False  # family tree: no line joins them to the central person yet
 
 
 @dataclass
@@ -202,10 +203,24 @@ def family_tree(graph, focus, up=3, down=3, partners=True, in_laws=True, direct=
     center = {}  # unit → x of its middle
     claimed = set()
 
+    def other_family(kid, u):
+        """-1 if a member of `kid` also has parents already placed (that family is on the
+        left), 1 if not placed yet (it will go on the right), 0 if `u` is their only family."""
+        side = 0
+        for member in units[kid]:
+            for p in graph.parents[member]:
+                if p in gen and gen[p] == level[kid] - 1 and unit_of[p] != u:
+                    side = -1 if unit_of[p] in claimed else max(side, 1)
+                    if side < 0:
+                        return side
+        return side
+
     def place(u, left):
         """Place unit `u` and its descendants from `left`; return the width used."""
         own = len(units[u]) * SLOT
         kids = [c for c in children_units(u) if c not in claimed]
+        # A child who married into another family sits on the edge facing that family.
+        kids.sort(key=lambda kid: other_family(kid, u))
         claimed.update(kids)
         cursor = left
         for kid in kids:
@@ -233,6 +248,8 @@ def family_tree(graph, focus, up=3, down=3, partners=True, in_laws=True, direct=
             cursor += place(u, cursor)
 
     _nudge_parents(units, level, center, children_units)
+    loose = [u for u in range(len(units)) if not has_parents(u) and not children_units(u)]
+    _close_gaps(units, level, center, set(loose))
     _order_couples(graph, gen, units, unit_of, level, center)
 
     # Coordinates.
@@ -250,13 +267,24 @@ def family_tree(graph, focus, up=3, down=3, partners=True, in_laws=True, direct=
 
     explicit = _explicit_roles(graph, focus)
     deduced = graph.deduced(focus)
+    # Relatives added without the people in between (a cousin whose parent is not in the
+    # album) are not joined by any line: they show their kinship under the name instead.
+    connected = _connected(graph, gen, unit_of, focus)
     layout = Layout(truncated=truncated)
     for pid in gen:
         role = explicit[pid][0] if pid in explicit else deduced.get(pid, "")
         layout.nodes.append(
-            Node(pid, x_of[pid], y_of[pid], gen[pid], role=role, focus=pid == focus)
+            Node(
+                pid,
+                x_of[pid],
+                y_of[pid],
+                gen[pid],
+                role=role,
+                focus=pid == focus,
+                unlinked=pid not in connected,
+            )
         )
-    layout.edges = _family_edges(graph, gen, units, unit_of, x_of, y_of, focus, explicit)
+    layout.edges = _family_edges(graph, gen, units, unit_of, x_of, y_of)
     layout.width = max(x_of.values()) + MARGIN
     layout.height = max(y_of.values()) + NODE_R + LABEL + MARGIN
     return layout
@@ -284,6 +312,20 @@ def _nudge_parents(units, level, center, children_units):
                 nxt = ordered[index + 1]
                 high = center[nxt] - len(units[nxt]) * SLOT / 2 - half
             center[u] = min(max(target, low), high) if low <= high else center[u]
+
+
+def _close_gaps(units, level, center, loose):
+    """People hanging from nobody in the tree (a cousin whose parent is not in the album)
+    sit right after the previous person of their row instead of at the far end."""
+    rows = defaultdict(list)
+    for u in range(len(units)):
+        rows[level[u]].append(u)
+    for row in rows.values():
+        row.sort(key=lambda u: center[u])
+        for prev, u in zip(row, row[1:], strict=False):
+            if u in loose:
+                half = len(units[u]) * SLOT / 2
+                center[u] = min(center[u], center[prev] + len(units[prev]) * SLOT / 2 + half)
 
 
 def _order_couples(graph, gen, units, unit_of, level, center):
@@ -326,7 +368,7 @@ def _parent_lanes(families):
     return {key: (lane - (count - 1) / 2) * step for key, lane in lanes.items()}
 
 
-def _family_edges(graph, gen, units, unit_of, x_of, y_of, focus, explicit):
+def _family_edges(graph, gen, units, unit_of, x_of, y_of):
     edges = []
     # Partners side by side (a line behind any member in between).
     for members in units:
@@ -371,15 +413,27 @@ def _family_edges(graph, gen, units, unit_of, x_of, y_of, focus, explicit):
             cx, cy = x_of[child], y_of[child] - NODE_R
             mid = cy - (ROW - NODE_R * 2 - LABEL) / 2 + offsets[key]
             edges.append(Edge(f"M{sx},{sy} V{mid} H{cx} V{cy}", "parent"))
-    # Explicit in-law and direct links of the central person.
-    for other, (_role, kind, _activity) in explicit.items():
-        if other not in gen or kind in (K.PARENT, K.PARTNER, K.EX_PARTNER):
-            continue
-        if kind not in kinship.FAMILY_KINDS:
-            continue
-        style = "in_law" if kind in IN_LAW_KINDS else "direct"
-        edges.append(Edge(f"M{x_of[focus]},{y_of[focus]} L{x_of[other]},{y_of[other]}", style))
     return edges
+
+
+def _connected(graph, gen, unit_of, focus):
+    """People reachable from `focus` through the lines drawn: parent to child (one row
+    apart) and partners in the same unit."""
+    seen, stack = {focus}, [focus]
+    while stack:
+        current = stack.pop()
+        near = [p for p in graph.parents[current] if p in gen and gen[p] == gen[current] - 1]
+        near += [c for c in graph.children[current] if c in gen and gen[c] == gen[current] + 1]
+        near += [
+            o
+            for o in graph.partners[current] | graph.ex_partners[current]
+            if o in gen and unit_of.get(o) == unit_of[current]
+        ]
+        for other in near:
+            if other not in seen:
+                seen.add(other)
+                stack.append(other)
+    return seen
 
 
 # ---------------------------------------------------------------------------
