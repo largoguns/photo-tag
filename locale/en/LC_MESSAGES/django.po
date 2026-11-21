@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-21 21:08+0100\n"
+"POT-Creation-Date: 2026-11-21 21:54+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -12,7 +12,7 @@ msgstr ""
 
 #: accounts/apps.py:8 templates/accounts/user_list.html:2
 #: templates/accounts/user_list.html:6 templates/base.html:43
-#: templates/catalog/admin/home.html:13
+#: templates/catalog/admin/home.html:14
 msgid "Usuarios"
 msgstr "Users"
 
@@ -107,7 +107,7 @@ msgid "Catalogación"
 msgstr "Cataloging"
 
 #: accounts/services/audit_catalog.py:21
-#: templates/catalog/person_detail.html:68
+#: templates/catalog/person_detail.html:71
 msgid "Fotos"
 msgstr "Photos"
 
@@ -423,7 +423,7 @@ msgstr "%(name)s (no longer exists)"
 #: templates/catalog/_photo_workspace.html:48
 #: templates/catalog/_photo_workspace.html:94
 #: templates/catalog/_proposal_activity.html:16
-#: templates/catalog/admin/review_queue.html:37 templates/catalog/home.html:32
+#: templates/catalog/admin/review_queue.html:37 templates/catalog/home.html:38
 #: templates/catalog/photo.html:2 templates/scanner/_scan_panel.html:24
 #, python-format
 msgid "Foto %(id)s"
@@ -490,71 +490,78 @@ msgstr "Password of “%(username)s” reset to the generic password."
 msgid "No ha hecho propuestas."
 msgstr "No proposals yet."
 
-#: catalog/admin_views.py:47
+#: catalog/admin_views.py:43
+#, python-format
+msgid "%(count)s persona actualizada."
+msgid_plural "%(count)s personas actualizadas."
+msgstr[0] "%(count)s person updated."
+msgstr[1] "%(count)s people updated."
+
+#: catalog/admin_views.py:80
 #, python-format
 msgid "Tipo de evento «%(name)s» creado."
 msgstr "Event type “%(name)s” created."
 
-#: catalog/admin_views.py:75
+#: catalog/admin_views.py:108
 #, python-format
 msgid "«%(name)s» aceptado."
 msgstr "“%(name)s” accepted."
 
-#: catalog/admin_views.py:78
+#: catalog/admin_views.py:111
 #, python-format
 msgid "«%(name)s» rechazado."
 msgstr "“%(name)s” rejected."
 
-#: catalog/admin_views.py:83
+#: catalog/admin_views.py:116
 #, python-format
 msgid "«%(name)s» es ahora la ubicación «%(location)s»."
 msgstr "“%(name)s” is now the location “%(location)s”."
 
-#: catalog/admin_views.py:87
+#: catalog/admin_views.py:120
 msgid "Acción no válida."
 msgstr "Invalid action."
 
-#: catalog/admin_views.py:114
+#: catalog/admin_views.py:147
 msgid "Tipo de evento actualizado."
 msgstr "Event type updated."
 
-#: catalog/admin_views.py:151
+#: catalog/admin_views.py:184
 msgid "Ubicación renombrada."
 msgstr "Location renamed."
 
-#: catalog/admin_views.py:154
+#: catalog/admin_views.py:187
 msgid "Ubicación actualizada."
 msgstr "Location updated."
 
-#: catalog/admin_views.py:162
+#: catalog/admin_views.py:195
 #, python-format
 msgid "Ubicaciones fusionadas en «%(name)s»."
 msgstr "Locations merged into “%(name)s”."
 
-#: catalog/admin_views.py:183
+#: catalog/admin_views.py:216
 msgid "Umbrales actualizados."
 msgstr "Thresholds updated."
 
-#: catalog/admin_views.py:204
+#: catalog/admin_views.py:237
 #, python-format
 msgid "Escaneo «%(name)s» marcado como revisado."
 msgstr "Scan “%(name)s” marked as reviewed."
 
-#: catalog/admin_views.py:242
+#: catalog/admin_views.py:275
 msgid "Foto borrada."
 msgstr "Photo deleted."
 
-#: catalog/admin_views.py:258
+#: catalog/admin_views.py:291
 #, python-format
 msgid "Escaneo «%(name)s» borrado. Puedes volver a escanearlo o subirlo."
 msgstr "Scan “%(name)s” deleted. You can scan or upload it again."
 
-#: catalog/admin_views.py:271
+#: catalog/admin_views.py:304
 #, python-format
 msgid "Reprocesando «%(name)s»: tardará unos segundos."
 msgstr "Reprocessing “%(name)s”: it will take a few seconds."
 
-#: catalog/admin_views.py:303
+#: catalog/admin_views.py:336
 #, python-format
 msgid "Personas fusionadas en «%(name)s»."
 msgstr "People merged into “%(name)s”."
@@ -695,6 +702,7 @@ msgid "exportada en"
 msgstr "exported at"
 
 #: catalog/models.py:146 catalog/models.py:442 catalog/services/gallery.py:92
+#: gamification/services/quiz.py:304
 #, python-format
 msgid "Década de %(decade)s"
 msgstr "%(decade)ss"
@@ -992,7 +1000,7 @@ msgid "Ahijado"
 msgstr "Godchild"
 
 #: catalog/services/locations.py:25 catalog/services/persons.py:61
-#: catalog/services/voting.py:47
+#: catalog/services/voting.py:53
 msgid "El nombre no puede estar vacío."
 msgstr "The name cannot be empty."
 
@@ -1020,6 +1028,10 @@ msgstr "Write the nickname."
 #: catalog/services/person_details.py:55
 msgid "Ese apodo ya está guardado."
 msgstr "That nickname is already saved."
+
+#: catalog/services/person_details.py:120
+msgid "Ya tiene otro tratamiento: cámbialo a mano."
+msgstr "They already have another form of address: change it by hand."
 
 #: catalog/services/persons.py:16
 msgid "No se puede fusionar una persona consigo misma."
@@ -1074,72 +1086,74 @@ msgstr "very likely"
 msgid "posible"
 msgstr "possible"
 
-#: catalog/services/voting.py:51
+#: catalog/services/voting.py:57
 #, python-format
 msgid "Hay varias personas llamadas «%(name)s»: elige la correcta en la lista."
-msgstr "There are several people called “%(name)s”: choose the right one from the list."
+msgstr ""
+"There are several people called “%(name)s”: choose the right one from the "
+"list."
 
-#: catalog/services/voting.py:63
+#: catalog/services/voting.py:72
 msgid "Escribe qué evento es."
 msgstr "Type which event it is."
 
-#: catalog/services/voting.py:78 catalog/services/voting.py:197
+#: catalog/services/voting.py:87 catalog/services/voting.py:206
 msgid "Escribe dónde se hizo la foto."
 msgstr "Write where the photo was taken."
 
-#: catalog/services/voting.py:92
+#: catalog/services/voting.py:101
 msgid "Año no válido."
 msgstr "Invalid year."
 
-#: catalog/services/voting.py:94
+#: catalog/services/voting.py:103
 msgid "Año fuera de rango."
 msgstr "Year out of range."
 
-#: catalog/services/voting.py:103
+#: catalog/services/voting.py:112
 msgid "Fecha no válida."
 msgstr "Invalid date."
 
-#: catalog/services/voting.py:105
+#: catalog/services/voting.py:114
 msgid "Precisión de fecha no válida."
 msgstr "Invalid date precision."
 
-#: catalog/services/voting.py:168
+#: catalog/services/voting.py:177
 msgid "Cara no válida."
 msgstr "Invalid face."
 
-#: catalog/services/voting.py:174
+#: catalog/services/voting.py:183
 msgid "Esa persona ya está aceptada para esta cara."
 msgstr "That person is already accepted for this face."
 
-#: catalog/services/voting.py:181
+#: catalog/services/voting.py:190
 msgid "Elige un tipo de evento."
 msgstr "Choose an event type."
 
-#: catalog/services/voting.py:188
+#: catalog/services/voting.py:197
 msgid "Ese evento ya está aceptado."
 msgstr "That event is already accepted."
 
-#: catalog/services/voting.py:202
+#: catalog/services/voting.py:211
 msgid "Esa ubicación ya está aceptada."
 msgstr "That location is already accepted."
 
-#: catalog/services/voting.py:207
+#: catalog/services/voting.py:216
 msgid "Tipo de propuesta desconocido."
 msgstr "Unknown proposal type."
 
-#: catalog/services/voting.py:247
+#: catalog/services/voting.py:256
 msgid "Recuadro no válido."
 msgstr "Invalid box."
 
-#: catalog/services/voting.py:251
+#: catalog/services/voting.py:260
 msgid "El recuadro es demasiado pequeño."
 msgstr "The box is too small."
 
-#: catalog/services/voting.py:272
+#: catalog/services/voting.py:281
 msgid "Voto no válido."
 msgstr "Invalid vote."
 
-#: catalog/services/voting.py:275 catalog/services/voting.py:325
+#: catalog/services/voting.py:284 catalog/services/voting.py:334
 msgid "La propuesta ya está cerrada."
 msgstr "The proposal is already closed."
 
@@ -1203,7 +1217,9 @@ msgstr "Name updated."
 msgid ""
 "Ya hay otra persona llamada «%(name)s». Si son la misma, usa «Fusionar "
 "personas»."
-msgstr "Someone else is already called “%(name)s”. If they are the same person, use “Merge people”."
+msgstr ""
+"Someone else is already called “%(name)s”. If they are the same person, use "
+"“Merge people”."
 
 #: catalog/views.py:253
 msgid "Esa cara no es de esta persona."
@@ -1260,93 +1276,141 @@ msgstr "Export requested. The worker will run it shortly."
 msgid "Gamificación"
 msgstr "Gamification"
 
-#: gamification/services/achievements.py:28
+#: gamification/services/achievements.py:34
 msgid "Primera subida"
 msgstr "First upload"
 
-#: gamification/services/achievements.py:29
+#: gamification/services/achievements.py:35
 msgid "Sube tu primera foto"
 msgstr "Upload your first photo"
 
-#: gamification/services/achievements.py:36
+#: gamification/services/achievements.py:42
 msgid "Primera identificación"
 msgstr "First identification"
 
-#: gamification/services/achievements.py:37
+#: gamification/services/achievements.py:43
 msgid "Consigue que acepten una identidad"
 msgstr "Get an identity accepted"
 
-#: gamification/services/achievements.py:42
+#: gamification/services/achievements.py:48
 msgid "Detective"
 msgstr "Detective"
 
-#: gamification/services/achievements.py:42
+#: gamification/services/achievements.py:48
 msgid "10 identidades aceptadas"
 msgstr "10 identities accepted"
 
-#: gamification/services/achievements.py:44
+#: gamification/services/achievements.py:50
 msgid "Gran detective"
 msgstr "Great detective"
 
-#: gamification/services/achievements.py:44
+#: gamification/services/achievements.py:50
 msgid "50 identidades aceptadas"
 msgstr "50 identities accepted"
 
-#: gamification/services/achievements.py:48
+#: gamification/services/achievements.py:54
 msgid "Detective legendario"
 msgstr "Legendary detective"
 
-#: gamification/services/achievements.py:49
+#: gamification/services/achievements.py:55
 msgid "100 identidades aceptadas"
 msgstr "100 identities accepted"
 
-#: gamification/services/achievements.py:56 gamification/services/levels.py:12
+#: gamification/services/achievements.py:62 gamification/services/levels.py:12
 msgid "Cronista"
 msgstr "Chronicler"
 
-#: gamification/services/achievements.py:57
+#: gamification/services/achievements.py:63
 msgid "10 fechas aceptadas"
 msgstr "10 dates accepted"
 
-#: gamification/services/achievements.py:64
+#: gamification/services/achievements.py:70
 msgid "Gran cronista"
 msgstr "Great chronicler"
 
-#: gamification/services/achievements.py:65
+#: gamification/services/achievements.py:71
 msgid "50 fechas aceptadas"
 msgstr "50 dates accepted"
 
-#: gamification/services/achievements.py:72
+#: gamification/services/achievements.py:78
 msgid "Ojo de halcón"
 msgstr "Hawk eye"
 
-#: gamification/services/achievements.py:73
+#: gamification/services/achievements.py:79
 msgid "5 falsos positivos aceptados"
 msgstr "5 false positives accepted"
 
-#: gamification/services/achievements.py:78
+#: gamification/services/achievements.py:84
 msgid "Rescatista"
 msgstr "Rescuer"
 
-#: gamification/services/achievements.py:78
+#: gamification/services/achievements.py:84
 msgid "25 fotos subidas"
 msgstr "25 photos uploaded"
 
-#: gamification/services/achievements.py:81 gamification/services/scoring.py:45
+#: gamification/services/achievements.py:87 gamification/services/scoring.py:45
 msgid "Desempate"
 msgstr "Tiebreaker"
 
-#: gamification/services/achievements.py:82
+#: gamification/services/achievements.py:88
 msgid "Tu voto decide una propuesta"
 msgstr "Your vote decides a proposal"
 
-#: gamification/services/achievements.py:87
+#: gamification/services/achievements.py:93
 msgid "Racha"
 msgstr "Streak"
 
-#: gamification/services/achievements.py:87
+#: gamification/services/achievements.py:93
 msgid "Propón o vota 7 días seguidos"
 msgstr "Propose or vote 7 days in a row"
+
+#: gamification/services/achievements.py:95
+msgid "Pleno"
+msgstr "Perfect score"
+
+#: gamification/services/achievements.py:95
+msgid "Acierta las 10 de un quiz"
+msgstr "Get all 10 right in a quiz"
+
+#: gamification/services/achievements.py:98
+msgid "Memoria de elefante"
+msgstr "Memory like an elephant"
+
+#: gamification/services/achievements.py:99
+msgid "10 plenos en el quiz"
+msgstr "10 perfect quizzes"
+
+#: gamification/services/achievements.py:106
+msgid "Fisonomista"
+msgstr "Face reader"
+
+#: gamification/services/achievements.py:107
+msgid "3 plenos en «¿Quién es?»"
+msgstr "3 perfect “Who is it?” quizzes"
+
+#: gamification/services/achievements.py:114
+msgid "Experto en apodos"
+msgstr "Nickname expert"
+
+#: gamification/services/achievements.py:115
+msgid "3 plenos en «Apodos»"
+msgstr "3 perfect “Nicknames” quizzes"
+
+#: gamification/services/achievements.py:122
+msgid "Viajero en el tiempo"
+msgstr "Time traveller"
+
+#: gamification/services/achievements.py:123
+msgid "3 plenos en «Fechas»"
+msgstr "3 perfect “Dates” quizzes"
+
+#: gamification/services/achievements.py:130
+msgid "Raíces"
+msgstr "Roots"
+
+#: gamification/services/achievements.py:131
+msgid "3 plenos en «Parentescos»"
+msgstr "3 perfect “Kinship” quizzes"
 
 #: gamification/services/announcements.py:39
 #, python-format
@@ -1381,6 +1445,90 @@ msgstr "Family memory"
 #: gamification/services/levels.py:14
 msgid "Guardián del álbum"
 msgstr "Album guardian"
+
+#: gamification/services/quiz.py:35 gamification/services/quiz.py:248
+#: templates/catalog/_photo_workspace.html:155
+msgid "¿Quién es?"
+msgstr "Who is it?"
+
+#: gamification/services/quiz.py:36 templates/catalog/_person_sheets.html:36
+#: templates/catalog/person_detail.html:19
+msgid "Apodos"
+msgstr "Nicknames"
+
+#: gamification/services/quiz.py:37
+msgid "Fechas"
+msgstr "Dates"
+
+#: gamification/services/quiz.py:38
+msgid "Parentescos"
+msgstr "Kinship"
+
+#: gamification/services/quiz.py:41
+msgid "Adivina quién sale en cada cara."
+msgstr "Guess who is in each face."
+
+#: gamification/services/quiz.py:42
+msgid "¿De quién es cada apodo?"
+msgstr "Whose nickname is it?"
+
+#: gamification/services/quiz.py:43
+msgid "¿De qué año o década es cada foto?"
+msgstr "Which year or decade is each photo from?"
+
+#: gamification/services/quiz.py:44
+msgid "¿Qué es cada familiar de otro?"
+msgstr "How are relatives related to each other?"
+
+#: gamification/services/quiz.py:54
+#, python-format
+msgid "Faltan personas identificadas: hay %(have)s de %(need)s."
+msgstr "Not enough identified people: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:55
+#, python-format
+msgid "Faltan apodos: hay %(have)s de %(need)s."
+msgstr "Not enough nicknames: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:56
+#, python-format
+msgid "Faltan fotos con fecha: hay %(have)s de %(need)s."
+msgstr "Not enough dated photos: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:57
+#, python-format
+msgid "Faltan parentescos: hay %(have)s de %(need)s."
+msgstr "Not enough relationships: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:273
+#, python-format
+msgid "¿De quién es el apodo «%(nickname)s»?"
+msgstr "Whose nickname is “%(nickname)s”?"
+
+#: gamification/services/quiz.py:307
+msgid "¿De qué década es esta foto?"
+msgstr "Which decade is this photo from?"
+
+#: gamification/services/quiz.py:314
+msgid "¿De qué año es esta foto?"
+msgstr "Which year is this photo from?"
+
+#: gamification/services/quiz.py:342
+#, python-format
+msgid "¿Qué es %(other)s de %(subject)s?"
+msgstr "What is %(other)s to %(subject)s?"
+
+#: gamification/services/quiz.py:383
+msgid "Ese quiz no existe."
+msgstr "That quiz does not exist."
+
+#: gamification/services/quiz.py:406
+msgid "Este quiz ya ha terminado."
+msgstr "This quiz is already over."
+
+#: gamification/services/quiz.py:414
+msgid "Elige una de las opciones."
+msgstr "Choose one of the options."
 
 #: gamification/services/scoring.py:35
 msgid "Foto subida"
@@ -1421,6 +1569,26 @@ msgstr "First identification of a person"
 #: gamification/services/scoring.py:44
 msgid "Voto acertado"
 msgstr "Right vote"
+
+#: gamification/services/scoring.py:46
+msgid "Aciertos en el quiz"
+msgstr "Right answers in the quiz"
+
+#: gamification/services/scoring.py:47
+msgid "Pleno en «¿Quién es?»"
+msgstr "Perfect “Who is it?”"
+
+#: gamification/services/scoring.py:48
+msgid "Pleno en «Apodos»"
+msgstr "Perfect “Nicknames”"
+
+#: gamification/services/scoring.py:49
+msgid "Pleno en «Fechas»"
+msgstr "Perfect “Dates”"
+
+#: gamification/services/scoring.py:50
+msgid "Pleno en «Parentescos»"
+msgstr "Perfect “Kinship”"
 
 #: gamification/templatetags/gamification_tags.py:16
 #, python-format
@@ -1688,12 +1856,12 @@ msgstr "Previous"
 msgid "Página %(number)s de %(total)s"
 msgstr "Page %(number)s of %(total)s"
 
-#: templates/_pagination.html:5
+#: templates/_pagination.html:5 templates/gamification/quiz_play.html:31
 msgid "Siguiente"
 msgstr "Next"
 
 #: templates/accounts/audit.html:2 templates/accounts/audit.html:4
-#: templates/catalog/admin/home.html:14
+#: templates/catalog/admin/home.html:15
 msgid "Auditoría"
 msgstr "Audit"
 
@@ -1707,7 +1875,7 @@ msgid "Filtros"
 msgstr "Filters"
 
 #: templates/accounts/audit.html:16 templates/accounts/audit.html:105
-#: templates/gamification/ranking.html:5
+#: templates/gamification/ranking.html:8
 msgid "Periodo"
 msgstr "Period"
 
@@ -1826,7 +1994,7 @@ msgid_plural "%(counter)s registros"
 msgstr[0] "%(counter)s record"
 msgstr[1] "%(counter)s records"
 
-#: templates/accounts/audit.html:88 templates/catalog/admin/home.html:25
+#: templates/accounts/audit.html:88 templates/catalog/admin/home.html:26
 msgid "sistema"
 msgstr "system"
 
@@ -1850,7 +2018,7 @@ msgstr "All"
 #: templates/catalog/_person_sheets.html:37
 #: templates/catalog/_person_sheets.html:71
 #: templates/catalog/_photo_workspace.html:61
-#: templates/catalog/person_detail.html:80 templates/catalog/tree.html:82
+#: templates/catalog/person_detail.html:83 templates/catalog/tree.html:82
 msgid "Cerrar"
 msgstr "Close"
 
@@ -1943,8 +2111,8 @@ msgid "Guardar"
 msgstr "Save"
 
 #: templates/accounts/profile.html:47 templates/gamification/_level.html:5
-#: templates/gamification/ranking.html:17
-#: templates/gamification/ranking.html:32
+#: templates/gamification/ranking.html:20
+#: templates/gamification/ranking.html:35
 #, python-format
 msgid "%(points)s pts"
 msgstr "%(points)s pts"
@@ -1976,7 +2144,7 @@ msgstr ""
 "You are <a href=\"%(person_url)s\">%(name)s</a>. Choose which photo of you "
 "shows on your profile:"
 
-#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:90
+#: templates/accounts/profile.html:84 templates/catalog/person_detail.html:93
 #, python-format
 msgid "Cara de la foto %(id)s"
 msgstr "Face from photo %(id)s"
@@ -1985,14 +2153,14 @@ msgstr "Face from photo %(id)s"
 msgid "Aún no hay fotos tuyas identificadas."
 msgstr "No photos of you have been identified yet."
 
-#: templates/accounts/profile.html:94 templates/catalog/person_detail.html:38
+#: templates/accounts/profile.html:94 templates/catalog/person_detail.html:41
 #, python-format
 msgid "¿Dejar de identificarte como %(name)s?"
 msgstr "Stop identifying as %(name)s?"
 
 #: templates/accounts/profile.html:94 templates/accounts/profile.html:95
-#: templates/catalog/person_detail.html:38
-#: templates/catalog/person_detail.html:39
+#: templates/catalog/person_detail.html:41
+#: templates/catalog/person_detail.html:42
 msgid "No soy yo"
 msgstr "Not me"
 
@@ -2052,6 +2220,7 @@ msgstr "Cancel"
 
 #: templates/accounts/user_list.html:5
 #: templates/catalog/admin/event_types.html:4
+#: templates/catalog/admin/honorifics.html:5
 #: templates/catalog/admin/locations.html:4
 #: templates/catalog/admin/merge.html:5
 #: templates/catalog/admin/review_queue.html:4
@@ -2133,7 +2302,7 @@ msgid "Menú de %(name)s"
 msgstr "Menu for %(name)s"
 
 #: templates/base.html:40 templates/catalog/home.html:17
-#: templates/gamification/ranking.html:2 templates/gamification/ranking.html:4
+#: templates/gamification/ranking.html:2 templates/gamification/ranking.html:5
 msgid "Ranking"
 msgstr "Ranking"
 
@@ -2295,11 +2464,6 @@ msgstr "Their photos will be exported again with the new name."
 msgid "Cambiar nombre"
 msgstr "Rename"
 
-#: templates/catalog/_person_sheets.html:36
-#: templates/catalog/person_detail.html:33
-msgid "Apodos"
-msgstr "Nicknames"
-
 #: templates/catalog/_person_sheets.html:46
 #, python-format
 msgid "¿Quitar el apodo «%(text)s»?"
@@ -2334,7 +2498,7 @@ msgid "Añadir"
 msgstr "Add"
 
 #: templates/catalog/_person_sheets.html:70
-#: templates/catalog/person_detail.html:32
+#: templates/catalog/person_detail.html:36
 msgid "Familia y relaciones"
 msgstr "Family and relationships"
 
@@ -2358,7 +2522,7 @@ msgid "Todavía no se sabe con quién está relacionado %(person)s."
 msgstr "Nobody knows yet who %(person)s is related to."
 
 #: templates/catalog/_person_sheets.html:102
-#: templates/catalog/person_detail.html:31
+#: templates/catalog/person_detail.html:35
 msgid "Ver árbol"
 msgstr "See tree"
 
@@ -2547,10 +2711,6 @@ msgstr "Tapping a suggestion saves it directly."
 msgid ""
 "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
-
-#: templates/catalog/_photo_workspace.html:155
-msgid "¿Quién es?"
-msgstr "Who is it?"
 
 #: templates/catalog/_photo_workspace.html:155
 msgid "Cambiar el nombre"
@@ -2893,7 +3053,7 @@ msgstr "By %(user)s"
 #: templates/catalog/admin/_review_section.html:13
 #: templates/catalog/admin/location_form.html:7
 #: templates/catalog/admin/locations.html:14 templates/catalog/gallery.html:29
-#: templates/catalog/person_detail.html:47 templates/catalog/persons.html:20
+#: templates/catalog/person_detail.html:50 templates/catalog/persons.html:20
 #, python-format
 msgid "%(counter)s foto"
 msgid_plural "%(counter)s fotos"
@@ -3023,33 +3183,85 @@ msgstr "Merge people"
 msgid "Unificar duplicados"
 msgstr "Combine duplicates"
 
-#: templates/catalog/admin/home.html:12 templates/exporter/export.html:4
+#: templates/catalog/admin/home.html:12
+#: templates/catalog/admin/honorifics.html:2
+#: templates/catalog/admin/honorifics.html:5
+msgid "Tratamientos en el nombre"
+msgstr "Forms of address in names"
+
+#: templates/catalog/admin/home.html:12
+#, python-format
+msgid "%(counter)s por separar"
+msgid_plural "%(counter)s por separar"
+msgstr[0] "%(counter)s to separate"
+msgstr[1] "%(counter)s to separate"
+
+#: templates/catalog/admin/home.html:12
+msgid "«Abuela Ana» → tratamiento + nombre"
+msgstr "“Grandma Ana” → form of address + name"
+
+#: templates/catalog/admin/home.html:13 templates/exporter/export.html:4
 msgid "Exportación a Immich"
 msgstr "Export to Immich"
 
-#: templates/catalog/admin/home.html:12
+#: templates/catalog/admin/home.html:13
 msgid "XMP con caras y eventos"
 msgstr "XMP with faces and events"
 
-#: templates/catalog/admin/home.html:13
+#: templates/catalog/admin/home.html:14
 msgid "Altas, roles y contraseñas"
 msgstr "Accounts, roles and passwords"
 
-#: templates/catalog/admin/home.html:14
+#: templates/catalog/admin/home.html:15
 msgid "Todo lo que ha hecho cada usuario"
 msgstr "Everything each user has done"
 
-#: templates/catalog/admin/home.html:18
+#: templates/catalog/admin/home.html:19
 msgid "Actividad reciente"
 msgstr "Recent activity"
 
-#: templates/catalog/admin/home.html:19
+#: templates/catalog/admin/home.html:20
 msgid "Ver toda la auditoría"
 msgstr "See the full audit"
 
-#: templates/catalog/admin/home.html:28
+#: templates/catalog/admin/home.html:29
 msgid "Sin actividad."
 msgstr "No activity."
+
+#: templates/catalog/admin/honorifics.html:7
+msgid ""
+"Personas con «Abuela», «Tito»… escrito en el nombre. Al separarlo pasa a su "
+"tratamiento y se sigue viendo igual («Abuela Ana»), pero el nombre queda "
+"limpio. Las fotos se reexportan y queda en la auditoría."
+msgstr ""
+"People with “Grandma”, “Uncle”… written in their name. Separating it moves "
+"it to their form of address: they still show the same (“Grandma Ana”), but "
+"the name is clean. Photos are re-exported and it goes into the audit log."
+
+#: templates/catalog/admin/honorifics.html:10
+#, python-format
+msgid "¿Separar el tratamiento de %(counter)s persona?"
+msgid_plural "¿Separar el tratamiento de las %(counter)s personas?"
+msgstr[0] "Separate the form of address of %(counter)s person?"
+msgstr[1] "Separate the form of address of all %(counter)s people?"
+
+#: templates/catalog/admin/honorifics.html:11
+#: templates/catalog/admin/honorifics.html:13
+msgid "Separar todas"
+msgstr "Separate all"
+
+#: templates/catalog/admin/honorifics.html:20
+#, python-format
+msgid "Tratamiento «%(honorific)s» · nombre «%(name)s»"
+msgstr "Form of address “%(honorific)s” · name “%(name)s”"
+
+#: templates/catalog/admin/honorifics.html:24
+msgid "Separar"
+msgstr "Separate"
+
+#: templates/catalog/admin/honorifics.html:30
+msgid "No hay ninguna: todos los tratamientos están en su sitio."
+msgstr "None left: every form of address is in its place."
 
 #: templates/catalog/admin/location_form.html:2
 msgid "Editar ubicación"
@@ -3060,7 +3272,7 @@ msgid "Volver a Ubicaciones"
 msgstr "Back to Locations"
 
 #: templates/catalog/admin/location_form.html:7
-#: templates/catalog/person_detail.html:47
+#: templates/catalog/person_detail.html:50
 msgid "Ver en la galería"
 msgstr "See in gallery"
 
@@ -3362,7 +3574,7 @@ msgstr "Share"
 msgid "Descargar"
 msgstr "Download"
 
-#: templates/catalog/gallery.html:77 templates/catalog/home.html:46
+#: templates/catalog/gallery.html:77 templates/catalog/home.html:52
 #: templates/scanner/upload.html:36
 msgid "Subir"
 msgstr "Upload"
@@ -3397,30 +3609,43 @@ msgstr "Next uncataloged photo"
 msgid "Tu nivel"
 msgstr "Your level"
 
+#: templates/catalog/home.html:25 templates/gamification/quiz_home.html:2
+#: templates/gamification/quiz_home.html:4
+#: templates/gamification/quiz_play.html:2
+#: templates/gamification/ranking.html:6
+msgid "Quiz familiar"
+msgstr "Family quiz"
+
 #: templates/catalog/home.html:25
+msgid ""
+"¿Cuánto sabes de la familia? 10 preguntas sobre caras, apodos, fechas y "
+"parentescos."
+msgstr "How well do you know the family? 10 questions about faces, nicknames, dates and kinship."
+
+#: templates/catalog/home.html:31
 #, python-format
 msgid "Pendientes de mi voto (%(pending_count)s)"
 msgstr "Waiting for my vote (%(pending_count)s)"
 
-#: templates/catalog/home.html:26
+#: templates/catalog/home.html:32
 msgid "Ver todas"
 msgstr "See all"
 
-#: templates/catalog/home.html:36
+#: templates/catalog/home.html:42
 #, python-format
 msgid "por %(author)s"
 msgstr "by %(author)s"
 
-#: templates/catalog/home.html:38
+#: templates/catalog/home.html:44
 msgid "Votar"
 msgstr "Vote"
 
-#: templates/catalog/home.html:41
+#: templates/catalog/home.html:47
 msgid "No tienes propuestas pendientes de votar."
 msgstr "You have no proposals waiting for your vote."
 
 #: templates/catalog/person_detail.html:9
-#: templates/catalog/person_detail.html:34
+#: templates/catalog/person_detail.html:37
 msgid "Cambiar foto principal"
 msgstr "Change main photo"
 
@@ -3428,16 +3653,20 @@ msgstr "Change main photo"
 msgid "Cambiar nombre o tratamiento"
 msgstr "Change name or honorific"
 
-#: templates/catalog/person_detail.html:19
+#: templates/catalog/person_detail.html:21
+msgid "Apodo"
+msgstr "Nickname"
+
+#: templates/catalog/person_detail.html:23
 msgid "Eres tú"
 msgstr "That’s you"
 
-#: templates/catalog/person_detail.html:22
+#: templates/catalog/person_detail.html:26
 #, python-format
 msgid "Ahora eres %(current)s. ¿Cambiar a %(name)s?"
 msgstr "You are %(current)s now. Switch to %(name)s?"
 
-#: templates/catalog/person_detail.html:22
+#: templates/catalog/person_detail.html:26
 #, python-format
 msgid ""
 "¿Eres %(name)s? Te vincularás a esta persona del álbum y podrás usar sus "
@@ -3446,29 +3675,29 @@ msgstr ""
 "Are you %(name)s? You will be linked to this person of the album and can use "
 "their photos as your profile photo."
 
-#: templates/catalog/person_detail.html:23
-#: templates/catalog/person_detail.html:24
+#: templates/catalog/person_detail.html:27
+#: templates/catalog/person_detail.html:28
 msgid "Soy yo"
 msgstr "That’s me"
 
-#: templates/catalog/person_detail.html:29
+#: templates/catalog/person_detail.html:33
 msgid "Más acciones"
 msgstr "More actions"
 
-#: templates/catalog/person_detail.html:35
+#: templates/catalog/person_detail.html:38
 msgid "Fusionar con otra persona"
 msgstr "Merge with another person"
 
-#: templates/catalog/person_detail.html:45
+#: templates/catalog/person_detail.html:48
 #, python-format
 msgid "Usuario vinculado: %(linked)s"
 msgstr "Linked user: %(linked)s"
 
-#: templates/catalog/person_detail.html:50
+#: templates/catalog/person_detail.html:53
 msgid "Puede que aparezca en"
 msgstr "May appear in"
 
-#: templates/catalog/person_detail.html:51
+#: templates/catalog/person_detail.html:54
 #, python-format
 msgid ""
 "Caras sin identificar que se parecen a %(person)s. Confirmar crea una "
@@ -3477,25 +3706,25 @@ msgstr ""
 "Unidentified faces that look like %(person)s. Confirming creates a proposal "
 "for everyone else to vote on."
 
-#: templates/catalog/person_detail.html:56
+#: templates/catalog/person_detail.html:59
 #, python-format
 msgid "Cara sin identificar en la foto %(id)s"
 msgstr "Unidentified face in photo %(id)s"
 
-#: templates/catalog/person_detail.html:62
+#: templates/catalog/person_detail.html:65
 #, python-format
 msgid "Es %(person)s"
 msgstr "It's %(person)s"
 
-#: templates/catalog/person_detail.html:71
+#: templates/catalog/person_detail.html:74
 msgid "Sin fotos."
 msgstr "No photos."
 
-#: templates/catalog/person_detail.html:79
+#: templates/catalog/person_detail.html:82
 msgid "Foto principal"
 msgstr "Main photo"
 
-#: templates/catalog/person_detail.html:83
+#: templates/catalog/person_detail.html:86
 #, python-format
 msgid "Elige la cara que identifica a %(person)s en toda la app."
 msgstr "Choose the face that identifies %(person)s across the app."
@@ -3581,7 +3810,7 @@ msgstr ""
 msgid "Persona central"
 msgstr "Central person"
 
-#: templates/catalog/tree.html:62 templates/gamification/ranking.html:29
+#: templates/catalog/tree.html:62 templates/gamification/ranking.html:32
 msgid "Tú"
 msgstr "You"
 
@@ -3682,43 +3911,153 @@ msgstr "%(missing)s points to %(next)s."
 msgid "Has alcanzado el nivel más alto. ¡Gracias por cuidar el álbum!"
 msgstr "You reached the highest level. Thanks for looking after the album!"
 
-#: templates/gamification/ranking.html:6
+#: templates/gamification/quiz_home.html:4
+msgid "Volver al ranking"
+msgstr "Back to the ranking"
+
+#: templates/gamification/quiz_home.html:7
+msgid "10 preguntas con 4 opciones sobre la familia y el álbum."
+msgstr "10 questions with 4 options about the family and the album."
+
+#: templates/gamification/quiz_home.html:8
+#, python-format
+msgid ""
+"Cada acierto es 1 punto y si aciertas las 10 te llevas %(bonus)s más. Cada "
+"día puntúan los %(daily)s primeros de cada tipo; después puedes seguir "
+"jugando por diversión."
+msgstr "Each right answer is 1 point, and getting all 10 right earns %(bonus)s more. Each day the first %(daily)s of each kind score; after that you can keep playing for fun."
+
+#: templates/gamification/quiz_home.html:9
+#: templates/gamification/quiz_play.html:51
+msgid "Juegas sin puntos: el ranking es solo para colaboradores."
+msgstr "You play without points: the ranking is for collaborators only."
+
+#: templates/gamification/quiz_home.html:21
+#, python-format
+msgid "Hoy te queda %(counter)s con puntos."
+msgid_plural "Hoy te quedan %(counter)s con puntos."
+msgstr[0] "%(counter)s scoring quiz left today."
+msgstr[1] "%(counter)s scoring quizzes left today."
+
+#: templates/gamification/quiz_home.html:21
+msgid "Hoy ya no puntúa: juega por diversión."
+msgstr "No more points today: play for fun."
+
+#: templates/gamification/quiz_home.html:27
+msgid "Jugar"
+msgstr "Play"
+
+#: templates/gamification/quiz_play.html:5
+msgid "Volver al quiz"
+msgstr "Back to the quiz"
+
+#: templates/gamification/quiz_play.html:11
+#, python-format
+msgid "Pregunta %(number)s de %(total)s"
+msgstr "Question %(number)s of %(total)s"
+
+#: templates/gamification/quiz_play.html:21
+#: templates/gamification/quiz_play.html:36
+msgid "Opciones"
+msgstr "Options"
+
+#: templates/gamification/quiz_play.html:30
+msgid "¡Correcto!"
+msgstr "Correct!"
+
+#: templates/gamification/quiz_play.html:30
+msgid "¡Casi! La buena está en verde."
+msgstr "Almost! The right one is in green."
+
+#: templates/gamification/quiz_play.html:31
+msgid "Ver resultado"
+msgstr "See result"
+
+#: templates/gamification/quiz_play.html:48
+#, python-format
+msgid "%(correct)s de %(total)s"
+msgstr "%(correct)s of %(total)s"
+
+#: templates/gamification/quiz_play.html:49
+msgid "¡Pleno! Lo has acertado todo."
+msgstr "Perfect! You got everything right."
+
+#: templates/gamification/quiz_play.html:49
+msgid "¡Muy bien! Conoces bien a la familia."
+msgstr "Well done! You know the family well."
+
+#: templates/gamification/quiz_play.html:49
+msgid "No está mal. ¡A por más!"
+msgstr "Not bad. Go for more!"
+
+#: templates/gamification/quiz_play.html:49
+msgid "Toca repasar el álbum."
+msgstr "Time to look through the album again."
+
+#: templates/gamification/quiz_play.html:50
+#, python-format
+msgid "+%(counter)s punto"
+msgid_plural "+%(counter)s puntos"
+msgstr[0] "+%(counter)s point"
+msgstr[1] "+%(counter)s points"
+
+#: templates/gamification/quiz_play.html:51
+msgid "Este quiz no daba puntos: hoy ya habías jugado los que puntúan."
+msgstr "This quiz gave no points: you had already played today's scoring ones."
+
+#: templates/gamification/quiz_play.html:53
+msgid "Logros nuevos"
+msgstr "New badges"
+
+#: templates/gamification/quiz_play.html:61
+msgid "Otra vez"
+msgstr "Again"
+
+#: templates/gamification/quiz_play.html:63
+msgid "Otros quizzes"
+msgstr "Other quizzes"
+
+#: templates/gamification/ranking.html:9
 msgid "Esta semana"
 msgstr "This week"
 
-#: templates/gamification/ranking.html:7
+#: templates/gamification/ranking.html:10
 msgid "Este mes"
 msgstr "This month"
 
-#: templates/gamification/ranking.html:8
+#: templates/gamification/ranking.html:11
 msgid "Total"
 msgstr "Total"
 
-#: templates/gamification/ranking.html:11
+#: templates/gamification/ranking.html:14
 msgid "Podio"
 msgstr "Podium"
 
-#: templates/gamification/ranking.html:18
+#: templates/gamification/ranking.html:21
 #, python-format
 msgid "Puesto %(n)s"
 msgstr "Place %(n)s"
 
-#: templates/gamification/ranking.html:30
+#: templates/gamification/ranking.html:33
 #, python-format
 msgid "Nivel %(number)s · %(level)s"
 msgstr "Level %(number)s · %(level)s"
 
-#: templates/gamification/ranking.html:35
+#: templates/gamification/ranking.html:38
 msgid "Todavía no hay colaboradores."
 msgstr "No collaborators yet."
 
-#: templates/gamification/ranking.html:38
+#: templates/gamification/ranking.html:41
 msgid ""
 "Se ganan puntos cuando lo que aportas resulta correcto: fotos subidas, "
 "propuestas aceptadas y votos que coinciden con el resultado."
 msgstr ""
 "You earn points when your contribution turns out right: uploaded photos, "
 "accepted proposals and votes that match the outcome."
+
+#: templates/gamification/ranking.html:41
+msgid "También suman los aciertos del quiz familiar."
+msgstr "Right answers in the family quiz count too."
 
 #: templates/notifications/_profile_card.html:7
 msgid "No se ha podido completar. Inténtalo de nuevo."

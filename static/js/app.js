@@ -680,6 +680,9 @@
       const menu = opener.closest("details[open]");
       if (menu) menu.removeAttribute("open");
       if (sheet && typeof sheet.showModal === "function") sheet.showModal();
+      // «+ Apodo»: straight to the field.
+      const field = opener.dataset.sheetFocus && document.getElementById(opener.dataset.sheetFocus);
+      if (field) field.focus();
       return;
     }
     // Tapping the backdrop closes sheets and the confirmation dialog.

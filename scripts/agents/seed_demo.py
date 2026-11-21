@@ -173,6 +173,34 @@ def seed_family(maria):
             person_details.add_nickname(maria, target, text)
         except Exception:
             continue
+    seed_quiz(maria, [carmen, pepe, paco, lola, ana, luis, marta, sofia, bisabuela])
+
+
+def seed_quiz(maria, family):
+    """Enough accepted data for the four family quizzes (spec 5.14): an identified face of
+    12 people and a nickname for each of them."""
+    from catalog.models import Person
+    from catalog.services import person_details
+
+    people = family + [
+        Person.objects.get_or_create(display_name=name, defaults={"created_by": maria})[0]
+        for name in ("Andrés Gil", "Manolo Pérez", "Jorge Díaz")
+    ]
+    nicknames = [
+        "La Yaya", "El Abuelo Pepe", "Pico", "La Lola", "Anita", "El Peque",
+        "Martita", "Sofi", "La Bisa", "Andresito", "Manolete", "Jorgito",
+    ]  # fmt: skip
+    photos = list(Photo.objects.order_by("pk"))
+    for index, (person, nickname) in enumerate(zip(people, nicknames, strict=True)):
+        Person.objects.filter(pk=person.pk).update(is_provisional=False)
+        photo = photos[index % len(photos)]
+        Face.objects.create(
+            photo=photo, x=220 + 10 * index, y=60, w=80, h=100, score=0.9, person=person
+        )
+        try:
+            person_details.add_nickname(maria, person, nickname)
+        except Exception:  # already there from a previous run
+            continue
 
 
 def seed_players(maria):
