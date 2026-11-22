@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-22 13:06+0100\n"
+"POT-Creation-Date: 2026-11-22 13:34+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -184,7 +184,7 @@ msgstr "Photos shared"
 msgid "Fotos descargadas"
 msgstr "Photos downloaded"
 
-#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:97
+#: accounts/services/audit_catalog.py:43 accounts/services/audit_catalog.py:98
 msgid "Subida"
 msgstr "Upload"
 
@@ -241,194 +241,198 @@ msgid "Apodo quitado"
 msgstr "Nickname removed"
 
 #: accounts/services/audit_catalog.py:57
+msgid "Emoji de un apodo cambiado"
+msgstr "Nickname emoji changed"
+
+#: accounts/services/audit_catalog.py:58
 msgid "Inicio de sesión"
 msgstr "Sign-in"
 
-#: accounts/services/audit_catalog.py:58
+#: accounts/services/audit_catalog.py:59
 msgid "Intento de acceso fallido"
 msgstr "Failed sign-in attempt"
 
-#: accounts/services/audit_catalog.py:59
+#: accounts/services/audit_catalog.py:60
 msgid "Usuario creado"
 msgstr "User created"
 
-#: accounts/services/audit_catalog.py:60
+#: accounts/services/audit_catalog.py:61
 msgid "Usuario modificado"
 msgstr "User changed"
 
-#: accounts/services/audit_catalog.py:61
+#: accounts/services/audit_catalog.py:62
 msgid "Usuario reactivado"
 msgstr "User reactivated"
 
-#: accounts/services/audit_catalog.py:62
+#: accounts/services/audit_catalog.py:63
 msgid "Usuario desactivado"
 msgstr "User deactivated"
 
-#: accounts/services/audit_catalog.py:63
+#: accounts/services/audit_catalog.py:64
 msgid "Contraseña restablecida"
 msgstr "Password reset"
 
-#: accounts/services/audit_catalog.py:64
+#: accounts/services/audit_catalog.py:65
 msgid "Usuario borrado"
 msgstr "User deleted"
 
-#: accounts/services/audit_catalog.py:65
+#: accounts/services/audit_catalog.py:66
 msgid "Usuario vinculado a una persona"
 msgstr "User linked to a person"
 
-#: accounts/services/audit_catalog.py:66
+#: accounts/services/audit_catalog.py:67
 msgid "Se identificó como una persona"
 msgstr "Identified as a person"
 
-#: accounts/services/audit_catalog.py:67
+#: accounts/services/audit_catalog.py:68
 msgid "Dejó de identificarse como una persona"
 msgstr "Stopped identifying as a person"
 
-#: accounts/services/audit_catalog.py:68
+#: accounts/services/audit_catalog.py:69
 msgid "Foto de perfil cambiada"
 msgstr "Profile photo changed"
 
-#: accounts/services/audit_catalog.py:69
+#: accounts/services/audit_catalog.py:70
 msgid "Superadministrador inicial creado"
 msgstr "Initial superadmin created"
 
-#: accounts/services/audit_catalog.py:70
+#: accounts/services/audit_catalog.py:71
 msgid "Avisos activados en un dispositivo"
 msgstr "Notifications turned on on a device"
 
-#: accounts/services/audit_catalog.py:71
+#: accounts/services/audit_catalog.py:72
 msgid "Avisos desactivados en un dispositivo"
 msgstr "Notifications turned off on a device"
 
-#: accounts/services/audit_catalog.py:72
+#: accounts/services/audit_catalog.py:73
 msgid "Tipo de evento creado"
 msgstr "Event type created"
 
-#: accounts/services/audit_catalog.py:73
+#: accounts/services/audit_catalog.py:74
 msgid "Tipo de evento modificado"
 msgstr "Event type changed"
 
-#: accounts/services/audit_catalog.py:74
+#: accounts/services/audit_catalog.py:75
 msgid "Evento nuevo aceptado"
 msgstr "New event accepted"
 
-#: accounts/services/audit_catalog.py:75
+#: accounts/services/audit_catalog.py:76
 msgid "Evento nuevo rechazado"
 msgstr "New event rejected"
 
-#: accounts/services/audit_catalog.py:76
+#: accounts/services/audit_catalog.py:77
 msgid "Lugar nuevo aceptado"
 msgstr "New place accepted"
 
-#: accounts/services/audit_catalog.py:77
+#: accounts/services/audit_catalog.py:78
 msgid "Lugar nuevo rechazado"
 msgstr "New place rejected"
 
-#: accounts/services/audit_catalog.py:78
+#: accounts/services/audit_catalog.py:79
 msgid "Tipo de evento convertido en ubicación"
 msgstr "Event type turned into a location"
 
-#: accounts/services/audit_catalog.py:79
+#: accounts/services/audit_catalog.py:80
 msgid "Tipo de evento convertido en «Otro»"
 msgstr "Event type turned into “Other”"
 
-#: accounts/services/audit_catalog.py:80
+#: accounts/services/audit_catalog.py:81
 msgid "Tipos de evento fusionados"
 msgstr "Event types merged"
 
-#: accounts/services/audit_catalog.py:81
+#: accounts/services/audit_catalog.py:82
 msgid "Tipo de evento añadido a la lista estándar"
 msgstr "Event type added to the standard list"
 
-#: accounts/services/audit_catalog.py:82
+#: accounts/services/audit_catalog.py:83
 msgid "Ubicación renombrada"
 msgstr "Location renamed"
 
-#: accounts/services/audit_catalog.py:83
+#: accounts/services/audit_catalog.py:84
 msgid "Ubicación activada o desactivada"
 msgstr "Location enabled or disabled"
 
-#: accounts/services/audit_catalog.py:84
+#: accounts/services/audit_catalog.py:85
 msgid "Ubicaciones fusionadas"
 msgstr "Locations merged"
 
-#: accounts/services/audit_catalog.py:85
+#: accounts/services/audit_catalog.py:86
 msgid "Ubicación situada en el mapa"
 msgstr "Location placed on the map"
 
-#: accounts/services/audit_catalog.py:86
+#: accounts/services/audit_catalog.py:87
 msgid "Ubicación quitada del mapa"
 msgstr "Location removed from the map"
 
-#: accounts/services/audit_catalog.py:87
+#: accounts/services/audit_catalog.py:88
 msgid "Umbrales cambiados"
 msgstr "Thresholds changed"
 
-#: accounts/services/audit_catalog.py:88
+#: accounts/services/audit_catalog.py:89
 msgid "Exportación pedida"
 msgstr "Export requested"
 
-#: accounts/services/audit_catalog.py:92
+#: accounts/services/audit_catalog.py:93
 #: templates/catalog/_photo_workspace.html:3
 msgid "Foto"
 msgstr "Photo"
 
-#: accounts/services/audit_catalog.py:93 catalog/models.py:226
+#: accounts/services/audit_catalog.py:94 catalog/models.py:226
 msgid "Propuesta"
 msgstr "Proposed"
 
-#: accounts/services/audit_catalog.py:94
-#: templates/catalog/_person_sheets.html:108 templates/catalog/gallery.html:11
+#: accounts/services/audit_catalog.py:95
+#: templates/catalog/_person_sheets.html:117 templates/catalog/gallery.html:11
 #: templates/catalog/gallery.html:55
 msgid "Persona"
 msgstr "Person"
 
-#: accounts/services/audit_catalog.py:95
+#: accounts/services/audit_catalog.py:96
 msgid "Relación"
 msgstr "Relationship"
 
-#: accounts/services/audit_catalog.py:96
+#: accounts/services/audit_catalog.py:97
 msgid "Escaneo"
 msgstr "Scan"
 
-#: accounts/services/audit_catalog.py:98
+#: accounts/services/audit_catalog.py:99
 #: templates/catalog/_photo_workspace.html:191
 msgid "Tipo de evento"
 msgstr "Event type"
 
-#: accounts/services/audit_catalog.py:99 catalog/models.py:370
+#: accounts/services/audit_catalog.py:100 catalog/models.py:370
 #: templates/catalog/_photo_workspace.html:243
 #: templates/catalog/gallery.html:17 templates/catalog/gallery.html:55
 msgid "Ubicación"
 msgstr "Location"
 
-#: accounts/services/audit_catalog.py:100 templates/accounts/audit.html:9
+#: accounts/services/audit_catalog.py:101 templates/accounts/audit.html:9
 #: templates/accounts/audit.html:105 templates/accounts/login.html:15
 msgid "Usuario"
 msgstr "Username"
 
-#: accounts/services/audit_catalog.py:104
+#: accounts/services/audit_catalog.py:105
 msgid "Hoy"
 msgstr "Today"
 
-#: accounts/services/audit_catalog.py:105
+#: accounts/services/audit_catalog.py:106
 msgid "Últimos 7 días"
 msgstr "Last 7 days"
 
-#: accounts/services/audit_catalog.py:106
+#: accounts/services/audit_catalog.py:107
 msgid "Últimos 30 días"
 msgstr "Last 30 days"
 
-#: accounts/services/audit_catalog.py:107
+#: accounts/services/audit_catalog.py:108
 msgid "Este año"
 msgstr "This year"
 
-#: accounts/services/audit_catalog.py:213
+#: accounts/services/audit_catalog.py:214
 #, python-format
 msgid "%(name)s (ya no existe)"
 msgstr "%(name)s (no longer exists)"
 
-#: accounts/services/audit_catalog.py:216 catalog/models.py:136
+#: accounts/services/audit_catalog.py:217 catalog/models.py:136
 #: templates/accounts/audit.html:70 templates/catalog/_justified_item.html:7
 #: templates/catalog/_photo_card.html:7
 #: templates/catalog/_photo_workspace.html:33
@@ -441,7 +445,7 @@ msgstr "%(name)s (no longer exists)"
 msgid "Foto %(id)s"
 msgstr "Photo %(id)s"
 
-#: accounts/services/audit_catalog.py:218
+#: accounts/services/audit_catalog.py:219
 #, python-format
 msgid "«%(label)s» en la foto %(photo)s"
 msgstr "“%(label)s” on photo %(photo)s"
@@ -730,7 +734,7 @@ msgid "exportada en"
 msgstr "exported at"
 
 #: catalog/models.py:146 catalog/models.py:454 catalog/services/gallery.py:92
-#: gamification/services/quiz.py:312
+#: gamification/services/quiz.py:440
 #, python-format
 msgid "Década de %(decade)s"
 msgstr "%(decade)ss"
@@ -994,6 +998,10 @@ msgstr "%(from)s and %(to)s: %(role)s"
 msgid "apodo"
 msgstr "nickname"
 
+#: catalog/models.py:680
+msgid "emoji"
+msgstr "emoji"
+
 #: catalog/person_views.py:64
 msgid "Marcada como mascota."
 msgstr "Marked as a pet."
@@ -1002,7 +1010,7 @@ msgstr "Marked as a pet."
 msgid "Marcada como persona."
 msgstr "Marked as a person."
 
-#: catalog/person_views.py:109
+#: catalog/person_views.py:124
 msgid "Relación guardada."
 msgstr "Relationship saved."
 
@@ -1022,11 +1030,11 @@ msgstr "The family has catalogued half the album!"
 msgid "¡Un cuarto del álbum ya está catalogado!"
 msgstr "A quarter of the album is catalogued!"
 
-#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:119
+#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:128
 msgid "Familia"
 msgstr "Family"
 
-#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:122
+#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:131
 #: templates/catalog/tree.html:9
 msgid "Relaciones"
 msgstr "Relationships"
@@ -1081,32 +1089,36 @@ msgstr "A location cannot be merged with itself."
 msgid "Solo se pueden fusionar ubicaciones que no estén ya fusionadas."
 msgstr "Only locations that are not merged yet can be merged."
 
-#: catalog/services/person_details.py:32 catalog/services/relationships.py:95
+#: catalog/services/person_details.py:58 catalog/services/person_details.py:61
+msgid "Solo se pueden poner emojis (de 1 a 3)."
+msgstr "Only emojis are allowed (1 to 3)."
+
+#: catalog/services/person_details.py:68 catalog/services/relationships.py:95
 msgid "Solo se puede hacer con personas ya aceptadas en el álbum."
 msgstr "This is only possible for people already accepted in the album."
 
-#: catalog/services/person_details.py:50
+#: catalog/services/person_details.py:86
 msgid ""
 "Hay un usuario identificado como esta persona: que pulse «No soy yo» antes."
 msgstr "A user is identified as this person: they must press “Not me” first."
 
-#: catalog/services/person_details.py:54
+#: catalog/services/person_details.py:90
 msgid "Tiene relaciones de persona (familia, amigos…): quítalas antes."
 msgstr "It has person relationships (family, friends…): remove them first."
 
-#: catalog/services/person_details.py:57
+#: catalog/services/person_details.py:93
 msgid "Tiene relaciones «Mascota de»: quítalas antes."
 msgstr "It has “Pet of” relationships: remove them first."
 
-#: catalog/services/person_details.py:84
+#: catalog/services/person_details.py:120
 msgid "Escribe el apodo."
 msgstr "Write the nickname."
 
-#: catalog/services/person_details.py:87
+#: catalog/services/person_details.py:124
 msgid "Ese apodo ya está guardado."
 msgstr "That nickname is already saved."
 
-#: catalog/services/person_details.py:152
+#: catalog/services/person_details.py:210
 msgid "Ya tiene otro tratamiento: cámbialo a mano."
 msgstr "They already have another form of address: change it by hand."
 
@@ -1365,141 +1377,165 @@ msgstr "Export requested. The worker will run it shortly."
 msgid "Gamificación"
 msgstr "Gamification"
 
-#: gamification/services/achievements.py:34
+#: gamification/services/achievements.py:37
 msgid "Primera subida"
 msgstr "First upload"
 
-#: gamification/services/achievements.py:35
+#: gamification/services/achievements.py:38
 msgid "Sube tu primera foto"
 msgstr "Upload your first photo"
 
-#: gamification/services/achievements.py:42
+#: gamification/services/achievements.py:45
 msgid "Primera identificación"
 msgstr "First identification"
 
-#: gamification/services/achievements.py:43
+#: gamification/services/achievements.py:46
 msgid "Consigue que acepten una identidad"
 msgstr "Get an identity accepted"
 
-#: gamification/services/achievements.py:48
+#: gamification/services/achievements.py:51
 msgid "Detective"
 msgstr "Detective"
 
-#: gamification/services/achievements.py:48
+#: gamification/services/achievements.py:51
 msgid "10 identidades aceptadas"
 msgstr "10 identities accepted"
 
-#: gamification/services/achievements.py:50
+#: gamification/services/achievements.py:53
 msgid "Gran detective"
 msgstr "Great detective"
 
-#: gamification/services/achievements.py:50
+#: gamification/services/achievements.py:53
 msgid "50 identidades aceptadas"
 msgstr "50 identities accepted"
 
-#: gamification/services/achievements.py:54
+#: gamification/services/achievements.py:57
 msgid "Detective legendario"
 msgstr "Legendary detective"
 
-#: gamification/services/achievements.py:55
+#: gamification/services/achievements.py:58
 msgid "100 identidades aceptadas"
 msgstr "100 identities accepted"
 
-#: gamification/services/achievements.py:62 gamification/services/levels.py:12
+#: gamification/services/achievements.py:65 gamification/services/levels.py:12
 msgid "Cronista"
 msgstr "Chronicler"
 
-#: gamification/services/achievements.py:63
+#: gamification/services/achievements.py:66
 msgid "10 fechas aceptadas"
 msgstr "10 dates accepted"
 
-#: gamification/services/achievements.py:70
+#: gamification/services/achievements.py:73
 msgid "Gran cronista"
 msgstr "Great chronicler"
 
-#: gamification/services/achievements.py:71
+#: gamification/services/achievements.py:74
 msgid "50 fechas aceptadas"
 msgstr "50 dates accepted"
 
-#: gamification/services/achievements.py:78
+#: gamification/services/achievements.py:81
 msgid "Ojo de halcón"
 msgstr "Hawk eye"
 
-#: gamification/services/achievements.py:79
+#: gamification/services/achievements.py:82
 msgid "5 falsos positivos aceptados"
 msgstr "5 false positives accepted"
 
-#: gamification/services/achievements.py:84
+#: gamification/services/achievements.py:87
 msgid "Rescatista"
 msgstr "Rescuer"
 
-#: gamification/services/achievements.py:84
+#: gamification/services/achievements.py:87
 msgid "25 fotos subidas"
 msgstr "25 photos uploaded"
 
-#: gamification/services/achievements.py:87 gamification/services/scoring.py:45
+#: gamification/services/achievements.py:90 gamification/services/scoring.py:45
 msgid "Desempate"
 msgstr "Tiebreaker"
 
-#: gamification/services/achievements.py:88
+#: gamification/services/achievements.py:91
 msgid "Tu voto decide una propuesta"
 msgstr "Your vote decides a proposal"
 
-#: gamification/services/achievements.py:93
+#: gamification/services/achievements.py:96
 msgid "Racha"
 msgstr "Streak"
 
-#: gamification/services/achievements.py:93
+#: gamification/services/achievements.py:96
 msgid "Propón o vota 7 días seguidos"
 msgstr "Propose or vote 7 days in a row"
 
-#: gamification/services/achievements.py:95
+#: gamification/services/achievements.py:98
 msgid "Pleno"
 msgstr "Perfect score"
 
-#: gamification/services/achievements.py:95
+#: gamification/services/achievements.py:98
 msgid "Acierta las 10 de un quiz"
 msgstr "Get all 10 right in a quiz"
 
-#: gamification/services/achievements.py:98
+#: gamification/services/achievements.py:101
 msgid "Memoria de elefante"
 msgstr "Memory like an elephant"
 
-#: gamification/services/achievements.py:99
+#: gamification/services/achievements.py:102
 msgid "10 plenos en el quiz"
 msgstr "10 perfect quizzes"
 
-#: gamification/services/achievements.py:106
+#: gamification/services/achievements.py:109
 msgid "Fisonomista"
 msgstr "Face reader"
 
-#: gamification/services/achievements.py:107
+#: gamification/services/achievements.py:110
 msgid "3 plenos en «¿Quién es?»"
 msgstr "3 perfect “Who is it?” quizzes"
 
-#: gamification/services/achievements.py:114
+#: gamification/services/achievements.py:117
 msgid "Experto en apodos"
 msgstr "Nickname expert"
 
-#: gamification/services/achievements.py:115
+#: gamification/services/achievements.py:118
 msgid "3 plenos en «Apodos»"
 msgstr "3 perfect “Nicknames” quizzes"
 
-#: gamification/services/achievements.py:122
+#: gamification/services/achievements.py:125
 msgid "Viajero en el tiempo"
 msgstr "Time traveller"
 
-#: gamification/services/achievements.py:123
+#: gamification/services/achievements.py:126
 msgid "3 plenos en «Fechas»"
 msgstr "3 perfect “Dates” quizzes"
 
-#: gamification/services/achievements.py:130
+#: gamification/services/achievements.py:133
 msgid "Raíces"
 msgstr "Roots"
 
-#: gamification/services/achievements.py:131
+#: gamification/services/achievements.py:134
 msgid "3 plenos en «Parentescos»"
 msgstr "3 perfect “Kinship” quizzes"
+
+#: gamification/services/achievements.py:141
+msgid "Explorador"
+msgstr "Explorer"
+
+#: gamification/services/achievements.py:142
+msgid "3 plenos en «¿Dónde es?»"
+msgstr "3 perfect “Where is it?” quizzes"
+
+#: gamification/services/achievements.py:149
+msgid "Ojo de lince"
+msgstr "Eagle eye"
+
+#: gamification/services/achievements.py:150
+msgid "3 plenos en «¿Quién se esconde?»"
+msgstr "3 perfect “Who is hiding?” quizzes"
+
+#: gamification/services/achievements.py:157
+msgid "Emojiólogo"
+msgstr "Emojiologist"
+
+#: gamification/services/achievements.py:158
+msgid "3 plenos en «Emojis»"
+msgstr "3 perfect “Emojis” quizzes"
 
 #: gamification/services/announcements.py:39
 #, python-format
@@ -1535,89 +1571,139 @@ msgstr "Family memory"
 msgid "Guardián del álbum"
 msgstr "Album guardian"
 
-#: gamification/services/quiz.py:35 gamification/services/quiz.py:256
+#: gamification/services/quiz.py:65 gamification/services/quiz.py:355
 #: templates/catalog/_photo_workspace.html:155
 msgid "¿Quién es?"
 msgstr "Who is it?"
 
-#: gamification/services/quiz.py:36 templates/catalog/_person_sheets.html:36
+#: gamification/services/quiz.py:66 templates/catalog/_person_sheets.html:36
 #: templates/catalog/person_detail.html:19
 msgid "Apodos"
 msgstr "Nicknames"
 
-#: gamification/services/quiz.py:37
+#: gamification/services/quiz.py:67
 msgid "Fechas"
 msgstr "Dates"
 
-#: gamification/services/quiz.py:38
+#: gamification/services/quiz.py:68
 msgid "Parentescos"
 msgstr "Kinship"
 
-#: gamification/services/quiz.py:41
+#: gamification/services/quiz.py:69
+msgid "¿Dónde es?"
+msgstr "Where is it?"
+
+#: gamification/services/quiz.py:70
+msgid "¿Quién se esconde?"
+msgstr "Who is hiding?"
+
+#: gamification/services/quiz.py:71
+msgid "Emojis"
+msgstr "Emojis"
+
+#: gamification/services/quiz.py:74
 msgid "Adivina quién sale en cada cara."
 msgstr "Guess who is in each face."
 
-#: gamification/services/quiz.py:42
+#: gamification/services/quiz.py:75
 msgid "¿De quién es cada apodo?"
 msgstr "Whose nickname is it?"
 
-#: gamification/services/quiz.py:43
+#: gamification/services/quiz.py:76
 msgid "¿De qué año o década es cada foto?"
 msgstr "Which year or decade is each photo from?"
 
-#: gamification/services/quiz.py:44
+#: gamification/services/quiz.py:77
 msgid "¿Qué es cada familiar de otro?"
 msgstr "How are relatives related to each other?"
 
-#: gamification/services/quiz.py:54
+#: gamification/services/quiz.py:78
+msgid "¿Dónde se hizo cada foto?"
+msgstr "Where was each photo taken?"
+
+#: gamification/services/quiz.py:79
+msgid "La foto se va aclarando: cuanto antes aciertes, más puntos."
+msgstr "The photo gets sharper: the sooner you get it right, the more points."
+
+#: gamification/services/quiz.py:80
+msgid "¿Quién se esconde detrás de cada emoji?"
+msgstr "Who is hiding behind each emoji?"
+
+#: gamification/services/quiz.py:93 gamification/services/quiz.py:98
 #, python-format
 msgid "Faltan personas identificadas: hay %(have)s de %(need)s."
 msgstr "Not enough identified people: %(have)s of %(need)s."
 
-#: gamification/services/quiz.py:55
+#: gamification/services/quiz.py:94
 #, python-format
 msgid "Faltan apodos: hay %(have)s de %(need)s."
 msgstr "Not enough nicknames: %(have)s of %(need)s."
 
-#: gamification/services/quiz.py:56
+#: gamification/services/quiz.py:95
 #, python-format
 msgid "Faltan fotos con fecha: hay %(have)s de %(need)s."
 msgstr "Not enough dated photos: %(have)s of %(need)s."
 
-#: gamification/services/quiz.py:57
+#: gamification/services/quiz.py:96
 #, python-format
 msgid "Faltan parentescos: hay %(have)s de %(need)s."
 msgstr "Not enough relationships: %(have)s of %(need)s."
 
-#: gamification/services/quiz.py:281
+#: gamification/services/quiz.py:97
+#, python-format
+msgid "Faltan fotos con ubicación: hay %(have)s de %(need)s."
+msgstr "Not enough photos with a location: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:99
+#, python-format
+msgid "Faltan fotos con apodos con emoji: hay %(have)s de %(need)s."
+msgstr "Not enough photos of nicknames with an emoji: %(have)s of %(need)s."
+
+#: gamification/services/quiz.py:385
+msgid "¿Quién se esconde aquí?"
+msgstr "Who is hiding here?"
+
+#: gamification/services/quiz.py:410
 #, python-format
 msgid "¿De quién es el apodo «%(nickname)s»?"
 msgstr "Whose nickname is “%(nickname)s”?"
 
-#: gamification/services/quiz.py:315
+#: gamification/services/quiz.py:443
 msgid "¿De qué década es esta foto?"
 msgstr "Which decade is this photo from?"
 
-#: gamification/services/quiz.py:322
+#: gamification/services/quiz.py:450
 msgid "¿De qué año es esta foto?"
 msgstr "Which year is this photo from?"
 
-#: gamification/services/quiz.py:350
+#: gamification/services/quiz.py:476
 #, python-format
 msgid "¿Qué es %(other)s de %(subject)s?"
 msgstr "What is %(other)s to %(subject)s?"
 
-#: gamification/services/quiz.py:391
+#: gamification/services/quiz.py:531
+msgid "¿Dónde se hizo esta foto?"
+msgstr "Where was this photo taken?"
+
+#: gamification/services/quiz.py:599
+msgid "¿Quién es quién?"
+msgstr "Who is who?"
+
+#: gamification/services/quiz.py:643
 msgid "Ese quiz no existe."
 msgstr "That quiz does not exist."
 
-#: gamification/services/quiz.py:414
-msgid "Este quiz ya ha terminado."
-msgstr "This quiz is already over."
+#: gamification/services/quiz.py:731
+msgid "Elige una persona para cada emoji."
+msgstr "Choose a person for each emoji."
 
-#: gamification/services/quiz.py:422
+#: gamification/services/quiz.py:732
 msgid "Elige una de las opciones."
 msgstr "Choose one of the options."
+
+#: gamification/services/quiz.py:750
+msgid "Este quiz ya ha terminado."
+msgstr "This quiz is already over."
 
 #: gamification/services/scoring.py:35
 msgid "Foto subida"
@@ -1678,6 +1764,18 @@ msgstr "Perfect “Dates”"
 #: gamification/services/scoring.py:50
 msgid "Pleno en «Parentescos»"
 msgstr "Perfect “Kinship”"
+
+#: gamification/services/scoring.py:51
+msgid "Pleno en «¿Dónde es?»"
+msgstr "Perfect “Where is it?”"
+
+#: gamification/services/scoring.py:52
+msgid "Pleno en «¿Quién se esconde?»"
+msgstr "Perfect “Who is hiding?”"
+
+#: gamification/services/scoring.py:53
+msgid "Pleno en «Emojis»"
+msgstr "Perfect “Emojis”"
 
 #: gamification/templatetags/gamification_tags.py:16
 #, python-format
@@ -1945,7 +2043,8 @@ msgstr "Previous"
 msgid "Página %(number)s de %(total)s"
 msgstr "Page %(number)s of %(total)s"
 
-#: templates/_pagination.html:5 templates/gamification/quiz_play.html:31
+#: templates/_pagination.html:5 templates/gamification/quiz_play.html:55
+#: templates/gamification/quiz_play.html:68
 msgid "Siguiente"
 msgstr "Next"
 
@@ -2105,7 +2204,7 @@ msgstr "All"
 #: templates/catalog/_person_sheet.html:7
 #: templates/catalog/_person_sheets.html:7
 #: templates/catalog/_person_sheets.html:37
-#: templates/catalog/_person_sheets.html:71
+#: templates/catalog/_person_sheets.html:80
 #: templates/catalog/_photo_workspace.html:61 templates/catalog/map.html:25
 #: templates/catalog/person_detail.html:93 templates/catalog/tree.html:82
 msgid "Cerrar"
@@ -2190,7 +2289,7 @@ msgstr "Theme"
 #: templates/accounts/profile.html:39 templates/accounts/profile.html:114
 #: templates/accounts/user_form.html:13
 #: templates/catalog/_person_sheets.html:17
-#: templates/catalog/_person_sheets.html:132
+#: templates/catalog/_person_sheets.html:141
 #: templates/catalog/_photo_workspace.html:163
 #: templates/catalog/_photo_workspace.html:262
 #: templates/catalog/admin/event_type_form.html:11
@@ -2337,7 +2436,7 @@ msgid "Contraseña genérica"
 msgstr "Generic password"
 
 #: templates/accounts/user_list.html:27
-#: templates/catalog/_person_sheets.html:128 templates/catalog/tree.html:45
+#: templates/catalog/_person_sheets.html:137 templates/catalog/tree.html:45
 #: templates/catalog/tree.html:71
 msgid "Actividad"
 msgstr "Activity"
@@ -2558,87 +2657,107 @@ msgstr "Their photos will be exported again with the new name."
 msgid "Cambiar nombre"
 msgstr "Rename"
 
-#: templates/catalog/_person_sheets.html:46
+#: templates/catalog/_person_sheets.html:48
+#, python-format
+msgid "Emoji de «%(text)s»"
+msgstr "Emoji for “%(text)s”"
+
+#: templates/catalog/_person_sheets.html:49
+#, python-format
+msgid "Guardar el emoji de «%(text)s»"
+msgstr "Save the emoji for “%(text)s”"
+
+#: templates/catalog/_person_sheets.html:53
 #, python-format
 msgid "¿Quitar el apodo «%(text)s»?"
 msgstr "Remove the nickname “%(text)s”?"
 
-#: templates/catalog/_person_sheets.html:46
-#: templates/catalog/_person_sheets.html:89
+#: templates/catalog/_person_sheets.html:53
+#: templates/catalog/_person_sheets.html:98
 #: templates/catalog/_photo_workspace.html:169
 #: templates/catalog/admin/location_form.html:46
 msgid "Quitar"
 msgstr "Remove"
 
-#: templates/catalog/_person_sheets.html:48
+#: templates/catalog/_person_sheets.html:55
 #, python-format
 msgid "Quitar el apodo «%(text)s»"
 msgstr "Remove the nickname “%(text)s”"
 
-#: templates/catalog/_person_sheets.html:54
+#: templates/catalog/_person_sheets.html:61
 msgid "Sin apodos todavía."
 msgstr "No nicknames yet."
 
-#: templates/catalog/_person_sheets.html:58
+#: templates/catalog/_person_sheets.html:63
+msgid ""
+"Ponle a cada apodo de 1 a 3 emojis que lo recuerden: se usan en el quiz "
+"«Emojis»."
+msgstr "Give each nickname 1 to 3 emojis that bring it to mind: they are used in the “Emojis” quiz."
+
+#: templates/catalog/_person_sheets.html:66
 msgid "Añadir apodo"
 msgstr "Add nickname"
 
-#: templates/catalog/_person_sheets.html:60
+#: templates/catalog/_person_sheets.html:68
+msgid "Emoji (opcional)"
+msgstr "Emoji (optional)"
+
+#: templates/catalog/_person_sheets.html:69
 msgid "Pico pata"
 msgstr "Speedy"
 
-#: templates/catalog/_person_sheets.html:61
+#: templates/catalog/_person_sheets.html:70
 #: templates/catalog/admin/event_types.html:20
 msgid "Añadir"
 msgstr "Add"
 
-#: templates/catalog/_person_sheets.html:70
+#: templates/catalog/_person_sheets.html:79
 #: templates/catalog/person_detail.html:38
 msgid "Familia y relaciones"
 msgstr "Family and relationships"
 
-#: templates/catalog/_person_sheets.html:84
+#: templates/catalog/_person_sheets.html:93
 msgid "deducida"
 msgstr "deduced"
 
-#: templates/catalog/_person_sheets.html:89
+#: templates/catalog/_person_sheets.html:98
 #, python-format
 msgid "¿Quitar la relación con %(name)s (%(label)s)?"
 msgstr "Remove the relationship with %(name)s (%(label)s)?"
 
-#: templates/catalog/_person_sheets.html:91
+#: templates/catalog/_person_sheets.html:100
 #, python-format
 msgid "Quitar la relación con %(name)s (%(label)s)"
 msgstr "Remove the relationship with %(name)s (%(label)s)"
 
-#: templates/catalog/_person_sheets.html:100
+#: templates/catalog/_person_sheets.html:109
 #, python-format
 msgid "Todavía no se sabe con quién está relacionado %(person)s."
 msgstr "Nobody knows yet who %(person)s is related to."
 
-#: templates/catalog/_person_sheets.html:102
+#: templates/catalog/_person_sheets.html:111
 #: templates/catalog/person_detail.html:37
 msgid "Ver árbol"
 msgstr "See tree"
 
-#: templates/catalog/_person_sheets.html:104 templates/catalog/tree.html:89
+#: templates/catalog/_person_sheets.html:113 templates/catalog/tree.html:89
 msgid "Añadir relación"
 msgstr "Add relationship"
 
-#: templates/catalog/_person_sheets.html:112
+#: templates/catalog/_person_sheets.html:121
 msgid "Nombre, honorífico o apodo"
 msgstr "Name, honorific or nickname"
 
-#: templates/catalog/_person_sheets.html:117
+#: templates/catalog/_person_sheets.html:126
 #, python-format
 msgid "Es … de %(person)s"
 msgstr "Is … of %(person)s"
 
-#: templates/catalog/_person_sheets.html:129
+#: templates/catalog/_person_sheets.html:138
 msgid "Fútbol, coro…"
 msgstr "Football, choir…"
 
-#: templates/catalog/_person_sheets.html:131
+#: templates/catalog/_person_sheets.html:140
 msgid "Si la persona no está en el álbum, se añade con este nombre."
 msgstr "If the person is not in the album, they are added with this name."
 
@@ -4210,18 +4329,20 @@ msgstr "10 questions with 4 options about the family and the album."
 #: templates/gamification/quiz_home.html:8
 #, python-format
 msgid ""
-"Cada acierto es 1 punto y si aciertas las 10 te llevas %(bonus)s más. Cada "
-"día puntúan los %(daily)s primeros de cada tipo; después puedes seguir "
+"Cada acierto es 1 punto y si aciertas las 10 te llevas %(bonus)s más. En los "
+"de foto pixelada, cuanto antes aciertes más puntos: hasta 3 por pregunta. "
+"Cada día puntúan los %(daily)s primeros de cada tipo; después puedes seguir "
 "jugando por diversión."
-msgstr ""
-"Each right answer is 1 point, and getting all 10 right earns %(bonus)s more. "
-"Each day the first %(daily)s of each kind score; after that you can keep "
-"playing for fun."
+msgstr "Each right answer is 1 point and getting all 10 right earns %(bonus)s more. In the pixelated photo ones, the sooner you get it right the more points: up to 3 per question. Each day the first %(daily)s of each kind score; after that you can keep playing for fun."
 
 #: templates/gamification/quiz_home.html:9
-#: templates/gamification/quiz_play.html:51
+#: templates/gamification/quiz_play.html:111
 msgid "Juegas sin puntos: el ranking es solo para colaboradores."
 msgstr "You play without points: the ranking is for collaborators only."
+
+#: templates/gamification/quiz_home.html:16
+msgid "Contrarreloj"
+msgstr "Against the clock"
 
 #: templates/gamification/quiz_home.html:21
 #, python-format
@@ -4247,64 +4368,114 @@ msgstr "Back to the quiz"
 msgid "Pregunta %(number)s de %(total)s"
 msgstr "Question %(number)s of %(total)s"
 
-#: templates/gamification/quiz_play.html:21
-#: templates/gamification/quiz_play.html:36
-msgid "Opciones"
-msgstr "Options"
+#: templates/gamification/quiz_play.html:17
+msgid "Foto de la pregunta"
+msgstr "Question photo"
+
+#: templates/gamification/quiz_play.html:28
+msgid "La foto se va aclarando"
+msgstr "The photo is getting sharper"
 
 #: templates/gamification/quiz_play.html:30
+#, python-format
+msgid "Si aciertas ahora: +%(counter)s punto"
+msgid_plural "Si aciertas ahora: +%(counter)s puntos"
+msgstr[0] "Right now: +%(counter)s point"
+msgstr[1] "Right now: +%(counter)s points"
+
+#: templates/gamification/quiz_play.html:43
+msgid "Emparejamientos"
+msgstr "Matches"
+
+#: templates/gamification/quiz_play.html:53
+#: templates/gamification/quiz_play.html:66
 msgid "¡Correcto!"
 msgstr "Correct!"
 
-#: templates/gamification/quiz_play.html:30
-msgid "¡Casi! La buena está en verde."
-msgstr "Almost! The right one is in green."
+#: templates/gamification/quiz_play.html:53
+msgid "¡Casi! Mira quién era cada uno."
+msgstr "Almost! See who each one was."
 
-#: templates/gamification/quiz_play.html:31
-msgid "Ver resultado"
-msgstr "See result"
-
-#: templates/gamification/quiz_play.html:48
-#, python-format
-msgid "%(correct)s de %(total)s"
-msgstr "%(correct)s of %(total)s"
-
-#: templates/gamification/quiz_play.html:49
-msgid "¡Pleno! Lo has acertado todo."
-msgstr "Perfect! You got everything right."
-
-#: templates/gamification/quiz_play.html:49
-msgid "¡Muy bien! Conoces bien a la familia."
-msgstr "Well done! You know the family well."
-
-#: templates/gamification/quiz_play.html:49
-msgid "No está mal. ¡A por más!"
-msgstr "Not bad. Go for more!"
-
-#: templates/gamification/quiz_play.html:49
-msgid "Toca repasar el álbum."
-msgstr "Time to look through the album again."
-
-#: templates/gamification/quiz_play.html:50
+#: templates/gamification/quiz_play.html:54
+#: templates/gamification/quiz_play.html:67
+#: templates/gamification/quiz_play.html:110
 #, python-format
 msgid "+%(counter)s punto"
 msgid_plural "+%(counter)s puntos"
 msgstr[0] "+%(counter)s point"
 msgstr[1] "+%(counter)s points"
 
-#: templates/gamification/quiz_play.html:51
+#: templates/gamification/quiz_play.html:54
+#: templates/gamification/quiz_play.html:67
+#, python-format
+msgid "%(seconds)s s"
+msgstr "%(seconds)s s"
+
+#: templates/gamification/quiz_play.html:55
+#: templates/gamification/quiz_play.html:68
+msgid "Ver resultado"
+msgstr "See result"
+
+#: templates/gamification/quiz_play.html:57
+#: templates/gamification/quiz_play.html:95
+msgid "Opciones"
+msgstr "Options"
+
+#: templates/gamification/quiz_play.html:66
+msgid "¡Casi! La buena está en verde."
+msgstr "Almost! The right one is in green."
+
+#: templates/gamification/quiz_play.html:73
+msgid "Elige quién hay detrás de cada emoji numerado."
+msgstr "Choose who is behind each numbered emoji."
+
+#: templates/gamification/quiz_play.html:80
+#, python-format
+msgid "Emoji %(number)s"
+msgstr "Emoji %(number)s"
+
+#: templates/gamification/quiz_play.html:83
+msgid "Elegir…"
+msgstr "Choose…"
+
+#: templates/gamification/quiz_play.html:89
+msgid "Comprobar"
+msgstr "Check"
+
+#: templates/gamification/quiz_play.html:108
+#, python-format
+msgid "%(correct)s de %(total)s"
+msgstr "%(correct)s of %(total)s"
+
+#: templates/gamification/quiz_play.html:109
+msgid "¡Pleno! Lo has acertado todo."
+msgstr "Perfect! You got everything right."
+
+#: templates/gamification/quiz_play.html:109
+msgid "¡Muy bien! Conoces bien a la familia."
+msgstr "Well done! You know the family well."
+
+#: templates/gamification/quiz_play.html:109
+msgid "No está mal. ¡A por más!"
+msgstr "Not bad. Go for more!"
+
+#: templates/gamification/quiz_play.html:109
+msgid "Toca repasar el álbum."
+msgstr "Time to look through the album again."
+
+#: templates/gamification/quiz_play.html:111
 msgid "Este quiz no daba puntos: hoy ya habías jugado los que puntúan."
 msgstr "This quiz gave no points: you had already played today's scoring ones."
 
-#: templates/gamification/quiz_play.html:53
+#: templates/gamification/quiz_play.html:113
 msgid "Logros nuevos"
 msgstr "New badges"
 
-#: templates/gamification/quiz_play.html:61
+#: templates/gamification/quiz_play.html:121
 msgid "Otra vez"
 msgstr "Again"
 
-#: templates/gamification/quiz_play.html:63
+#: templates/gamification/quiz_play.html:123
 msgid "Otros quizzes"
 msgstr "Other quizzes"
 

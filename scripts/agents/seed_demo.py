@@ -125,6 +125,38 @@ def seed_locations(maria, demo):
             except Exception:  # an identical proposal was already accepted
                 continue
     seed_map(demo)
+    seed_quiz_locations(maria, demo)
+
+
+def seed_quiz_locations(maria, demo):
+    """Three more accepted places, one in the same town as «Casa de los abuelos», for the
+    remaining photos: enough for the «¿Dónde es?» quiz (spec 5.14)."""
+    from catalog.models import Location
+    from catalog.services import catalog_review
+    from catalog.services import locations as location_service
+    from catalog.services.names import name_key
+
+    points = {
+        "Ermita de Gerena": (37.5262, -6.1563, "Gerena"),
+        "Puerto de Tarifa": (36.0094, -5.6053, "Tarifa"),
+        "Plaza de España": (37.3772, -5.9869, "Sevilla"),
+    }
+    names = list(points)
+    for index, photo in enumerate(Photo.objects.order_by("pk")[9:16]):
+        try:
+            proposal = voting.create_proposal(
+                maria, photo, "location", location_name=names[index % len(names)]
+            )
+            voting.cast_vote(demo, proposal, 1)
+        except Exception:  # already there from a previous run
+            continue
+    for name, (lat, lng, locality) in points.items():
+        location = Location.objects.filter(name_key=name_key(name)).first()
+        if location is None:
+            continue
+        if location.is_provisional:
+            catalog_review.accept(demo, location, locality=locality)
+        location_service.place_location(demo, location, lat, lng, locality)
 
 
 def seed_map(demo):
@@ -190,9 +222,13 @@ def seed_family(maria):
     Person.objects.filter(pk=luis.pk).update(user=User.objects.get(username="demo"))
     person_details.set_honorific(maria, paco, "Tito")
     person_details.set_honorific(maria, carmen, "Abuela")
-    for target, text in ((paco, "Pico pata"), (paco, "Pico Paco"), (luis, "Er Canijo")):
+    for target, text, emoji in (
+        (paco, "Pico pata", "🐦🦶"),
+        (paco, "Pico Paco", ""),
+        (luis, "Er Canijo", "🤏"),
+    ):
         try:
-            person_details.add_nickname(maria, target, text)
+            person_details.add_nickname(maria, target, text, emoji)
         except Exception:
             continue
     seed_quiz(maria, [carmen, pepe, paco, lola, ana, luis, marta, sofia, bisabuela])
@@ -208,8 +244,8 @@ def seed_family(maria):
 
 
 def seed_quiz(maria, family):
-    """Enough accepted data for the four family quizzes (spec 5.14): an identified face of
-    12 people and a nickname for each of them."""
+    """Enough accepted data for the family quizzes (spec 5.14): an identified face of 12
+    people and a nickname with an emoji for each of them."""
     from catalog.models import Person
     from catalog.services import person_details
 
@@ -221,6 +257,7 @@ def seed_quiz(maria, family):
         "La Yaya", "El Abuelo Pepe", "Pico", "La Lola", "Anita", "El Peque",
         "Martita", "Sofi", "La Bisa", "Andresito", "Manolete", "Jorgito",
     ]  # fmt: skip
+    emojis = ["👵", "🧔", "🐦", "💃", "🌸", "🧸", "📚", "🎨", "🕰️", "⚽", "🎸", "🚲"]
     photos = list(Photo.objects.order_by("pk"))
     for index, (person, nickname) in enumerate(zip(people, nicknames, strict=True)):
         Person.objects.filter(pk=person.pk).update(is_provisional=False)
@@ -229,7 +266,7 @@ def seed_quiz(maria, family):
             photo=photo, x=220 + 10 * index, y=60, w=80, h=100, score=0.9, person=person
         )
         try:
-            person_details.add_nickname(maria, person, nickname)
+            person_details.add_nickname(maria, person, nickname, emojis[index])
         except Exception:  # already there from a previous run
             continue
 
