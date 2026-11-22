@@ -8,4 +8,5 @@ urlpatterns = [
     path("quiz/start/", views.quiz_start, name="quiz_start"),
     path("quiz/<int:pk>/", views.quiz_play, name="quiz_play"),
     path("quiz/<int:pk>/answer/", views.quiz_answer, name="quiz_answer"),
+    path("quiz/<int:pk>/image/<int:index>/<int:level>/", views.quiz_image, name="quiz_image"),
 ]

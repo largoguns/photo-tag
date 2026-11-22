@@ -53,6 +53,10 @@ class QuizAttempt(models.Model):
     `questions` keeps, per question, what is shown (text, images, options) and the index of
     the right option, which never reaches the browser before answering. `scored` is decided
     when it starts (only the first quizzes of each type per day give points).
+
+    `timings` keeps, per question, when it was first shown and how long the answer took
+    (measured on the server). `points` are the quiz points earned by the answers, without
+    the perfect-score bonus: 1 per right answer, or 3/2/1 by speed in timed kinds.
     """
 
     class Kind(models.TextChoices):
@@ -60,14 +64,20 @@ class QuizAttempt(models.Model):
         NICKNAMES = "nicknames", "nicknames"
         DATES = "dates", "dates"
         KINSHIP = "kinship", "kinship"
+        LOCATIONS = "locations", "locations"
+        HIDDEN = "hidden", "hidden"
+        EMOJIS = "emojis", "emojis"
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="quiz_attempts"
     )
     kind = models.CharField(max_length=20, choices=Kind.choices)
     questions = models.JSONField(default=list)
-    answers = models.JSONField(default=list)  # option index chosen for each question
+    # Option index chosen for each question (a list of them when matching emojis).
+    answers = models.JSONField(default=list)
     correct = models.PositiveSmallIntegerField(default=0)
+    timings = models.JSONField(default=list)  # [{"shown": iso datetime, "seconds": float}]
+    points = models.PositiveSmallIntegerField(default=0)
     scored = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now, db_index=True)
     finished_at = models.DateTimeField(null=True, blank=True)

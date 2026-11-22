@@ -15,6 +15,9 @@ QUIZ_PERFECT = (
     "quiz_perfect_nicknames",
     "quiz_perfect_dates",
     "quiz_perfect_kinship",
+    "quiz_perfect_locations",
+    "quiz_perfect_hidden",
+    "quiz_perfect_emojis",
 )
 
 
@@ -131,6 +134,30 @@ BADGES = [
         _("3 plenos en «Parentescos»"),
         "family_history",
         ("quiz_perfect_kinship",),
+        3,
+    ),
+    Badge(
+        "quiz_locations",
+        _("Explorador"),
+        _("3 plenos en «¿Dónde es?»"),
+        "location_on",
+        ("quiz_perfect_locations",),
+        3,
+    ),
+    Badge(
+        "quiz_hidden",
+        _("Ojo de lince"),
+        _("3 plenos en «¿Quién se esconde?»"),
+        "blur_on",
+        ("quiz_perfect_hidden",),
+        3,
+    ),
+    Badge(
+        "quiz_emojis",
+        _("Emojiólogo"),
+        _("3 plenos en «Emojis»"),
+        "mood",
+        ("quiz_perfect_emojis",),
         3,
     ),
 ]

@@ -48,6 +48,9 @@ REASONS = {
     "quiz_perfect_nicknames": _("Pleno en «Apodos»"),
     "quiz_perfect_dates": _("Pleno en «Fechas»"),
     "quiz_perfect_kinship": _("Pleno en «Parentescos»"),
+    "quiz_perfect_locations": _("Pleno en «¿Dónde es?»"),
+    "quiz_perfect_hidden": _("Pleno en «¿Quién se esconde?»"),
+    "quiz_perfect_emojis": _("Pleno en «Emojis»"),
 }
 
 
