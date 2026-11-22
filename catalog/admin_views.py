@@ -15,7 +15,7 @@ from accounts.permissions import admin_required
 from accounts.services import audit, audit_catalog
 from catalog.forms import EventTypeForm, MergePersonsForm, ThresholdsForm
 from catalog.models import CatalogSettings, EventType, Location, Photo, Scan
-from catalog.services import catalog_review, person_details
+from catalog.services import catalog_review, geo, person_details
 from catalog.services import locations as location_service
 from catalog.services.persons import merge_persons
 
@@ -63,6 +63,7 @@ def admin_home(request):
                 is_provisional=True, merged_into__isnull=True
             ).count(),
             "honorifics_in_names": len(person_details.honorifics_in_names()),
+            "locations_unplaced": geo.unplaced_count(),
             "settings": CatalogSettings.load(),
             "recent_audit": audit_catalog.recent(15),
             "scanner_configured": bool(settings.SCANNER_URL),
@@ -104,7 +105,10 @@ def _review(request, entry, back):
     action = request.POST.get("action")
     try:
         if action == "accept":
-            accepted = catalog_review.accept(request.user, entry, request.POST.get("text", ""))
+            locality = request.POST.get("locality") if isinstance(entry, Location) else None
+            accepted = catalog_review.accept(
+                request.user, entry, request.POST.get("text", ""), locality=locality
+            )
             messages.success(request, _("«%(name)s» aceptado.") % {"name": accepted.name})
         elif action == "reject":
             catalog_review.reject(request.user, entry)
@@ -162,10 +166,18 @@ def locations(request):
             "created_by"
         )
     )
+    unplaced_only = request.GET.get("unplaced") == "1"
+    if unplaced_only:
+        rows = rows.filter(latitude__isnull=True).order_by("-photo_count", "name")
     return render(
         request,
         "catalog/admin/locations.html",
-        {"locations": rows, "to_review": _with_example(catalog_review.pending_locations())},
+        {
+            "locations": rows,
+            "to_review": _with_example(catalog_review.pending_locations()),
+            "unplaced": geo.unplaced_count(),
+            "unplaced_only": unplaced_only,
+        },
     )
 
 
@@ -185,6 +197,21 @@ def location_edit(request, pk):
             elif action in ("activate", "deactivate"):
                 location_service.set_active(request.user, location, action == "activate")
                 messages.success(request, _("Ubicación actualizada."))
+            elif action == "place":
+                lat, lng = request.POST.get("latitude", ""), request.POST.get("longitude", "")
+                location_service.place_location(
+                    request.user,
+                    location,
+                    lat or None,
+                    lng or None,
+                    locality=request.POST.get("locality", ""),
+                )
+                messages.success(
+                    request, _("Posición guardada.") if lat and lng else _("Localidad guardada.")
+                )
+            elif action == "unplace":
+                location_service.place_location(request.user, location, None, None)
+                messages.success(request, _("Quitada del mapa."))
             elif action == "merge":
                 target = get_object_or_404(
                     Location.objects.filter(merged_into__isnull=True).exclude(pk=location.pk),
@@ -202,7 +229,12 @@ def location_edit(request, pk):
     return render(
         request,
         "catalog/admin/location_form.html",
-        {"location": location, "others": others},
+        {
+            "location": location,
+            "others": others,
+            # The OSM search starts with what is known: "Piso Los Tarantos, Sevilla".
+            "search_text": ", ".join(t for t in (location.name, location.locality) if t),
+        },
     )
 
 

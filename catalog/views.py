@@ -396,6 +396,7 @@ def propose_location(request, pk):
             photo,
             Proposal.Kind.LOCATION,
             location_name=request.POST.get("location", ""),
+            locality=request.POST.get("locality", ""),
         ),
     )
 

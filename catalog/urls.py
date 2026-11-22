@@ -1,10 +1,11 @@
 from django.urls import path
 
-from catalog import admin_views, person_views, tree_views, views
+from catalog import admin_views, map_views, person_views, tree_views, views
 
 urlpatterns = [
     path("", views.home, name="home"),
     path("gallery/", views.gallery, name="gallery"),
+    path("map/", map_views.photo_map, name="photo_map"),
     path("photos/next/", views.next_uncataloged, name="next_uncataloged"),
     path("photos/download/", views.download_photos, name="download_photos"),
     path("photos/shared/", views.log_share, name="log_share"),

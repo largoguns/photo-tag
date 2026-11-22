@@ -64,8 +64,9 @@ def _find_existing(entry, text):
 
 
 @transaction.atomic
-def accept(admin, entry, text=None):
-    """Accept as typed or with `text`; matching an existing entry merges into it."""
+def accept(admin, entry, text=None, locality=None):
+    """Accept as typed or with `text`; matching an existing entry merges into it.
+    Locations also take the reviewed `locality` (None leaves it as proposed)."""
     ids = _open_ids(entry)
     text = " ".join(str(text or "").split())
     if text and text != entry.name:
@@ -88,6 +89,11 @@ def accept(admin, entry, text=None):
         entry.is_provisional = False
         entry.active = True
         entry.save(update_fields=["is_provisional", "active"])
+    if isinstance(entry, Location) and locality is not None:
+        cleaned = locations.clean_locality(locality)
+        if cleaned != entry.locality:
+            entry.locality = cleaned
+            entry.save(update_fields=["locality"])
     _decide_open(admin, ids, accept=True)
     action = "event_type.accept" if isinstance(entry, EventType) else "location.accept"
     audit.log(admin, action, entry, name=entry.name, proposals=len(ids))

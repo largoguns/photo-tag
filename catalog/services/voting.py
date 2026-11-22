@@ -77,7 +77,7 @@ def resolve_event_type(name, user):
     return EventType.objects.create(name=label, created_by=user, is_provisional=True, order=900)
 
 
-def resolve_location(name, user):
+def resolve_location(name, user, locality=""):
     """Existing location by name (ignoring accents and case) or a new provisional one.
 
     The typed text is kept as written, only trimmed: "Casa de Los Tarantos".
@@ -85,11 +85,21 @@ def resolve_location(name, user):
     text = " ".join(str(name).split())[:150]
     if not text:
         raise ValidationError(_("Escribe dónde se hizo la foto."))
+    locality = " ".join(str(locality or "").split())[:150]
     existing = Location.objects.filter(name_key=name_key(text)).first()
     if existing:
-        return existing.resolved()
+        existing = existing.resolved()
+        # The town helps whoever places it on the map; an existing one is never replaced.
+        if locality and not existing.locality:
+            existing.locality = locality
+            existing.save(update_fields=["locality"])
+        return existing
     return Location.objects.create(
-        name=text, name_key=name_key(text), created_by=user, is_provisional=True
+        name=text,
+        name_key=name_key(text),
+        locality=locality,
+        created_by=user,
+        is_provisional=True,
     )
 
 
@@ -161,6 +171,7 @@ def create_proposal(
     event_name=None,
     location=None,
     location_name=None,
+    locality="",
     value=None,
 ):
     """Create a proposal (counting as the author's +1) and evaluate it.
@@ -201,7 +212,7 @@ def create_proposal(
         )
     elif kind == Kind.LOCATION:
         if location_name and location_name.strip():
-            location = resolve_location(location_name, user)
+            location = resolve_location(location_name, user, locality=locality)
         if location is None:
             raise ValidationError(_("Escribe dónde se hizo la foto."))
         location = location.resolved()

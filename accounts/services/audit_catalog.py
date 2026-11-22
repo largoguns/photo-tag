@@ -81,6 +81,8 @@ EVENTS = {
     "location.rename": ("admin", _("Ubicación renombrada")),
     "location.update": ("admin", _("Ubicación activada o desactivada")),
     "location.merge": ("admin", _("Ubicaciones fusionadas")),
+    "location.place": ("admin", _("Ubicación situada en el mapa")),
+    "location.unplace": ("admin", _("Ubicación quitada del mapa")),
     "settings.thresholds": ("admin", _("Umbrales cambiados")),
     "export.request": ("admin", _("Exportación pedida")),
 }

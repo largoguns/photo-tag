@@ -331,6 +331,10 @@ class Location(models.Model):
         "self", null=True, blank=True, on_delete=models.SET_NULL, related_name="merged_locations"
     )
     created_at = models.DateTimeField(default=timezone.now)
+    # Map (spec section 5.15): free text town and a point set by an administrator.
+    locality = models.CharField(_("localidad"), max_length=150, blank=True)
+    latitude = models.FloatField(_("latitud"), null=True, blank=True)
+    longitude = models.FloatField(_("longitud"), null=True, blank=True)
 
     objects = LocationQuerySet.as_manager()
 
@@ -339,6 +343,11 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def is_placed(self):
+        """On the map: it has a point."""
+        return self.latitude is not None and self.longitude is not None
 
     def resolved(self):
         """Follow merges to the surviving location."""
