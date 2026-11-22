@@ -5,7 +5,7 @@
 {% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <p class="muted">
   {% blocktranslate %}10 preguntas con 4 opciones sobre la familia y el álbum.{% endblocktranslate %}
-  {% if is_player %}{% blocktranslate %}Cada acierto es 1 punto y si aciertas las 10 te llevas {{ bonus }} más. Cada día puntúan los {{ daily }} primeros de cada tipo; después puedes seguir jugando por diversión.{% endblocktranslate %}
+  {% if is_player %}{% blocktranslate %}Cada acierto es 1 punto y si aciertas las 10 te llevas {{ bonus }} más. En los de foto pixelada, cuanto antes aciertes más puntos: hasta 3 por pregunta. Cada día puntúan los {{ daily }} primeros de cada tipo; después puedes seguir jugando por diversión.{% endblocktranslate %}
   {% else %}{% translate "Juegas sin puntos: el ranking es solo para colaboradores." %}{% endif %}
 </p>
 <ul class="quiz-kinds">
@@ -13,7 +13,7 @@
   <li class="card quiz-kind{% if not card.availability.ready %} unavailable{% endif %}">
     <span class="quiz-kind-icon" aria-hidden="true">{% icon card.icon %}</span>
     <div class="quiz-kind-main">
-      <h2>{{ card.label }}</h2>
+      <h2>{{ card.label }}{% if card.kind in timed %} <span class="badge quiz-timed">{% translate "Contrarreloj" %}</span>{% endif %}</h2>
       <p class="muted">{{ card.hint }}</p>
       {% if not card.availability.ready %}
       <p class="quiz-kind-state">{{ card.availability.missing }}</p>

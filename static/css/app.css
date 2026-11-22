@@ -807,9 +807,13 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .relation-add[open] > summary { margin-bottom: .75rem; }
 .relation-role { color: var(--md-on-surface-variant); font-size: .875rem; }
 .nickname-list, .relation-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .25rem; }
-.nickname-list { flex-direction: row; flex-wrap: wrap; }
-.nickname { display: inline-flex; align-items: center; gap: .25rem; padding-left: .75rem; border-radius: 8px; background: var(--md-surface-container); min-width: 0; }
-.nickname > span { overflow-wrap: anywhere; }
+.nickname { display: flex; align-items: center; gap: .25rem; padding: .25rem; border-radius: 8px; background: var(--md-surface-container); min-width: 0; }
+.nickname-text { flex: 1; min-width: 0; overflow-wrap: anywhere; padding-left: .25rem; }
+.nickname-emoji { display: flex; align-items: center; flex: none; }
+/* Emoji fields: wide enough for 3 emojis, a full touch target. */
+input[type="text"].emoji-input { flex: none; width: 5.5rem; min-height: 44px; text-align: center; font-size: 1.25rem; padding: 0 .25rem; }
+.input-row > input.emoji-input { flex: none; }
+.input-row > .emoji-input + input { flex: 1; min-width: 0; }
 .nickname form, .relation form { margin: 0; }
 .relation { display: flex; align-items: center; gap: .5rem; min-height: 52px; min-width: 0; }
 .relation-person { display: flex; align-items: center; gap: .75rem; flex: 1 1 auto; min-width: 0; min-height: 44px; color: inherit; text-decoration: none; }
@@ -1024,6 +1028,7 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .quiz-kind-main h2 { margin: 0; font-size: 1.1rem; }
 .quiz-kind-main p { margin: .15rem 0 0; }
 .quiz-kind-state { font-size: .85rem; font-weight: 500; }
+.quiz-timed { vertical-align: middle; font-size: .7rem; }
 .quiz-kind form { flex: none; }
 @media (max-width: 479px) {
   .quiz-kind { flex-wrap: wrap; }
@@ -1036,6 +1041,43 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .quiz-progress progress { flex: 1; height: 6px; accent-color: var(--md-primary); }
 .quiz-images { display: flex; justify-content: center; gap: .75rem; }
 .quiz-image { display: block; max-width: 100%; max-height: min(45dvh, 360px); border-radius: 12px; object-fit: contain; background: var(--md-surface-container-low); }
+/* Wraps the photo tightly, so face frames and emojis can be placed in % of it. */
+.quiz-photo { position: relative; width: fit-content; max-width: 100%; margin: 0 auto; line-height: 0; }
+.quiz-photo .quiz-image { width: auto; height: auto; }
+.quiz-frame { position: absolute; border: 3px solid var(--md-primary); border-radius: 10px; box-shadow: 0 0 0 2px rgb(0 0 0 / .45), inset 0 0 0 2px rgb(255 255 255 / .6); pointer-events: none; }
+.quiz-reveal { display: flex; flex-direction: column; align-items: center; gap: .25rem; text-align: center; }
+.quiz-reveal progress { width: min(100%, 320px); height: 6px; accent-color: var(--md-primary); }
+.quiz-reveal-points { font-size: .9rem; font-weight: 600; }
+.quiz-reveal.done progress { accent-color: var(--md-outline); }
+.quiz-speed { display: block; font-weight: 500; font-size: .9rem; }
+/* Emojis quiz: every face covered by an emoji sized to the face. */
+/* Each cover is a size container (its box is set in %), so the emoji fills the face. */
+.quiz-cover { position: absolute; display: grid; place-items: center; line-height: 1; pointer-events: none; container-type: size; }
+.quiz-cover-emoji { font-size: max(18px, 85cqmin); filter: drop-shadow(0 1px 2px rgb(0 0 0 / .5)); }
+.quiz-cover.asked[data-quiz-match] { pointer-events: auto; cursor: pointer; min-width: 44px; min-height: 44px; }
+.quiz-cover .quiz-cover-number { position: absolute; top: -6px; right: -6px; }
+.quiz-cover.right .quiz-cover-number { background: var(--md-success); color: #fff; }
+.quiz-cover.wrong .quiz-cover-number { background: var(--md-error); color: var(--md-on-error, #fff); }
+.quiz-cover-number { display: inline-grid; place-items: center; flex: none; min-width: 24px; height: 24px; padding: 0 4px; border-radius: 12px; background: var(--md-primary); color: var(--md-on-primary); font-size: .8rem; font-weight: 700; line-height: 1; }
+.quiz-matches { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; }
+.quiz-match { display: flex; align-items: center; gap: .75rem; min-height: 48px; min-width: 0; padding: .25rem .5rem; border-radius: 12px; background: var(--md-surface-container-low); }
+.quiz-match-label { display: flex; align-items: center; gap: .5rem; flex: none; }
+.quiz-match-emoji { font-size: 1.6rem; line-height: 1; }
+.quiz-match select { flex: 1; min-width: 0; min-height: 44px; }
+.quiz-match-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.quiz-match-right { font-weight: 600; }
+.quiz-match .icon { flex: none; width: 20px; height: 20px; }
+.quiz-match.right { background: var(--md-success-container); color: var(--md-success); }
+.quiz-match.wrong { background: var(--md-error-container); color: var(--md-on-error-container); }
+.quiz-stage, .quiz-panel { min-width: 0; }
+.quiz-stage { display: flex; flex-direction: column; gap: .75rem; }
+/* Desktop: the photo on the left, the matching on the right. */
+@media (min-width: 840px) {
+  .quiz-card.matching { max-width: 1040px; display: grid; grid-template-columns: minmax(0, 3fr) minmax(280px, 2fr); align-items: start; gap: 1rem 1.5rem; }
+  .quiz-card.matching > .quiz-progress { grid-column: 1 / -1; }
+  .quiz-card.matching .quiz-image { max-height: min(70dvh, 620px); }
+  .quiz-card.matching .quiz-question { text-align: start; }
+}
 .quiz-images.pair .quiz-image { width: 96px; height: 96px; border-radius: 50%; object-fit: cover; }
 .quiz-image.placeholder { display: grid; place-items: center; font-size: 2rem; color: var(--md-on-surface-variant); }
 .quiz-question { margin: 0; font-size: 1.2rem; text-align: center; overflow-wrap: anywhere; }

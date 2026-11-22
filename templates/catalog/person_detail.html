@@ -17,7 +17,7 @@
       <button type="button" class="button text icon-only" data-open-sheet="sheet-name" aria-haspopup="dialog" aria-label="{% translate 'Cambiar nombre o tratamiento' %}" title="{% translate 'Cambiar nombre o tratamiento' %}">{% icon "edit" %}</button>
     </div>
     <ul class="chips person-nicknames" aria-label="{% translate 'Apodos' %}">
-      {% for nickname in nicknames %}<li><button type="button" class="chip" data-open-sheet="sheet-nicknames" aria-haspopup="dialog">{{ nickname.text }}</button></li>{% endfor %}
+      {% for nickname in nicknames %}<li><button type="button" class="chip" data-open-sheet="sheet-nicknames" aria-haspopup="dialog">{% if nickname.emoji %}<span aria-hidden="true">{{ nickname.emoji }}</span> {% endif %}{{ nickname.text }}</button></li>{% endfor %}
       <li><button type="button" class="chip" data-open-sheet="sheet-nicknames" data-sheet-focus="nickname-text" aria-haspopup="dialog">{% icon "add" %}{% translate "Apodo" %}</button></li>
     </ul>
     {% if person.is_pet %}<span class="badge person-pet">🐾 {% translate "Mascota" %}</span>

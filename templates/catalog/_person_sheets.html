@@ -41,7 +41,14 @@
     <ul class="nickname-list">
       {% for nickname in nicknames %}
       <li class="nickname">
-        <span>{{ nickname.text }}</span>
+        {# The emoji stands for the nickname in the «Emojis» quiz; typed with the system emoji keyboard. #}
+        <form method="post" class="nickname-emoji" action="{% url 'set_nickname_emoji' nickname.pk %}" hx-boost="true">
+          {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+          <input type="text" name="emoji" value="{{ nickname.emoji }}" class="emoji-input" maxlength="32" autocomplete="off" placeholder="😀"
+                 aria-label="{% blocktranslate with text=nickname.text %}Emoji de «{{ text }}»{% endblocktranslate %}">
+          <button type="submit" class="button text icon-only small" aria-label="{% blocktranslate with text=nickname.text %}Guardar el emoji de «{{ text }}»{% endblocktranslate %}">{% icon "check" %}</button>
+        </form>
+        <span class="nickname-text">{{ nickname.text }}</span>
         <form method="post" action="{% url 'remove_nickname' nickname.pk %}" hx-boost="true"
               data-confirm="{% blocktranslate with text=nickname.text %}¿Quitar el apodo «{{ text }}»?{% endblocktranslate %}" data-confirm-ok="{% translate 'Quitar' %}" data-confirm-variant="danger">
           {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
@@ -53,10 +60,12 @@
     {% else %}
     <p class="muted">{% translate "Sin apodos todavía." %}</p>
     {% endif %}
+    <p class="muted">{% translate "Ponle a cada apodo de 1 a 3 emojis que lo recuerden: se usan en el quiz «Emojis»." %}</p>
     <form method="post" class="inline-form" action="{% url 'add_nickname' person.pk %}" hx-boost="true">
       {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
       <label for="nickname-text">{% translate "Añadir apodo" %}</label>
       <div class="input-row">
+        <input type="text" name="emoji" class="emoji-input" maxlength="32" autocomplete="off" placeholder="😀" aria-label="{% translate 'Emoji (opcional)' %}">
         <input type="text" id="nickname-text" name="nickname" maxlength="100" required autocomplete="off" placeholder="{% translate 'Pico pata' %}">
         <button type="submit" class="button primary">{% translate "Añadir" %}</button>
       </div>

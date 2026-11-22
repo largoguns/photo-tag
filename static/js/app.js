@@ -2347,4 +2347,77 @@
     sheet.showModal();
   }, true);
 
+
+  // ------------------------------------------------ Quiz: photo that sharpens (5.14)
+  // The server only serves a pixelation level once its time has come, so this just
+  // asks for the next level on schedule (and retries a moment later if it is early).
+  const reveal = { timer: null };
+
+  function stopReveal() {
+    clearTimeout(reveal.timer);
+    reveal.timer = null;
+  }
+
+  function startReveal() {
+    stopReveal();
+    const box = document.querySelector("[data-quiz-reveal]");
+    if (!box) return;
+    const img = box.querySelector("img");
+    const bar = document.querySelector("[data-quiz-reveal-bar]");
+    const step = Number(box.dataset.step) * 1000;
+    const levels = Number(box.dataset.levels);
+    const started = performance.now() - Number(box.dataset.elapsed) * 1000;
+    let level = Number(box.dataset.level);
+    let loading = false;
+
+    function showTier() {
+      if (!bar) return;
+      const seconds = (performance.now() - started) / 1000;
+      const tiers = Array.from(bar.querySelectorAll(".quiz-reveal-points"));
+      const current = tiers.find((tier) => !tier.dataset.until || seconds < Number(tier.dataset.until));
+      tiers.forEach((tier) => { tier.hidden = tier !== current; });
+    }
+
+    function next() {
+      if (!document.body.contains(box)) { stopReveal(); return; }
+      showTier();
+      const due = Math.min(levels, Math.floor((performance.now() - started) / step));
+      if (due > level && !loading) {
+        loading = true;
+        const url = box.dataset.template.replace("{level}", String(due));
+        const loader = new Image();
+        loader.onload = () => {
+          loading = false;
+          if (!document.body.contains(box)) return;
+          img.src = url;
+          level = due;
+          const progress = bar && bar.querySelector("progress");
+          if (progress) progress.value = level;
+          if (level >= levels && bar) bar.classList.add("done");
+        };
+        loader.onerror = () => { loading = false; };  // too early: the next tick retries
+        loader.src = url;
+      }
+      if (level < levels || (bar && bar.querySelector(".quiz-reveal-points[data-until]:not([hidden])"))) {
+        reveal.timer = setTimeout(next, 500);
+      }
+    }
+    next();
+  }
+
+  ready(startReveal);
+  document.addEventListener("htmx:afterSettle", startReveal);
+
+  // Emojis quiz: tapping a numbered emoji on the photo opens its name picker.
+  document.addEventListener("click", (event) => {
+    const cover = event.target.closest("[data-quiz-match]");
+    if (!cover) return;
+    const select = document.getElementById(`match-${cover.dataset.quizMatch}`);
+    if (!select) return;
+    select.focus();
+    if (typeof select.showPicker === "function") {
+      try { select.showPicker(); } catch (error) { /* needs a user gesture: focus is enough */ }
+    }
+  });
+
 })();

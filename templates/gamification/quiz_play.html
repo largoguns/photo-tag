@@ -1,23 +1,59 @@
-{% extends "base.html" %}{% load i18n catalog_tags %}
+{% extends "base.html" %}{% load i18n l10n catalog_tags %}
 {% block title %}{% translate "Quiz familiar" %} · {{ kind_label }}{% endblock %}
-{% block main_class %}container narrow{% endblock %}
+{% block main_class %}container{% if not question.covers %} narrow{% endif %}{% endblock %}
 {% block content %}
 {% translate "Volver al quiz" as back_label %}{% url 'quiz_home' as back_url %}
 {% include "_page_title.html" with back_url=back_url back_label=back_label title=kind_label %}
 {# Answering swaps only this card (the answer is checked on the server). #}
-<section id="quiz-card" class="card stack quiz-card" aria-live="polite">
+<section id="quiz-card" class="card stack quiz-card{% if question.covers %} matching{% endif %}" aria-live="polite">
   {% if question %}
   <div class="quiz-progress">
     <span class="muted">{% blocktranslate %}Pregunta {{ number }} de {{ total }}{% endblocktranslate %}</span>
     <progress max="{{ total }}" value="{% if feedback %}{{ number }}{% else %}{{ number|add:-1 }}{% endif %}"></progress>
   </div>
-  {% if question.images %}
+  <div class="quiz-stage">
+  {% if photo %}
+  <div class="quiz-photo"{% if photo.timed and not feedback %} data-quiz-reveal data-template="{{ photo.template }}" data-level="{{ photo.level|unlocalize }}" data-levels="{{ photo.levels|unlocalize }}" data-step="{{ photo.step|unlocalize }}" data-elapsed="{{ photo.elapsed|unlocalize }}"{% endif %}>
+    <img src="{{ photo.url }}" alt="{% translate 'Foto de la pregunta' %}" class="quiz-image">
+    {% if question.frame %}<span class="quiz-frame" aria-hidden="true" style="left: {{ question.frame.left|css_num }}%; top: {{ question.frame.top|css_num }}%; width: {{ question.frame.width|css_num }}%; height: {{ question.frame.height|css_num }}%;"></span>{% endif %}
+    {% for cover in question.covers %}
+    <span class="quiz-cover{% if cover.number %} asked{% endif %}{% if feedback and cover.number %}{% if cover.ok %} right{% else %} wrong{% endif %}{% endif %}"{% if cover.number and not feedback %} data-quiz-match="{{ cover.number }}"{% endif %} aria-hidden="true"
+          style="left: {{ cover.box.left|css_num }}%; top: {{ cover.box.top|css_num }}%; width: {{ cover.box.width|css_num }}%; height: {{ cover.box.height|css_num }}%;">
+      <span class="quiz-cover-emoji">{{ cover.emoji }}</span>{% if cover.number %}<span class="quiz-cover-number">{{ cover.number }}</span>{% endif %}
+    </span>
+    {% endfor %}
+  </div>
+  {% if photo.timed and not feedback %}
+  <div class="quiz-reveal" data-quiz-reveal-bar>
+    <progress max="{{ photo.levels }}" value="{{ photo.level }}" aria-label="{% translate 'La foto se va aclarando' %}"></progress>
+    {% for until, points in photo.tiers %}
+    <span class="quiz-reveal-points"{% if until %} data-until="{{ until|unlocalize }}"{% endif %}{% if not forloop.first %} hidden{% endif %}>{% blocktranslate count counter=points %}Si aciertas ahora: +{{ counter }} punto{% plural %}Si aciertas ahora: +{{ counter }} puntos{% endblocktranslate %}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% elif question.images %}
   <div class="quiz-images{% if question.images|length > 1 %} pair{% endif %}">
     {% for image in question.images %}{% if image %}<img src="{{ image }}" alt="" class="quiz-image">{% else %}<span class="quiz-image placeholder" aria-hidden="true">?</span>{% endif %}{% endfor %}
   </div>
   {% endif %}
+  </div>
+  <div class="quiz-panel stack">
   <h2 class="quiz-question">{{ question.text }}</h2>
-  {% if feedback %}
+  {% if feedback and matches %}
+  <ol class="quiz-matches" aria-label="{% translate 'Emparejamientos' %}">
+    {% for match in matches %}
+    <li class="quiz-match {% if match.ok %}right{% else %}wrong{% endif %}">
+      <span class="quiz-cover-number" aria-hidden="true">{{ match.cover.number }}</span>
+      <span class="quiz-match-emoji">{{ match.cover.emoji }}</span>
+      <span class="quiz-match-name">{{ match.chosen }}{% if not match.ok %} <span class="quiz-match-right">→ {{ match.right }}</span>{% endif %}</span>
+      {% if match.ok %}{% icon "check" %}{% else %}{% icon "close" %}{% endif %}
+    </li>
+    {% endfor %}
+  </ol>
+  <p class="quiz-feedback {% if right %}right{% else %}wrong{% endif %}">{% if right %}{% translate "¡Correcto!" %}{% else %}{% translate "¡Casi! Mira quién era cada uno." %}{% endif %}
+    {% if right %}<span class="quiz-speed">{% blocktranslate count counter=gained %}+{{ counter }} punto{% plural %}+{{ counter }} puntos{% endblocktranslate %}{% if seconds is not None %} · {% blocktranslate with seconds=seconds|floatformat:1 %}{{ seconds }} s{% endblocktranslate %}{% endif %}</span>{% endif %}</p>
+  <a class="button primary quiz-next" href="{% url 'quiz_play' attempt.pk %}" autofocus>{% if attempt.is_finished %}{% translate "Ver resultado" %}{% else %}{% translate "Siguiente" %}{% endif %}</a>
+  {% elif feedback %}
   <ul class="quiz-options" aria-label="{% translate 'Opciones' %}">
     {% for option in question.options %}
     <li class="quiz-option{% if forloop.counter0 == question.answer %} right{% elif forloop.counter0 == chosen %} wrong{% endif %}">
@@ -27,8 +63,31 @@
     </li>
     {% endfor %}
   </ul>
-  <p class="quiz-feedback {% if right %}right{% else %}wrong{% endif %}">{% if right %}{% translate "¡Correcto!" %}{% else %}{% translate "¡Casi! La buena está en verde." %}{% endif %}</p>
+  <p class="quiz-feedback {% if right %}right{% else %}wrong{% endif %}">{% if right %}{% translate "¡Correcto!" %}{% else %}{% translate "¡Casi! La buena está en verde." %}{% endif %}
+    {% if timed and right %}<span class="quiz-speed">{% blocktranslate count counter=gained %}+{{ counter }} punto{% plural %}+{{ counter }} puntos{% endblocktranslate %}{% if seconds is not None %} · {% blocktranslate with seconds=seconds|floatformat:1 %}{{ seconds }} s{% endblocktranslate %}{% endif %}</span>{% endif %}</p>
   <a class="button primary quiz-next" href="{% url 'quiz_play' attempt.pk %}" autofocus>{% if attempt.is_finished %}{% translate "Ver resultado" %}{% else %}{% translate "Siguiente" %}{% endif %}</a>
+  {% elif question.covers %}
+  <form method="post" class="stack" action="{% url 'quiz_answer' attempt.pk %}" hx-post="{% url 'quiz_answer' attempt.pk %}"
+        hx-target="#quiz-card" hx-select="#quiz-card" hx-swap="outerHTML">
+    {% csrf_token %}
+    <p class="muted">{% translate "Elige quién hay detrás de cada emoji numerado." %}</p>
+    <ol class="quiz-matches">
+      {% for cover in question.covers %}{% if cover.number %}
+      <li class="quiz-match">
+        <label for="match-{{ cover.number }}" class="quiz-match-label">
+          <span class="quiz-cover-number" aria-hidden="true">{{ cover.number }}</span>
+          <span class="quiz-match-emoji">{{ cover.emoji }}</span>
+          <span class="visually-hidden">{% blocktranslate with number=cover.number %}Emoji {{ number }}{% endblocktranslate %}</span>
+        </label>
+        <select id="match-{{ cover.number }}" name="match" required>
+          <option value="">{% translate "Elegir…" %}</option>
+          {% for option in question.options %}<option value="{{ forloop.counter0 }}">{{ option.label }}</option>{% endfor %}
+        </select>
+      </li>
+      {% endif %}{% endfor %}
+    </ol>
+    <button type="submit" class="button primary">{% translate "Comprobar" %}</button>
+  </form>
   {% else %}
   <form method="post" action="{% url 'quiz_answer' attempt.pk %}" hx-post="{% url 'quiz_answer' attempt.pk %}"
         hx-target="#quiz-card" hx-select="#quiz-card" hx-swap="outerHTML">
@@ -43,6 +102,7 @@
     </ul>
   </form>
   {% endif %}
+  </div>
   {% else %}
   <div class="quiz-result">
     <p class="quiz-score">{% blocktranslate with correct=attempt.correct %}{{ correct }} de {{ total }}{% endblocktranslate %}</p>
