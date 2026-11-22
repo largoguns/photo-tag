@@ -1,10 +1,55 @@
-{% extends "base.html" %}{% load i18n %}
+{% extends "base.html" %}{% load i18n l10n static catalog_tags %}
 {% block title %}{% translate "Editar ubicación" %}{% endblock %}
-{% block main_class %}container narrow{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<script src="{% static 'vendor/leaflet/leaflet.js' %}" defer></script>
+<script src="{% static 'js/map.js' %}" defer></script>
+{% endblock %}
 {% block content %}
 {% blocktranslate with name=location.name asvar page_title %}Editar «{{ name }}»{% endblocktranslate %}{% translate "Volver a Ubicaciones" as back_label %}{% url 'admin_locations' as back_url %}
 {% include "_page_title.html" with back_url=back_url back_label=back_label title=page_title %}
 <p class="muted">{% blocktranslate count counter=location.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}{% if location.photo_count %} · <a href="{% url 'gallery' %}?location={{ location.pk }}">{% translate "Ver en la galería" %}</a>{% endif %}</p>
+
+{# Desktop: forms on the left, the map on the right. Mobile: the map first, then the forms. #}
+<div class="location-edit">
+<section class="card stack location-map-card" aria-labelledby="map-title">
+  <h2 id="map-title">{% translate "En el mapa" %}</h2>
+  <p class="muted" data-place-status data-unsaved="{% translate 'Has movido el punto: pulsa «Guardar en el mapa» para no perderlo.' %}">{% if location.is_placed %}{% translate "Está en el mapa. Arrastra el punto o toca el mapa para moverlo." %}{% else %}{% translate "Sin situar: búscala o toca el mapa para poner el punto." %}{% endif %}</p>
+  <form class="geo-search" data-geo-search role="search">
+    <label class="visually-hidden" for="geo-query">{% translate "Buscar en el mapa" %}</label>
+    <div class="input-row">
+      <input type="search" id="geo-query" value="{{ search_text }}" maxlength="200" autocomplete="off" placeholder="{% translate 'Lugar, calle o localidad' %}">
+      <button type="submit" class="button">{% translate "Buscar" %}</button>
+    </div>
+    <p class="helptext">{% translate "Busca en OpenStreetMap. Elige un resultado o toca el mapa." %}</p>
+    <p class="muted" data-geo-message hidden></p>
+    <ul class="geo-results" data-geo-results hidden></ul>
+  </form>
+  <div class="location-picker" data-location-picker
+       {# unlocalize: in Spanish 37.38 would render as "37,38", which JavaScript reads as 37. #}
+       data-lat="{{ location.latitude|default_if_none:''|unlocalize }}" data-lng="{{ location.longitude|default_if_none:''|unlocalize }}"
+       data-no-results="{% translate 'No se ha encontrado nada. Prueba con la localidad o toca el mapa.' %}"
+       data-search-error="{% translate 'No se ha podido buscar. Inténtalo en unos segundos.' %}"
+       role="application" aria-label="{% translate 'Mapa para situar la ubicación' %}"></div>
+  <form method="post" class="stack" data-place-form>
+    {% csrf_token %}<input type="hidden" name="action" value="place">
+    <input type="hidden" name="latitude" value="{{ location.latitude|default_if_none:''|unlocalize }}" data-place-lat>
+    <input type="hidden" name="longitude" value="{{ location.longitude|default_if_none:''|unlocalize }}" data-place-lng>
+    <div class="field">
+      <label for="location-locality">{% translate "Localidad" %}</label>
+      <input type="text" id="location-locality" name="locality" value="{{ location.locality }}" maxlength="150" autocomplete="off" placeholder="{% translate 'Sevilla' %}" data-place-locality>
+      <span class="helptext">{% translate "Ciudad, localidad o población. Se rellena sola al elegir un resultado de la búsqueda si está vacía." %}</span>
+    </div>
+    <div class="actions"><button type="submit" class="button primary" data-place-save>{% icon "map" %}{% translate "Guardar en el mapa" %}</button></div>
+  </form>
+  {% if location.is_placed %}
+  <form method="post" data-confirm="{% translate '¿Quitar esta ubicación del mapa? Sus fotos no cambian.' %}" data-confirm-ok="{% translate 'Quitar' %}" data-confirm-variant="danger">
+    {% csrf_token %}<input type="hidden" name="action" value="unplace">
+    <button type="submit" class="button text danger">{% translate "Quitar del mapa" %}</button>
+  </form>
+  {% endif %}
+</section>
+<div class="stack location-forms">
 
 <form method="post" class="card stack">
   {% csrf_token %}<input type="hidden" name="action" value="rename">
@@ -14,7 +59,7 @@
     <input type="text" id="location-name" name="name" value="{{ location.name }}" maxlength="150" required>
     <span class="helptext">{% translate "Las fotos con esta ubicación se volverán a exportar." %}</span>
   </div>
-  <div class="actions"><button type="submit" class="button primary">{% translate "Guardar" %}</button></div>
+  <div class="actions"><button type="submit" class="button">{% translate "Guardar nombre" %}</button></div>
 </form>
 
 <form method="post" class="card stack">
@@ -47,4 +92,6 @@
   <div class="actions"><button type="submit" class="button danger">{% translate "Fusionar" %}</button></div>
 </form>
 {% endif %}
+</div>
+</div>
 {% endblock %}

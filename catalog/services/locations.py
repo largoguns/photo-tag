@@ -39,6 +39,48 @@ def rename_location(admin, location, name):
     return location
 
 
+def clean_locality(text):
+    return " ".join(str(text or "").split())[:150]
+
+
+@transaction.atomic
+def place_location(admin, location, latitude, longitude, locality=None):
+    """Put `location` on the map (spec 5.15), or take it off with latitude=None.
+
+    The point only feeds the map: the exported XMP carries the name, so nothing is
+    exported again.
+    """
+    location = Location.objects.select_for_update().get(pk=location.pk)
+    fields = ["latitude", "longitude"]
+    if latitude is None or longitude is None:
+        location.latitude = location.longitude = None
+        action = "location.unplace"
+    else:
+        try:
+            # A decimal comma ("37,38") is accepted, never truncated.
+            latitude = float(str(latitude).replace(",", "."))
+            longitude = float(str(longitude).replace(",", "."))
+        except (TypeError, ValueError):
+            raise ValidationError(_("Posición no válida.")) from None
+        if not (-90 <= latitude <= 90 and -180 <= longitude <= 180):
+            raise ValidationError(_("Posición no válida."))
+        location.latitude, location.longitude = round(latitude, 6), round(longitude, 6)
+        action = "location.place"
+    if locality is not None:
+        location.locality = clean_locality(locality)
+        fields.append("locality")
+    location.save(update_fields=fields)
+    audit.log(
+        admin,
+        action,
+        location,
+        locality=location.locality,
+        latitude=location.latitude,
+        longitude=location.longitude,
+    )
+    return location
+
+
 @transaction.atomic
 def set_active(admin, location, active):
     location.active = active
@@ -61,6 +103,16 @@ def merge_locations(admin, source, target):
     if target.is_provisional and not source.is_provisional:
         target.is_provisional = False
         target.save(update_fields=["is_provisional"])
+    # The surviving location keeps its own town and point, or inherits those of the source.
+    inherited = []
+    if not target.locality and source.locality:
+        target.locality = source.locality
+        inherited.append("locality")
+    if not target.is_placed and source.is_placed:
+        target.latitude, target.longitude = source.latitude, source.longitude
+        inherited += ["latitude", "longitude"]
+    if inherited:
+        target.save(update_fields=inherited)
     source.merged_into = target
     source.active = False
     source.is_provisional = False
