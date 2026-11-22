@@ -210,6 +210,11 @@
   }
 
   function init() {
+    // Leaflet finds its pin images by looking for "marker-icon.png" in its CSS; in
+    // production collectstatic hashes that name and Leaflet falls back to the page's own
+    // path (/admin/locations/22/marker-icon.png → 404). Tell it where they are.
+    const images = document.querySelector("[data-leaflet-images]");
+    if (images) L.Icon.Default.imagePath = images.dataset.leafletImages;
     const picker = document.querySelector("[data-location-picker]");
     if (picker) initPicker(picker);
     const photoMap = document.querySelector("[data-photo-map]");

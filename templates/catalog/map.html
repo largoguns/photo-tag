@@ -15,7 +15,7 @@
 </div>
 {% if places %}
 <div class="map-layout">
-  <div class="photo-map" data-photo-map role="application" aria-label="{% translate 'Mapa de las fotos' %}"
+  <div class="photo-map" data-photo-map data-leaflet-images="{% get_static_prefix %}vendor/leaflet/images/" role="application" aria-label="{% translate 'Mapa de las fotos' %}"
        data-photos-label="{% translate '%s fotos' %}" data-photo-label="{% translate '1 foto' %}"></div>
   {# Details of the chosen place: a bottom sheet on mobile, a side panel on desktop. #}
   <aside class="map-detail" data-map-detail hidden aria-live="polite">

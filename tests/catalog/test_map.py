@@ -226,3 +226,15 @@ def test_map_page(client, photo, alice, admin_user):
     place("Sin situar")
     client.force_login(admin_user)
     assert "1 ubicación sin situar en el mapa" in client.get(reverse("photo_map")).content.decode()
+
+
+def test_maps_tell_leaflet_where_its_images_are(client, photo, admin_user):
+    """Regression: with hashed static names (production) Leaflet guessed its pin images
+    from the page's path (/admin/locations/22/marker-icon.png → 404)."""
+    home = place("Casa", 37.1, -5.9)
+    Photo.objects.filter(pk=photo.pk).update(location=home)
+    client.force_login(admin_user)
+    expected = 'data-leaflet-images="/static/vendor/leaflet/images/"'
+    assert expected in client.get(reverse("photo_map")).content.decode()
+    page = client.get(reverse("admin_location_edit", args=[home.pk])).content.decode()
+    assert expected in page

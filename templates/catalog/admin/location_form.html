@@ -26,6 +26,8 @@
     <ul class="geo-results" data-geo-results hidden></ul>
   </form>
   <div class="location-picker" data-location-picker
+       {# Leaflet guesses where its images are from their names, which collectstatic hashes in production. #}
+       data-leaflet-images="{% get_static_prefix %}vendor/leaflet/images/"
        {# unlocalize: in Spanish 37.38 would render as "37,38", which JavaScript reads as 37. #}
        data-lat="{{ location.latitude|default_if_none:''|unlocalize }}" data-lng="{{ location.longitude|default_if_none:''|unlocalize }}"
        data-no-results="{% translate 'No se ha encontrado nada. Prueba con la localidad o toca el mapa.' %}"
