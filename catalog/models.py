@@ -161,6 +161,9 @@ class Person(models.Model):
     display_name = models.CharField(_("nombre a mostrar"), max_length=150, db_index=True)
     # Goes before the name: "Tito" (services.person_details).
     honorific = models.CharField(_("honorífico"), max_length=50, blank=True)
+    # A pet (spec 5.16): no face suggestions (the model is for human faces), no family
+    # tree, only «Mascota de» relationships, exported as Type=Pet.
+    is_pet = models.BooleanField(_("mascota"), default=False)
     notes = models.TextField(_("notas"), blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -586,6 +589,8 @@ class RelationshipKind(models.TextChoices):
     COWORKER = "coworker", _("Compañero de trabajo")
     CLASSMATE = "classmate", _("Compañero de clase")
     ACTIVITY_MATE = "activity_mate", _("Compañero de actividad")
+    # person_from owns person_to, a pet (spec 5.16).
+    OWNER = "owner", _("Dueño")
 
 
 ASYMMETRIC_KINDS = (
@@ -594,6 +599,7 @@ ASYMMETRIC_KINDS = (
     RelationshipKind.UNCLE,
     RelationshipKind.PARENT_IN_LAW,
     RelationshipKind.GODPARENT,
+    RelationshipKind.OWNER,
 )
 
 

@@ -51,6 +51,7 @@ EVENTS = {
     "relationship.add": ("persons", _("Relación añadida")),
     "relationship.delete": ("persons", _("Relación quitada")),
     "person.honorific": ("persons", _("Honorífico cambiado")),
+    "person.pet": ("persons", _("Marcada como mascota o persona")),
     "person.nickname_add": ("persons", _("Apodo añadido")),
     "person.nickname_remove": ("persons", _("Apodo quitado")),
     LOGIN: ("users", _("Inicio de sesión")),

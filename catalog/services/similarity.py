@@ -45,9 +45,12 @@ def _matrix(blobs):
 
 
 def _identified_faces():
+    """Accepted faces of people. Pets are left out (spec 5.16): the embedding model is for
+    human faces, so a pet is never suggested and never gets candidate faces."""
     return Face.objects.filter(
         status=Face.Status.ACTIVE,
         person__isnull=False,
+        person__is_pet=False,
         embedding__isnull=False,
         photo__discarded=False,
     )

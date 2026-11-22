@@ -46,6 +46,7 @@ _ASYMMETRIC_ROLES = {
     K.UNCLE: ("uncle", "nephew"),
     K.PARENT_IN_LAW: ("parent_in_law", "child_in_law"),
     K.GODPARENT: ("godparent", "godchild"),
+    K.OWNER: ("owner", "pet"),
 }
 
 # role → (kind, True if the role is the `person_from` side).
@@ -68,6 +69,8 @@ ROLE_LABELS = {
     "child_in_law": _("Hijo político"),
     "godparent": _("Padrino"),
     "godchild": _("Ahijado"),
+    "owner": _("Dueño"),
+    "pet": _("Mascota"),
     **{kind.value: kind.label for kind in K if kind not in ASYMMETRIC_KINDS},
 }
 
@@ -96,7 +99,10 @@ SOCIAL_ROLES = [
     "coworker",
     "classmate",
     "activity_mate",
+    "pet",  # «<other> es mascota de <person>» (spec 5.16)
+    "owner",  # «<other> es dueño de <pet>»
 ]
+PET_ROLES = {"pet", "owner"}
 
 
 def tree_of(kind):

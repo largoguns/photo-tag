@@ -45,6 +45,8 @@ def face_regions(photo):
         regions.append(
             {
                 "name": person.display_name,
+                # MWG region type: pets are "Pet", not "Face" (spec 5.16).
+                "type": "Pet" if person.is_pet else "Face",
                 "x": round((face.x + face.w / 2) / photo.width, 6),
                 "y": round((face.y + face.h / 2) / photo.height, 6),
                 "w": round(face.w / photo.width, 6),
@@ -90,7 +92,7 @@ def region_info_value(photo, regions):
         "{Area={"
         f"X={r['x']},Y={r['y']},W={r['w']},H={r['h']},Unit=normalized"
         "},"
-        f"Name={escape_struct_value(r['name'])},Type=Face"
+        f"Name={escape_struct_value(r['name'])},Type={r.get('type', 'Face')}"
         "}"
         for r in regions
     )

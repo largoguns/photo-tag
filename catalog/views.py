@@ -135,9 +135,12 @@ def gallery(request):
 
 def persons(request):
     query = request.GET.get("q", "").strip()
+    # Pets have their own tab (spec 5.16), shown once there is any.
+    accepted = Person.objects.active().filter(is_provisional=False)
+    has_pets = accepted.filter(is_pet=True).exists()
+    show_pets = has_pets and request.GET.get("type") == "pets"
     people = (
-        Person.objects.active()
-        .filter(is_provisional=False)
+        accepted.filter(is_pet=show_pets)
         .annotate(
             photo_count=Count(
                 "faces__photo",
@@ -161,7 +164,17 @@ def persons(request):
     for person in page:
         person.avatar_id = avatars.get(person.pk)
         person.candidate_count = candidates.get(person.pk, 0)
-    return render(request, "catalog/persons.html", {"page": page, "query": query})
+    return render(
+        request,
+        "catalog/persons.html",
+        {
+            "page": page,
+            "query": query,
+            "has_pets": has_pets,
+            "show_pets": show_pets,
+            "params": request.GET,  # pagination keeps the search and the tab
+        },
+    )
 
 
 def person_detail(request, pk):

@@ -33,6 +33,7 @@ urlpatterns = [
     path("persons/<int:pk>/claim/", views.person_claim, name="person_claim"),
     path("persons/<int:pk>/unclaim/", views.person_unclaim, name="person_unclaim"),
     path("persons/<int:pk>/honorific/", person_views.set_honorific, name="set_honorific"),
+    path("persons/<int:pk>/pet/", person_views.set_pet, name="set_pet"),
     path("persons/<int:pk>/nicknames/", person_views.add_nickname, name="add_nickname"),
     path("nicknames/<int:pk>/remove/", person_views.remove_nickname, name="remove_nickname"),
     path("persons/<int:pk>/relationships/", person_views.add_relationship, name="add_relationship"),

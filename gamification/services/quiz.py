@@ -99,7 +99,14 @@ def _faces_pool():
         if date_value:
             years.setdefault(person_id, []).append(date_value.year)
     era = {pid: sum(ys) / len(ys) for pid, ys in years.items()}
-    return by_person, era
+    # Pets are asked about among pets, people among people (spec 5.16): a group with
+    # fewer than 4 cannot make a question, so it is left out.
+    pets = set(_people().filter(pk__in=by_person, is_pet=True).values_list("pk", flat=True))
+    for group in (pets, set(by_person) - pets):
+        if len(group) < OPTIONS:
+            for person_id in group:
+                by_person.pop(person_id, None)
+    return by_person, era, pets & set(by_person)
 
 
 def _nicknames_pool():
@@ -171,7 +178,7 @@ class Availability:
 def availability(kind):
     """How much usable data there is for `kind` (one question per item)."""
     if kind == Kind.FACES:
-        by_person, _era = _faces_pool()
+        by_person, _era, _pets = _faces_pool()
         have = len(by_person)
     elif kind == Kind.NICKNAMES:
         people = _people().count()
@@ -225,13 +232,14 @@ def _distinct_names(right, candidates, shuffle=None):
 
 
 def _faces_questions(rng):
-    by_person, era = _faces_pool()
+    by_person, era, pets = _faces_pool()
     people = _people().in_bulk(list(by_person))
     chosen = rng.sample(sorted(by_person), QUESTIONS)
     questions = []
     for person_id in chosen:
         mine = era.get(person_id)
-        others = [pid for pid in by_person if pid != person_id]
+        is_pet = person_id in pets
+        others = [pid for pid in by_person if pid != person_id and (pid in pets) == is_pet]
         # Plausible: people of the same time first (undated people last), then random.
         others.sort(
             key=lambda pid, mine=mine: (

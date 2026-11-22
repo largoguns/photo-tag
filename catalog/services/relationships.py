@@ -41,6 +41,22 @@ def _lock(*persons):
     list(Person.objects.select_for_update().filter(pk__in=ids).order_by("pk"))
 
 
+def _validate_pets(person_from, person_to, kind):
+    """Pets (spec 5.16) only have «Mascota de»: owner → pet, and a person owns them."""
+    pets = set(
+        Person.objects.filter(pk__in=[person_from, person_to], is_pet=True).values_list(
+            "pk", flat=True
+        )
+    )
+    if kind == K.OWNER:
+        if person_to not in pets:
+            raise ValidationError(_("Solo una mascota puede ser «Mascota de» alguien."))
+        if person_from in pets:
+            raise ValidationError(_("Una mascota no puede tener mascotas."))
+    elif pets:
+        raise ValidationError(_("Una mascota solo puede tener la relación «Mascota de»."))
+
+
 def validate(person_from, person_to, kind, activity=""):
     """Raise ValidationError if the relationship cannot be added (ids in canonical form)."""
     if person_from == person_to:
@@ -48,6 +64,7 @@ def validate(person_from, person_to, kind, activity=""):
     current = Relationship.objects.filter(field_filter(person_from, person_to, kind)).first()
     if current and _same_value(current, kind, activity):
         raise ValidationError(_("Esa relación ya está guardada."))
+    _validate_pets(person_from, person_to, kind)
     if kind not in kinship.FAMILY_KINDS:
         return
     # The pair's current family relationship would be replaced: ignore it.

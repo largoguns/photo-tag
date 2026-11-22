@@ -148,7 +148,7 @@ def people_json(exclude=None):
             )
         )
         .order_by("display_name")
-        .only("pk", "display_name", "honorific")
+        .only("pk", "display_name", "honorific", "is_pet")
     )
     ids = [person.pk for person in people]
     avatars = person_avatars(ids)
@@ -159,6 +159,7 @@ def people_json(exclude=None):
             "id": person.pk,
             "name": person.display_name,
             "shown": person.shown_name,
+            "pet": person.is_pet,
             "photos": person.photo_count,
             "nicknames": nicknames.get(person.pk, []),
             "avatar": face_url.replace("{id}", str(avatars[person.pk]))
@@ -187,6 +188,11 @@ def person_sheet_context(person):
         "family_relations": family,
         "social_relations": social,
         "relation_groups": [(_("Familia"), family), (_("Relaciones"), social)],
-        "family_roles": [(role, kinship.role_label(role)) for role in kinship.FAMILY_ROLES],
-        "social_roles": [(role, kinship.role_label(role)) for role in kinship.SOCIAL_ROLES],
+        # A pet only has owners; a person can have pets but is nobody's pet (spec 5.16).
+        "family_roles": []
+        if person.is_pet
+        else [(role, kinship.role_label(role)) for role in kinship.FAMILY_ROLES],
+        "social_roles": [("owner", kinship.role_label("owner"))]
+        if person.is_pet
+        else [(role, kinship.role_label(role)) for role in kinship.SOCIAL_ROLES if role != "owner"],
     }

@@ -52,6 +52,20 @@ def set_honorific(request, pk):
 
 
 @require_POST
+def set_pet(request, pk):
+    """«Es una mascota» / «Es una persona» from the person's ⋮ menu (spec 5.16)."""
+    person = get_object_or_404(Person, pk=pk)
+    is_pet = request.POST.get("is_pet") == "1"
+    return _run(
+        request,
+        person.pk,
+        "",
+        lambda: person_details.set_pet(request.user, person, is_pet),
+        _("Marcada como mascota.") if is_pet else _("Marcada como persona."),
+    )
+
+
+@require_POST
 def add_nickname(request, pk):
     person = get_object_or_404(Person, pk=pk)
     return _run(

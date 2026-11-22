@@ -113,6 +113,8 @@ def claim_person(user, person):
     person = Person.objects.select_for_update().get(pk=person.pk)
     if person.merged_into_id:
         raise ValidationError(_("Esa persona ya no existe."))
+    if person.is_pet:
+        raise ValidationError(_("Es una mascota: nadie puede identificarse como ella."))
     if person.user_id and person.user_id != user.pk:
         raise ValidationError(_("Esa persona ya está vinculada a otro usuario."))
     Person.objects.filter(user=user).exclude(pk=person.pk).update(user=None)

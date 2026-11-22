@@ -8,6 +8,8 @@ Any collaborator sets them directly, without a vote; every change is audited.
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.db.models import Q
+from django.utils import timezone
 from django.utils.translation import gettext as _
 
 from accounts.services import audit
@@ -28,6 +30,36 @@ def _locked_person(person):
     person = Person.objects.select_for_update().get(pk=person.pk)
     if person.merged_into_id or person.is_provisional:
         raise ValidationError(_("Solo se puede hacer con personas ya aceptadas en el álbum."))
+    return person
+
+
+@transaction.atomic
+def set_pet(user, person, is_pet):
+    """Mark a person of the album as a pet, or back as a person (spec 5.16). Direct and
+    audited. A pet has no family, no linked user and no face suggestions; its photos are
+    exported again (its regions become Type=Pet)."""
+    from catalog.models import Face, Photo, Relationship
+
+    person = _locked_person(person)
+    if person.is_pet == is_pet:
+        return person
+    relationships = Relationship.objects.filter(Q(person_from=person) | Q(person_to=person))
+    if is_pet:
+        if person.user_id:
+            raise ValidationError(
+                _("Hay un usuario identificado como esta persona: que pulse «No soy yo» antes.")
+            )
+        if relationships.exclude(kind=Relationship.Kind.OWNER).exists():
+            raise ValidationError(
+                _("Tiene relaciones de persona (familia, amigos…): quítalas antes.")
+            )
+    elif relationships.filter(kind=Relationship.Kind.OWNER).exists():
+        raise ValidationError(_("Tiene relaciones «Mascota de»: quítalas antes."))
+    person.is_pet = is_pet
+    person.save(update_fields=["is_pet"])
+    photo_ids = Face.objects.filter(person=person).values_list("photo_id", flat=True)
+    Photo.objects.filter(pk__in=set(photo_ids)).update(catalog_changed_at=timezone.now())
+    audit.log(user, "person.pet", person, is_pet=is_pet)
     return person
 
 
