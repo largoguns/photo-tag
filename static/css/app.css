@@ -933,10 +933,11 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .sheet-hint { padding: 0 1.5rem; margin: 0; }
 .chosen-people { padding: .5rem 1.5rem 0; margin: 0; }
 .chosen-people .chip .icon { width: 16px; height: 16px; }
-/* Only the list scrolls: hint, search and actions stay put. */
-.sheet:has(> .person-filter)[open] { display: flex; flex-direction: column; overflow: hidden; }
+/* Sheets with a list (filters: people, location, event…): only the list scrolls; the
+   header, hint, search and actions stay put. One scroll bar, never two. */
+.sheet:has(> .sheet-body)[open], .sheet:has(> .person-filter)[open] { display: flex; flex-direction: column; overflow: hidden; }
 .sheet > .person-filter { display: flex; flex-direction: column; flex: 1; min-height: 0; }
-.person-filter .sheet-body { flex: 1; min-height: 0; max-height: none; }
+.sheet > .sheet-body, .person-filter .sheet-body { flex: 1 1 auto; min-height: 0; max-height: none; }
 .person-filter .option { cursor: pointer; }
 .person-filter .option input { width: 20px; height: 20px; accent-color: var(--md-primary); flex: none; }
 .sheet-actions { display: flex; justify-content: flex-end; gap: .5rem; padding: .75rem 1.5rem 1rem; border-top: 1px solid var(--md-outline-variant); }
