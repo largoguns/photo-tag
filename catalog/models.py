@@ -676,6 +676,8 @@ class PersonNickname(models.Model):
     text = models.CharField(_("apodo"), max_length=100)
     # services.names.name_key(text): no two equal nicknames on the same person.
     text_key = models.CharField(max_length=100)
+    # 1 to 3 emojis that stand for it (quiz «Emojis», spec 5.14); empty if none.
+    emoji = models.CharField(_("emoji"), max_length=32, blank=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,

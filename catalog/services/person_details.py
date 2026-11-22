@@ -4,7 +4,10 @@ Any collaborator sets them directly, without a vote; every change is audited.
 
 - Honorific: at most one, written before the name ("Tito" + "Paco"). Empty removes it.
 - Nicknames: a list, no two equal ones (ignoring accents and case) on the same person.
+  Each one may carry 1 to 3 emojis that stand for it (quiz «Emojis», spec 5.14).
 """
+
+import unicodedata
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
@@ -24,6 +27,39 @@ def normalize_honorific(text):
 
 def normalize_nickname(text):
     return " ".join(str(text).split())[:100]
+
+
+MAX_EMOJIS = 3
+ZWJ = "\u200d"
+# Joined to the emoji before them: variation selectors, keycap, skin tones, tags.
+EMOJI_MODIFIERS = {"\ufe0e", "\ufe0f", "\u20e3", *map(chr, range(0x1F3FB, 0x1F400))}
+EMOJI_MODIFIERS |= set(map(chr, range(0xE0020, 0xE0080)))
+REGIONAL = range(0x1F1E6, 0x1F200)  # two of them make a flag
+
+
+def normalize_emoji(text):
+    """Spaces removed; ValidationError unless it is 1 to 3 emojis (empty is allowed: it
+    removes the emoji). Counts what is seen as one emoji: «👨‍👩‍👧», «👍🏽» or «🇪🇸»."""
+    text = "".join(str(text).split())
+    count, joined, flag_half = 0, False, False
+    for char in text:
+        if char == ZWJ:
+            joined = True
+            continue
+        if char in EMOJI_MODIFIERS:
+            continue
+        if ord(char) in REGIONAL:
+            flag_half = not flag_half
+            count += 0 if (joined or not flag_half) else 1
+        elif unicodedata.category(char) == "So":
+            count += 0 if joined else 1
+            flag_half = False
+        else:
+            raise ValidationError(_("Solo se pueden poner emojis (de 1 a 3)."))
+        joined = False
+    if count > MAX_EMOJIS or len(text) > 32:
+        raise ValidationError(_("Solo se pueden poner emojis (de 1 a 3)."))
+    return text
 
 
 def _locked_person(person):
@@ -77,18 +113,34 @@ def set_honorific(user, person, text):
 
 
 @transaction.atomic
-def add_nickname(user, person, text):
+def add_nickname(user, person, text, emoji=""):
     person = _locked_person(person)
     text = normalize_nickname(text)
     if not text:
         raise ValidationError(_("Escribe el apodo."))
+    emoji = normalize_emoji(emoji)
     key = name_key(text)
     if person.nicknames.filter(text_key=key).exists():
         raise ValidationError(_("Ese apodo ya está guardado."))
     nickname = PersonNickname.objects.create(
-        person=person, text=text, text_key=key, created_by=user
+        person=person, text=text, text_key=key, emoji=emoji, created_by=user
     )
-    audit.log(user, "person.nickname_add", person, nickname=text)
+    audit.log(user, "person.nickname_add", person, nickname=text, emoji=emoji)
+    return nickname
+
+
+@transaction.atomic
+def set_nickname_emoji(user, nickname, emoji):
+    """Put, change or (empty) remove the emojis of a nickname. Direct and audited."""
+    person = _locked_person(nickname.person)
+    emoji = normalize_emoji(emoji)
+    nickname = PersonNickname.objects.get(pk=nickname.pk)
+    old = nickname.emoji
+    if emoji == old:
+        return nickname
+    nickname.emoji = emoji
+    nickname.save(update_fields=["emoji"])
+    audit.log(user, "person.nickname_emoji", person, nickname=nickname.text, old=old, new=emoji)
     return nickname
 
 
@@ -105,9 +157,15 @@ def move_to(source, target):
     both without duplicates."""
     if not target.honorific and source.honorific:
         target.honorific = source.honorific
-    target_keys = set(target.nicknames.values_list("text_key", flat=True))
+    target_nicknames = {n.text_key: n for n in target.nicknames.all()}
+    target_keys = set(target_nicknames)
     for nickname in source.nicknames.all():
         if nickname.text_key in target_keys:
+            # The same nickname on both: the target keeps its emoji, or takes this one.
+            same = target_nicknames.get(nickname.text_key)
+            if same and not same.emoji and nickname.emoji:
+                same.emoji = nickname.emoji
+                same.save(update_fields=["emoji"])
             nickname.delete()
         else:
             nickname.person = target

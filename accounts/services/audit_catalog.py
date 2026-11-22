@@ -54,6 +54,7 @@ EVENTS = {
     "person.pet": ("persons", _("Marcada como mascota o persona")),
     "person.nickname_add": ("persons", _("Apodo añadido")),
     "person.nickname_remove": ("persons", _("Apodo quitado")),
+    "person.nickname_emoji": ("persons", _("Emoji de un apodo cambiado")),
     LOGIN: ("users", _("Inicio de sesión")),
     FAILED: ("users", _("Intento de acceso fallido")),
     "user.create": ("users", _("Usuario creado")),

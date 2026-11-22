@@ -72,7 +72,22 @@ def add_nickname(request, pk):
         request,
         person.pk,
         "nicknames",
-        lambda: person_details.add_nickname(request.user, person, request.POST.get("nickname", "")),
+        lambda: person_details.add_nickname(
+            request.user, person, request.POST.get("nickname", ""), request.POST.get("emoji", "")
+        ),
+    )
+
+
+@require_POST
+def set_nickname_emoji(request, pk):
+    nickname = get_object_or_404(PersonNickname, pk=pk)
+    return _run(
+        request,
+        nickname.person_id,
+        "nicknames",
+        lambda: person_details.set_nickname_emoji(
+            request.user, nickname, request.POST.get("emoji", "")
+        ),
     )
 
 
