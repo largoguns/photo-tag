@@ -170,7 +170,10 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 - Interacción táctil de primera clase: usar Pointer Events para seleccionar y dibujar recuadros de cara, de modo que funcione igual con ratón y con dedo. Nada debe depender solo de `hover`.
 - Objetivos táctiles de al menos 44 × 44 px (botones de voto, recuadros de cara pequeños con área ampliada).
 - **Material Design 3 (Material You)**: paleta tonal clara y oscura, botones en píldora, chips e iconos Material Symbols Rounded (sprite SVG propio, sin CDN). Barra superior con la marca y el **avatar del usuario arriba a la derecha**, que abre su menú (perfil, administración, usuarios, idioma y cerrar sesión).
-- Navegación: **barra de navegación flotante** en móvil (se oculta al bajar y reaparece al subir) y **navigation rail** a la izquierda desde 840 px. Botón flotante (FAB) «Subir» en Inicio y Galería.
+- Navegación: **barra de navegación flotante** en móvil (se oculta al bajar y reaparece al subir) y **navigation rail** a la izquierda desde 840 px, con cinco destinos: Inicio, Galería, Personas, Árbol y Mapa. Botón flotante (FAB) «Subir» en Inicio y Galería.
+- **Escritorio y móvil:** todo cambio de la interfaz se diseña y se prueba en los dos y debe ser cómodo en ambos:
+  - en móvil, hojas inferiores y controles al alcance del pulgar, de 44 px o más;
+  - en escritorio se aprovecha el ancho con columnas o paneles laterales.
 - **Sin desbordes**: los botones nunca parten su texto en varias líneas (se recortan con puntos suspensivos y conservan el texto completo como etiqueta accesible) y la barra de herramientas de la foto pasa a solo iconos cuando no cabe.
 - **Zoom**: ninguna página se puede ampliar con pellizco ni doble toque (`maximum-scale=1, user-scalable=no`, `touch-action: pan-x pan-y` y, en iOS, cancelando `gesturestart`). Solo hacen zoom los gestos propios de la aplicación: tamaño de filas de la galería, visor, editor de recorte y árbol. En la vista de foto, al tocar la imagen se abre un **visor a pantalla completa** con la imagen original y zoom propio (pellizco, doble toque, rueda y botones, hasta ×8), con los recuadros de cara ocultos por defecto y un interruptor para mostrarlos.
 - Al abrir la **app instalada** sin avisos activados en ese dispositivo, se propone activarlos con un banner (se puede posponer 30 días).
@@ -194,7 +197,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `PersonNickname` | person, texto, texto normalizado, fecha. Único por (person, texto normalizado). Ver 5.13 |
 | `PersonDetailProposal` | person, campo (`honorific`/`nickname`), acción (`set`/`add`/`remove`), texto, nickname (nullable, para `remove`), autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`), decidida_en, decidida_por. Ver 5.13 |
 | `PersonDetailVote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
-| `Location` | nombre, nombre normalizado (único), activa, provisional, propuesta_por (nullable), merged_into (nullable), fecha. Catálogo de lugares en texto («Casa de Los Tarantos»), sin geoposición por ahora |
+| `Location` | nombre, nombre normalizado (único), activa, provisional, propuesta_por (nullable), merged_into (nullable), fecha, localidad (texto libre opcional), latitud y longitud (opcionales; las pone un administrador, 5.15). Catálogo de lugares en texto («Casa de Los Tarantos») |
 | `Face` | photo, x, y, w, h, score, source (`auto`/`manual`), creada_por, person aceptada (nullable), embedding (huella SFace, nullable) |
 | `EventType` | nombre, nombre en inglés, activo, orden, provisional, propuesto_por (nullable). Lista estándar editable por los administradores: Cumpleaños, Boda, Comunión, Bautizo, Navidad, Vacaciones… `provisional` marca los escritos con «Otro…» por la familia, pendientes de revisión del administrador (5.5) |
 | `Proposal` | photo, face (nullable), kind, valor, autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`) |
@@ -235,7 +238,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
   Todo queda en la auditoría. Lo que escribe un administrador se acepta al momento y entra directamente en la lista. Al estrenar la revisión, los tipos que la familia había añadido antes quedan pendientes de revisión (sus fotos los conservan hasta que se decida) y «Otro» deja de ofrecerse.
 - **Los administradores no proponen**: lo que guarda un administrador o el superadmin en una foto (nombre de una cara, evento, fecha, ubicación, cara dibujada o «no es una cara») se acepta al momento, como propuesta decidida por él; los botones dicen «Guardar».
 - En la vista de foto, los paneles de Evento, Fecha y Ubicación empiezan **plegados**; el que se acaba de usar queda abierto para ver su resultado o su error.
-- **Ubicaciones nuevas**: si el texto coincide con una `Location` existente (sin distinguir tildes ni mayúsculas), se usa esa y la propuesta se vota; si no, se crea una **provisional** con el texto recortado y las mayúsculas tal como se escribieron, y va a la revisión del administrador, igual que los eventos nuevos.
+- **Ubicaciones nuevas**: si el texto coincide con una `Location` existente (sin distinguir tildes ni mayúsculas), se usa esa y la propuesta se vota; si no, se crea una **provisional** con el texto recortado y las mayúsculas tal como se escribieron, y va a la revisión del administrador, igual que los eventos nuevos. Al proponer se puede añadir una **localidad** opcional («Sevilla»): se guarda en la ubicación nueva, o en una existente que no la tuviera, y el administrador la revisa al aceptarla (5.15).
 - Una foto pasa a `cataloged` cuando todas sus caras tienen persona aceptada y tiene evento aceptado. La fecha y la ubicación no son obligatorias.
 
 ### 5.5 Pantallas
@@ -471,6 +474,35 @@ Un juego para repasar el álbum: **10 preguntas con 4 opciones** construidas sol
 - **Logros:** Pleno (un 10/10), Memoria de elefante (10 plenos) y, por tipo, Fisonomista, Experto en apodos, Viajero en el tiempo y Raíces (3 plenos de ¿Quién es?, Apodos, Fechas y Parentescos).
 - **Implementación:** la lógica está en `gamification/services/quiz.py` (disponibilidad, generación, respuesta y puntos) y reutiliza `scoring.award`, `achievements` y `kinship`. Sin dependencias nuevas.
 
+### 5.15 Mapa
+
+Las fotos escaneadas no traen coordenadas, así que el mapa muestra las **ubicaciones** (5.5) que un administrador ha situado, no fotos sueltas.
+
+- **Situar una ubicación** (Administración → Ubicaciones → ficha, sección «En el mapa»; en escritorio, a la derecha de los formularios; en móvil, la primera):
+  - **Búsqueda en OpenStreetMap (Nominatim):**
+    - parte del nombre y la localidad («Piso Los Tarantos, Sevilla»);
+    - por la política de uso de Nominatim, solo se busca al pulsar «Buscar», nunca mientras se escribe, y como mucho una vez por segundo;
+    - elegir un resultado coloca el punto y rellena la localidad (ciudad, pueblo o municipio) si estaba vacía.
+  - **A mano:** tocar el mapa pone el punto, y se puede arrastrar.
+  - **«Guardar en el mapa»** guarda la posición y la localidad; «Quitar del mapa» las borra. Si el punto se mueve y aún no se ha guardado, la sección lo avisa y resalta ese botón. Cada formulario de la ficha dice qué guarda («Guardar nombre», «Guardar en el mapa»).
+  - Las coordenadas se escriben en la página sin formato local: con coma decimal, el navegador leería 37,38 como 37.
+  - Queda en la auditoría (`location.place`, `location.unplace`).
+  - No se reexporta nada, porque el XMP solo lleva el nombre de la ubicación.
+- **Al revisar un lugar nuevo**, la localidad propuesta se puede corregir junto al nombre, y hay un enlace «Situar en el mapa».
+- **En la lista de Ubicaciones**, cada fila muestra la localidad y la insignia «Sin situar». Un filtro «Sin situar en el mapa (N)» las reúne, y la portada de Administración da el número.
+- **Al fusionar**, el destino conserva su posición y su localidad, o hereda las de la absorbida si no tenía.
+- **Pantalla «Mapa»** (`/map/`, quinto destino de la navegación):
+  - **Marcadores:** uno por ubicación situada que tenga fotos visibles, con la miniatura de una de sus fotos y una insignia con su número.
+  - **Agrupación:** con el zoom alejado, los marcadores se agrupan en círculos con la **suma de fotos** (Leaflet.markercluster), y al acercarse se separan.
+  - **Encuadre:** el mapa se abre ajustado a todos los puntos.
+  - **Detalle:** tocar un marcador abre una hoja inferior en móvil, o un panel lateral en escritorio, con el nombre, la localidad, hasta 6 miniaturas que abren cada foto y «Ver en la galería (N fotos)», que lleva a la galería filtrada por esa ubicación.
+  - **Sin datos:** se explica que todavía no hay ubicaciones situadas; los administradores ven un enlace para situarlas y cuántas faltan.
+- **Implementación:**
+  - Leaflet 1.9.4 y Leaflet.markercluster 1.5.3 se guardan en `static/vendor/leaflet/`, con sus licencias y sin CDN, y solo se cargan en esas dos pantallas (`static/js/map.js`);
+  - los datos los prepara `catalog/services/geo.py` y van incrustados en la página;
+  - las miniaturas son las vistas protegidas de siempre;
+  - el lienzo del mapa tiene sus propios gestos (arrastre y pellizco), aunque el zoom de la página sigue bloqueado.
+
 ## 6. Exportación a Immich (app `exporter`)
 
 - Tarea manual (botón en administración) y opcionalmente periódica.
@@ -494,6 +526,7 @@ Un juego para repasar el álbum: **10 preguntas con 4 opciones** construidas sol
 - Validadores de contraseña de Django activos para la contraseña definitiva que elige cada usuario (longitud mínima 10).
 - Sin registro abierto: solo el superadmin crea usuarios.
 - Las imágenes se sirven a través de una vista Django que exige sesión, nunca como estáticos públicos.
+- **Mapa (5.15):** el navegador pide directamente a OpenStreetMap las teselas (`tile.openstreetmap.org`) y, en la ficha de una ubicación, las búsquedas (`nominatim.openstreetmap.org`). Solo envía el origen como referente (`strict-origin-when-cross-origin`) y el texto que busca el administrador; nunca fotos, personas ni otros datos del álbum. El servidor no se conecta a OSM.
 - Todos los secretos (`DJANGO_SECRET_KEY`, contraseña de BD, `SUPERADMIN_PASSWORD`, `DEFAULT_USER_PASSWORD`, clave de autenticación de Tailscale) por variables de entorno en Portainer, nunca en el repositorio.
 - La dirección de Funnel es pública y no hay una segunda capa de autenticación delante: la protección es el login de PhotoTag con `django-axes`. La IP del cliente para `django-axes` se toma de `X-Forwarded-For`, que Tailscale sobrescribe.
 
