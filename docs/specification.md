@@ -317,7 +317,7 @@ Para animar a la familia a subir, proponer y votar. **Solo participan los colabo
 | Honorífico o apodo aceptado (poner, añadir o quitar, 5.13) | 5 |
 | Primera identidad aceptada de una persona en todo el álbum | +15 |
 | Voto que coincide con el resultado (tope de 20 puntos de votos al día) | 2 |
-| Acierto en el quiz familiar (5.14; solo los 3 primeros quizzes de cada tipo al día) | 1 |
+| Acierto en el quiz familiar (5.14; 3, 2 o 1 según la rapidez en los de contrarreloj; solo los 3 primeros quizzes de cada tipo al día) | 1 |
 | Pleno en un quiz (10 de 10) | +10 |
 
   No cuenta el +1 automático del autor. Rechazar no resta, pero baja el **acierto** (aceptadas / cerradas). Si una propuesta aceptada la sustituye después otra, sus puntos se retiran; al borrar una foto se retiran los de la foto, sus propuestas y sus votos. Un fallo al puntuar nunca interrumpe la votación ni el procesado.
@@ -423,7 +423,7 @@ Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón 
 
 ### 5.13 Honorífico y apodos
 
-Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se proponen y se votan como el resto de la catalogación.
+Cada persona puede tener un **honorífico** y varios **apodos**. Cualquier colaborador los cambia directamente, sin votación, y todo queda en la auditoría.
 
 - **Honorífico**: un tratamiento opcional que va delante del nombre («Tito», «Tita», «Abuela»). Hay uno como mucho. Se guarda con mayúscula inicial («tito» → «Tito»).
   - **El tratamiento no va en el nombre.** Estas palabras de tratamiento se reconocen sin tildes ni mayúsculas: abuela, abuelo, bisabuela, bisabuelo, tito, tita, tío, tía, yaya, yayo, padrino y madrina.
@@ -431,31 +431,26 @@ Cada persona puede tener un **honorífico** y varios **apodos**. Los dos se prop
     - **Personas que ya existen:** Administración → **Tratamientos en el nombre** lista las que lo llevan metido y las separa una a una o todas a la vez, con auditoría y reexportación. Si ya tenían ese mismo honorífico («Abuela Abuela Ana»), solo se limpia el nombre. Las que tienen otro honorífico distinto se dejan para revisarlas a mano. La portada de Administración muestra cuántas quedan.
     - No se separa si no queda nombre («Abuela» a secas).
 - **Apodos**: una lista, que puede estar vacía, de motes («Pico pata», «Pico Paco»). Se recortan y se guardan tal cual. No hay dos apodos iguales en la misma persona (sin distinguir tildes ni mayúsculas), pero sí pueden repetirse entre personas distintas.
+  - **Emoji del apodo:** cada apodo puede llevar de 1 a 3 emojis que lo recuerden («Pico pata» → 🐦🦶). Se escriben con el teclado de emojis del sistema, sin selector propio. Se quitan los espacios y se rechaza todo lo que no sean emojis; cuenta como uno lo que se ve como uno («👨‍👩‍👧», «👍🏽», «🇪🇸»). Vacío lo quita. Se usan en el quiz «Emojis» (5.14).
 - **Nombre visible**: honorífico + nombre a mostrar («Tito» + «Paco» = «Tito Paco»), o solo el nombre a mostrar si no hay honorífico. Se usa en toda la interfaz: recuadros y sugerencias de cara, chips, listado y ficha de personas, árbol, ranking y auditoría. Cambiar el nombre a mostrar (5.5) sigue siendo cosa de administradores y no pasa por votación.
 - **Búsqueda**: la búsqueda laxa de 5.5 también busca por el honorífico y los apodos. «tito paco» y «pico pata» encuentran a la misma persona. Si el resultado aparece por un apodo, la sugerencia lo indica («Tito Paco · Pico pata»).
 
-**Ficha de persona.** El nombre visible va como título, con un lápiz para proponer otro honorífico o quitarlo. Bajo el nombre, los **apodos** aparecen como chips, seguidos de un chip «+ Apodo». Tocar cualquiera abre la hoja «Apodos», que muestra los apodos aceptados (cada uno con «Quitar»), las propuestas abiertas con 👍 / 👎 y el campo «Añadir apodo» («+ Apodo» lleva directamente a ese campo). Los apodos solo se ven en la ficha.
+**Ficha de persona.** El nombre visible va como título, con un lápiz para cambiar el honorífico o quitarlo. Bajo el nombre, los **apodos** aparecen como chips (con su emoji delante, si lo tienen), seguidos de un chip «+ Apodo». Tocar cualquiera abre la hoja «Apodos», que muestra cada apodo con su campo de emoji (✓ para guardarlo) y «Quitar», y el campo «Añadir apodo» con un emoji opcional («+ Apodo» lleva directamente a ese campo). Los apodos solo se ven en la ficha.
 
-**Propuesta y votación** (mismas reglas que 5.4: el +1 del autor, `VOTE_MIN_APPROVALS`, `VOTE_APPROVAL_RATIO` y la decisión directa del administrador). Puede proponer cualquier colaborador.
-- **Honorífico** (`set`, con texto vacío para quitarlo): las propuestas abiertas de una misma persona compiten entre sí. Al aceptarse una, el resto pasan a `superseded`. El valor vigente se mantiene hasta que se acepte el nuevo.
-- **Apodos**: `add` añade un apodo y `remove` quita uno aceptado. Cada apodo se vota por separado y las propuestas de apodos distintos no se sustituyen entre sí. No se puede proponer un apodo que ya existe ni duplicar una propuesta abierta igual: en ese caso se lleva al usuario a votar la que ya hay.
-- Solo se pueden proponer para personas activas, ni provisionales ni fusionadas.
+**Edición directa.** Cualquier colaborador pone, cambia o quita el honorífico, los apodos y sus emojis, solo de personas activas (ni provisionales ni fusionadas). Cada cambio se audita en la categoría «Personas» (`person.honorific`, `person.nickname_add`, `person.nickname_remove`, `person.nickname_emoji`).
 
 **Integración con el resto de la aplicación:**
-- Las propuestas cuentan como «pendientes de mi voto» en Inicio, que enlaza a la ficha de la persona, y en los avisos push (5.9), con las mismas reglas que las relaciones (5.12).
-- Se auditan la creación, el voto y la decisión, con eventos en la categoría «Personas».
-- Gamificación (5.10): las propuestas aceptadas puntúan y cuenta el voto que coincide con el resultado. Si un honorífico aceptado se sustituye, sus puntos se retiran. `rebuild_scores` las incluye.
-- **Fusionar personas**: se conserva el honorífico de la persona destino (o el de la absorbida si la destino no tiene) y se juntan los apodos de las dos sin duplicados. Las propuestas abiertas pasan a la persona destino, y las que queden en conflicto o duplicadas pasan a `superseded`.
-- Exportación (6): `mwg-rs:Name` sigue siendo el nombre a mostrar, sin honorífico. Cambiar el honorífico o los apodos no reexporta nada.
+- **Fusionar personas**: se conserva el honorífico de la persona destino (o el de la absorbida si la destino no tiene) y se juntan los apodos de las dos sin duplicados. Si los dos tienen el mismo apodo, se queda el emoji de la persona destino o, si no tiene, el de la absorbida.
+- Exportación (6): `mwg-rs:Name` sigue siendo el nombre a mostrar, sin honorífico. Cambiar el honorífico, los apodos o sus emojis no reexporta nada.
 
 **Implementación:**
-- La lógica va en `catalog/services/person_details.py` (proponer, validar, votar, aceptar y normalizar). Reutiliza `tally`/`outcome` de la votación y bloquea la persona con `select_for_update`.
+- La lógica va en `catalog/services/person_details.py` (normalizar, validar, guardar y auditar). Bloquea la persona con `select_for_update`.
 - El nombre visible se calcula en un único sitio del modelo (`Person.shown_name`) y lo usan todas las plantillas, los presentadores, las notificaciones y la auditoría.
 - Sin dependencias nuevas.
 
 ### 5.14 Quiz familiar
 
-Un juego para repasar el álbum: **10 preguntas con 4 opciones** construidas solo con datos aceptados. Se entra desde una tarjeta en Inicio y desde el Ranking (`/ranking/quiz/`); no ocupa sitio en la barra de navegación.
+Un juego para repasar el álbum: **10 preguntas con 4 opciones** (en «Emojis», un emparejamiento por foto) construidas solo con datos aceptados. Se entra desde una tarjeta en Inicio y desde el Ranking (`/ranking/quiz/`); no ocupa sitio en la barra de navegación. La página del quiz ordena las tarjetas por afinidad: ¿Quién es?, ¿Quién se esconde?, Apodos, Emojis, Fechas, ¿Dónde es? y Parentescos.
 
 | Tipo | Pregunta | Opciones incorrectas |
 |---|---|---|
@@ -463,17 +458,28 @@ Un juego para repasar el álbum: **10 preguntas con 4 opciones** construidas sol
 | **Apodos** | «¿De quién es el apodo «Pico pata»?» (solo apodos de una única persona) | Otras personas, con su avatar |
 | **Fechas** | Una foto con fecha: «¿De qué año es?» o, si la fecha es por década, «¿De qué década?» | Años cercanos (±8) o décadas vecinas, nunca futuros |
 | **Parentescos** | «¿Qué es A de B?», con las dos caras; parentescos explícitos o deducidos de la familia (5.12) | Otros parentescos familiares |
+| **¿Dónde es?** | Una foto con ubicación aceptada (las fusionadas cuentan como la superviviente): «¿Dónde se hizo esta foto?». Las 10 fotos se reparten entre ubicaciones y solo se repite una cuando no hay bastantes | Siempre la más parecida (la de la misma localidad y, si no, la más cercana en el mapa) y otras dos sorteadas entre las siguientes |
+| **¿Quién se esconde?** (contrarreloj) | La foto entera, pixelada, con un marco en una cara: «¿Quién se esconde aquí?» | Como en «¿Quién es?», sin las personas que salen en la misma foto |
+| **Emojis** (contrarreloj) | La foto entera, pixelada, con cada cara tapada por un emoji: el de un apodo de esa persona (si tiene varios, uno al azar) o 🙂 si no tiene o no está identificada. Las caras con emoji propio llevan un número (6 como mucho) y hay que decir quién es cada una | Los nombres que se ofrecen son los de las personas preguntadas y al menos 2 señuelos, primero personas con emoji, hasta un mínimo de 4 |
 
-- **Cuándo se activa un tipo:** cuando hay datos para 10 preguntas distintas (10 personas identificadas, 10 apodos, 10 fotos con fecha o 10 parentescos). Mientras tanto, la tarjeta dice lo que falta («Faltan apodos: hay 4 de 10»).
-- **Opciones sin ambigüedades:** las 4 opciones son distintas; dos personas con el mismo nombre visible nunca aparecen a la vez.
+- **Cuándo se activa un tipo:** cuando hay datos para 10 preguntas distintas (10 personas identificadas, 10 apodos, 10 fotos con fecha, 10 parentescos, 10 fotos con ubicación y al menos 4 ubicaciones, o 10 fotos con una cara de alguien cuyo apodo tiene emoji). Mientras tanto, la tarjeta dice lo que falta («Faltan apodos: hay 4 de 10»).
+- **Opciones sin ambigüedades:** las opciones son distintas; dos personas con el mismo nombre visible (o dos ubicaciones con el mismo nombre) nunca aparecen a la vez.
+- **Fotos sin pistas:** las fotos de las preguntas se sirven con una vista propia del intento (`/ranking/quiz/<intento>/image/<pregunta>/<nivel>/`), solo para su dueño y solo para la pregunta actual o las ya contestadas. El id de la foto nunca llega al navegador (llevaría a su ficha y a la respuesta).
+- **Contrarreloj** (¿Quién se esconde? y Emojis):
+  - la foto empieza muy pixelada y se aclara un nivel cada 4 s (5 niveles, de unos 6 a 64 bloques a lo ancho); a los 20 s se ve nítida. No hay límite para responder;
+  - el pixelado lo hace el servidor (Pillow) y la vista de la imagen rechaza (403) un nivel cuyo momento no ha llegado, así que la foto nítida no llega antes de tiempo;
+  - el tiempo se mide en el servidor desde que la pregunta se muestra por primera vez (recargar no lo reinicia);
+  - un acierto vale **3 puntos antes de 8 s, 2 antes de 16 s y 1 después**. La tarjeta lo indica («Si aciertas ahora: +3 puntos») y, al responder, muestra los puntos y el tiempo («+3 puntos · 5,2 s»);
+  - en Emojis, tocar un emoji numerado de la foto abre su selector de nombres (un `<select>` nativo, que en el móvil se abre como selector del sistema). «Comprobar» envía todos los emparejamientos. La pregunta es un acierto solo si todos están bien, y al responder cada cara se marca en verde o en rojo con el nombre bueno. En escritorio la foto va a la izquierda y los emparejamientos a la derecha.
 - **Flujo:**
   - al empezar se crea un `QuizAttempt` con las preguntas y la respuesta de cada una, que no llega al navegador hasta contestarla;
+  - el intento guarda, por pregunta, cuándo se mostró y cuánto se tardó en responder (`timings`), y los puntos ganados (`points`);
   - cada respuesta se comprueba en el servidor y muestra la buena en verde y, si fallaste, la tuya en rojo;
   - al final aparecen los aciertos, los puntos y los logros nuevos, con «Otra vez».
   - Cada intento es solo de su dueño y no se puede volver a contestar una vez terminado.
-- **Puntos** (5.10): 1 por acierto y +10 por un pleno, solo para colaboradores. Cada día puntúan los **3 primeros quizzes de cada tipo**; se decide al empezar, así que abandonar uno no da otra oportunidad. Después se puede seguir jugando sin puntos, y la pantalla lo avisa. `rebuild_scores` conserva los puntos del quiz.
-- **Logros:** Pleno (un 10/10), Memoria de elefante (10 plenos) y, por tipo, Fisonomista, Experto en apodos, Viajero en el tiempo y Raíces (3 plenos de ¿Quién es?, Apodos, Fechas y Parentescos).
-- **Implementación:** la lógica está en `gamification/services/quiz.py` (disponibilidad, generación, respuesta y puntos) y reutiliza `scoring.award`, `achievements` y `kinship`. Sin dependencias nuevas.
+- **Puntos** (5.10): 1 por acierto (3, 2 o 1 en los de contrarreloj) y +10 por un pleno, solo para colaboradores. Cada día puntúan los **3 primeros quizzes de cada tipo**; se decide al empezar, así que abandonar uno no da otra oportunidad. Después se puede seguir jugando sin puntos, y la pantalla lo avisa. `rebuild_scores` conserva los puntos del quiz.
+- **Logros:** Pleno (un 10/10), Memoria de elefante (10 plenos) y, por tipo, Fisonomista, Experto en apodos, Viajero en el tiempo, Raíces, Explorador, Ojo de lince y Emojiólogo (3 plenos de ¿Quién es?, Apodos, Fechas, Parentescos, ¿Dónde es?, ¿Quién se esconde? y Emojis).
+- **Implementación:** la lógica está en `gamification/services/quiz.py` (disponibilidad, generación, respuesta y puntos) y reutiliza `scoring.award`, `achievements` y `kinship`. El pixelado está en `gamification/services/pixelate.py`. Sin dependencias nuevas.
 
 ### 5.15 Mapa
 
