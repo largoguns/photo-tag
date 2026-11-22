@@ -193,7 +193,7 @@ La web debe funcionar igual de bien en escritorio y en móvil. Es un requisito d
 | `FileCleanup` | tipo (`photo`, `export`, `preview`, `original`), nombre o ruta, fecha. Tareas de ficheros pendientes tras un borrado |
 | `Upload` | usuario, nombre original, nombre guardado, tipo (`scan`/`single`), sha256, tamaño, estado (`pending`, `processed`, `duplicate`, `failed`), scan (nullable) |
 | `Photo` | scan, fichero, índice, ancho, alto, ángulo, estado (`pending`, `in_progress`, `cataloged`), exportada_en, giro aplicado, giro pendiente, rectángulo de recorte, cuadrilátero de perspectiva (nullable), recorte pendiente (nullable), recorte manual, versión de imagen, phash, posible_duplicado_de (nullable), ubicación aceptada (nullable) |
-| `Person` | nombre a mostrar, honorífico (opcional), notas, creada_por, merged_into (nullable), user vinculado (nullable) |
+| `Person` | nombre a mostrar, honorífico (opcional), es_mascota (5.16), notas, creada_por, merged_into (nullable), user vinculado (nullable) |
 | `PersonNickname` | person, texto, texto normalizado, fecha. Único por (person, texto normalizado). Ver 5.13 |
 | `PersonDetailProposal` | person, campo (`honorific`/`nickname`), acción (`set`/`add`/`remove`), texto, nickname (nullable, para `remove`), autor, fecha, estado (`open`, `accepted`, `rejected`, `superseded`), decidida_en, decidida_por. Ver 5.13 |
 | `PersonDetailVote` | proposal, usuario, valor (+1 / −1), fecha. Único por (proposal, usuario) |
@@ -349,6 +349,7 @@ Las personas del álbum se relacionan entre sí con el mismo mecanismo de propue
 | Familiar | Hermano, Primo, Cuñado | sí |
 | Familiar | Pareja, Expareja | sí |
 | Relaciones | Padrino ↔ Ahijado | no |
+| Relaciones | Dueño ↔ Mascota (solo con mascotas, 5.16) | no |
 | Relaciones | Amigo, Compadre, Vecino, Compañero de trabajo, Compañero de clase | sí |
 | Relaciones | Compañero de actividad (con la actividad como texto libre: «fútbol», «coro») | sí |
 
@@ -503,6 +504,29 @@ Las fotos escaneadas no traen coordenadas, así que el mapa muestra las **ubicac
   - las miniaturas son las vistas protegidas de siempre;
   - el lienzo del mapa tiene sus propios gestos (arrastre y pellizco), aunque el zoom de la página sigue bloqueado.
 
+### 5.16 Mascotas
+
+Las mascotas se etiquetan como cualquier persona del álbum, pero marcadas como **mascota** (`Person.is_pet`).
+
+**Por qué hace falta:** las sugerencias de caras (3.5) usan un modelo de reconocimiento facial **humano**. Con la cara de un animal su huella no significa nada y puede parecerse por casualidad a la de una persona.
+
+- **Marcar:**
+  - cualquier colaborador lo hace desde el menú ⋮ de la ficha («Es una mascota» / «Es una persona»), con confirmación, sin votación y con auditoría (`person.pet`);
+  - no se puede marcar a quien tiene relaciones de persona o un usuario vinculado («Soy yo»), ni desmarcar a quien tiene relaciones «Mascota de»; el mensaje dice qué quitar antes;
+  - marcar o desmarcar vuelve a exportar sus fotos.
+- **Sugerencias de caras:** las caras de mascotas quedan fuera del índice. Nunca se sugiere una mascota para una cara y una mascota no recibe «Puede que aparezca en».
+  - **Límite conocido:** a la cara de una mascota que aún no tiene nombre todavía se le pueden sugerir personas, porque no hay detector de animales; es solo una sugerencia.
+- **Ficha:**
+  - la insignia «🐾 Mascota»;
+  - sin «Soy yo» (tampoco se puede vincular por otra vía);
+  - sin «Puede que aparezca en».
+- **Relaciones:** una mascota solo tiene **«Mascota de»** (Dueño ↔ Mascota, en la red de relaciones). Nunca tiene parentescos, así que no aparece en el árbol familiar. En su ficha la hoja «Añadir relación» solo ofrece «Dueño»; en la de una persona se ofrece «Mascota».
+- **Listas:**
+  - Personas tiene las pestañas **Personas | 🐾 Mascotas**, en cuanto hay alguna;
+  - el autocompletado de nombres y la hoja de personas de la galería marcan las mascotas con 🐾.
+- **Quiz (5.14):** en «¿Quién es?» las mascotas solo se preguntan entre mascotas (y las personas entre personas); un grupo de menos de 4 no se pregunta.
+- **Exportación (6):** sus regiones van con `mwg-rs:Type = Pet`.
+
 ## 6. Exportación a Immich (app `exporter`)
 
 - Tarea manual (botón en administración) y opcionalmente periódica.
@@ -510,7 +534,7 @@ Las fotos escaneadas no traen coordenadas, así que el mapa muestra las **ubicac
 - Por cada foto escribe en `/data/export/<año o "sin-fecha">/`:
   - La imagen JPG.
   - Un sidecar `<fichero>.jpg.xmp` con:
-    - **Regiones de cara** en formato MWG (`mwg-rs:Regions`), con `mwg-rs:Name` = nombre a mostrar de la persona (sin honorífico, 5.13) y `mwg-rs:Type` = `Face`. Coordenadas **normalizadas (0–1) y centradas** (`stArea:x` y `stArea:y` son el centro), junto con `mwg-rs:AppliedToDimensions`.
+    - **Regiones de cara** en formato MWG (`mwg-rs:Regions`), con `mwg-rs:Name` = nombre a mostrar de la persona (sin honorífico, 5.13) y `mwg-rs:Type` = `Face`, o `Pet` si es una mascota (5.16). Coordenadas **normalizadas (0–1) y centradas** (`stArea:x` y `stArea:y` son el centro), junto con `mwg-rs:AppliedToDimensions`.
     - `dc:subject` y `digiKam:TagsList` con el evento (por ejemplo, `Eventos/Boda`) y la descripción libre.
     - La ubicación aceptada en `Iptc4xmpCore:Location` y como etiqueta `Ubicaciones/<nombre>` en `dc:subject` y `digiKam:TagsList`. Aceptar otra ubicación, renombrarla o fusionarla cuenta como cambio de catalogación.
     - `exif:DateTimeOriginal` cuando la fecha aceptada tenga precisión suficiente. Si es solo un año, usar el 1 de enero de ese año y añadir la etiqueta `Fecha/aproximada`.

@@ -196,6 +196,15 @@ def seed_family(maria):
         except Exception:
             continue
     seed_quiz(maria, [carmen, pepe, paco, lola, ana, luis, marta, sofia, bisabuela])
+    # A pet (spec 5.16): Luis's dog, with a face of its own.
+    curro = person("Curro")
+    person_details.set_pet(maria, curro, True)
+    photo = Photo.objects.order_by("pk").last()
+    Face.objects.create(photo=photo, x=400, y=300, w=90, h=80, score=0.9, person=curro)
+    try:
+        relationships.add(maria, luis, "pet", other=curro)
+    except Exception:  # already there from a previous run
+        pass
 
 
 def seed_quiz(maria, family):
