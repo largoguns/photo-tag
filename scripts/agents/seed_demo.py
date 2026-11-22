@@ -124,6 +124,28 @@ def seed_locations(maria, demo):
                 voting.cast_vote(demo, proposal, 1)
             except Exception:  # an identical proposal was already accepted
                 continue
+    seed_map(demo)
+
+
+def seed_map(demo):
+    """Two places accepted and on the map (spec 5.15); «Casa de Los Tarantos» stays in
+    review, without a point, to show both cases."""
+    from catalog.models import Location
+    from catalog.services import catalog_review
+    from catalog.services import locations as location_service
+    from catalog.services.names import name_key
+
+    points = {
+        "Casa de los abuelos": (37.5286, -6.1585, "Gerena"),
+        "Playa de Bolonia": (36.0886, -5.7742, "Tarifa"),
+    }
+    for name, (lat, lng, locality) in points.items():
+        location = Location.objects.filter(name_key=name_key(name)).first()
+        if location is None:
+            continue
+        if location.is_provisional:
+            catalog_review.accept(demo, location, locality=locality)
+        location_service.place_location(demo, location, lat, lng, locality)
 
 
 def seed_family(maria):
