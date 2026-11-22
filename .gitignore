@@ -24,6 +24,8 @@ staticfiles/
 !tests/**/*.tif
 !tests/**/*.tiff
 !static/img/**
+# Interface icons of vendored libraries (Leaflet), required by collectstatic in production.
+!static/vendor/**/*.png
 
 # Visual check screenshots (scripts/agents/ui_check.mjs)
 .ui-shots/
