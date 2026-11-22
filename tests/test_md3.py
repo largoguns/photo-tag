@@ -50,7 +50,7 @@ def test_shell_has_top_bar_avatar_menu_nav_and_no_more_button(client, superadmin
     assert 'class="top-app-bar"' in content
     assert 'class="avatar-button"' in content
     assert reverse("profile") in content and reverse("user_list") in content
-    assert content.count('class="nav-item"') == 4  # Inicio, Galería, Personas, Árbol
+    assert content.count('class="nav-item"') == 5  # Inicio, Galería, Personas, Árbol, Mapa
     assert "nav-more" not in content
     assert 'class="fab"' in content and reverse("upload") in content
 
