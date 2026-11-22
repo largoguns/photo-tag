@@ -20,7 +20,7 @@ pytest                                                     # tests
 ruff check . && ruff format --check .                      # linting y formato
 ```
 
-Una tarea no está terminada hasta que los tests pasan y `ruff` no da errores.
+Una tarea no está terminada hasta que los tests pasan, `ruff` no da errores y, si toca la interfaz, se ha revisado en **móvil (390 px) y escritorio (1440 px)** con Playwright o `scripts/agents/ui_check.mjs`.
 
 Los scripts auxiliares (traducciones, datos de demo, revisión visual) están en `scripts/agents/`; úsalos y amplíalos ahí en lugar de crear scripts temporales fuera del repositorio.
 
@@ -30,7 +30,12 @@ Los scripts auxiliares (traducciones, datos de demo, revisión visual) están en
 - Todo texto nuevo de la interfaz se traduce al inglés en `locale/en/LC_MESSAGES/django.po` y se recompila el `.mo` (ambos se commitean; ver README). `tests/test_ui.py` falla si queda alguna entrada sin traducir.
 - La lógica de negocio (votación, recorte, exportación) va en módulos de servicio testeables, no en las vistas.
 - Cada funcionalidad nueva incluye sus tests.
-- Toda pantalla nueva cumple los requisitos de responsive de la sección 5.2 de la especificación.
+- **Todo cambio de la interfaz se implementa para escritorio y para móvil, y debe ser cómodo de usar en ambos**, no solo «que quepa»:
+  - objetivos táctiles de 44 px o más y sin scroll horizontal;
+  - en móvil, hojas inferiores y botones al alcance del pulgar en lugar de menús o controles pequeños;
+  - en escritorio se aprovecha el ancho (columnas, paneles laterales) en vez de estirar la vista de móvil.
+
+  Cumple además los requisitos de responsive de la sección 5.2 de la especificación.
 
 ## Reglas que nunca se rompen
 
