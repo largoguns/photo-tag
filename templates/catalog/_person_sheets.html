@@ -116,9 +116,9 @@
         <div class="field">
           <label for="relation-role">{% blocktranslate %}Es … de {{ person }}{% endblocktranslate %}</label>
           <select id="relation-role" name="role" required data-relation-role>
-            <optgroup label="{% translate 'Familia' %}">
+            {% if family_roles %}<optgroup label="{% translate 'Familia' %}">
               {% for role, label in family_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
-            </optgroup>
+            </optgroup>{% endif %}
             <optgroup label="{% translate 'Relaciones' %}">
               {% for role, label in social_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
             </optgroup>

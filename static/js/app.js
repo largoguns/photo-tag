@@ -567,7 +567,7 @@
     const shownCount = {};
     matches.forEach(({ item }) => { shownCount[item.shownKey] = (shownCount[item.shownKey] || 0) + 1; });
     matches.forEach(({ item, hint }) => {
-      let label = (item.shown || item.name) + (hint ? ` · ${hint}` : "");
+      let label = (item.pet ? "🐾 " : "") + (item.shown || item.name) + (hint ? ` · ${hint}` : "");
       if (avatars && shownCount[item.shownKey] > 1) {
         label += ` · ${item.photos === 1 ? text("onePhoto", "1") : text("photos", String(item.photos || 0))}`;
       }

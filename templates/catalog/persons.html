@@ -2,7 +2,14 @@
 {% block title %}{% translate "Personas" %}{% endblock %}
 {% block content %}
 <h1>{% translate "Personas" %}</h1>
+{% if has_pets %}
+<nav class="segmented audit-tabs" aria-label="{% translate 'Personas o mascotas' %}">
+  <a href="{% url 'persons' %}" {% if not show_pets %}aria-current="page"{% endif %}><span><span>{% translate "Personas" %}</span></span></a>
+  <a href="{% url 'persons' %}?type=pets" {% if show_pets %}aria-current="page"{% endif %}><span><span>🐾 {% translate "Mascotas" %}</span></span></a>
+</nav>
+{% endif %}
 <form method="get" class="search" role="search">
+  {% if show_pets %}<input type="hidden" name="type" value="pets">{% endif %}
   <label for="q" class="visually-hidden">{% translate "Buscar personas" %}</label>
   <input type="search" id="q" name="q" value="{{ query }}" placeholder="{% translate 'Buscar por nombre o apodo' %}">
   <button type="submit" class="button">{% translate "Buscar" %}</button>
@@ -16,7 +23,7 @@
       {% else %}
       <span class="avatar-placeholder" aria-hidden="true">{{ person.display_name|first|upper }}</span>
       {% endif %}
-      <span class="person-name">{{ person }}{% if person.nickname_hint %} <span class="muted">· {{ person.nickname_hint }}</span>{% endif %}</span>
+      <span class="person-name">{% if person.is_pet %}🐾 {% endif %}{{ person }}{% if person.nickname_hint %} <span class="muted">· {{ person.nickname_hint }}</span>{% endif %}</span>
       <span class="muted">{% blocktranslate count counter=person.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}</span>
       {% if person.candidate_count %}
       <span class="badge status-pending" title="{% translate 'Caras sin identificar que se le parecen' %}">{% blocktranslate count counter=person.candidate_count %}{{ counter }} posible cara{% plural %}{{ counter }} posibles caras{% endblocktranslate %}</span>
@@ -24,7 +31,7 @@
     </a>
   </li>
   {% empty %}
-  <li class="empty">{% translate "Todavía no hay personas identificadas." %}</li>
+  <li class="empty">{% if show_pets %}{% translate "No hay mascotas con ese nombre." %}{% else %}{% translate "Todavía no hay personas identificadas." %}{% endif %}</li>
   {% endfor %}
 </ul>
 {% include "_pagination.html" %}

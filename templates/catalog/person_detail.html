@@ -20,7 +20,8 @@
       {% for nickname in nicknames %}<li><button type="button" class="chip" data-open-sheet="sheet-nicknames" aria-haspopup="dialog">{{ nickname.text }}</button></li>{% endfor %}
       <li><button type="button" class="chip" data-open-sheet="sheet-nicknames" data-sheet-focus="nickname-text" aria-haspopup="dialog">{% icon "add" %}{% translate "Apodo" %}</button></li>
     </ul>
-    {% if person.user_id == user.pk %}<span class="badge ok person-me">{% icon "check" %}{% translate "Eres tú" %}</span>
+    {% if person.is_pet %}<span class="badge person-pet">🐾 {% translate "Mascota" %}</span>
+    {% elif person.user_id == user.pk %}<span class="badge ok person-me">{% icon "check" %}{% translate "Eres tú" %}</span>
     {% elif not person.user_id %}
     <form method="post" action="{% url 'person_claim' person.pk %}"
           data-confirm="{% if user.person %}{% blocktranslate with current=user.person name=person %}Ahora eres {{ current }}. ¿Cambiar a {{ name }}?{% endblocktranslate %}{% else %}{% blocktranslate with name=person %}¿Eres {{ name }}? Te vincularás a esta persona del álbum y podrás usar sus fotos como foto de perfil.{% endblocktranslate %}{% endif %}"
@@ -32,10 +33,17 @@
   <details class="user-menu person-menu">
     <summary class="button text icon-only" aria-label="{% translate 'Más acciones' %}" title="{% translate 'Más acciones' %}">{% icon "more_vert" %}</summary>
     <div class="menu">
-      <a class="menu-item" href="{% url 'tree' %}?person={{ person.pk }}">{% icon "family_history" %}<span>{% translate "Ver árbol" %}</span></a>
+      {% if person.is_pet %}<a class="menu-item" href="{% url 'tree' %}?mode=social&amp;person={{ person.pk }}">{% icon "family_history" %}<span>{% translate "Ver relaciones" %}</span></a>
+      {% else %}<a class="menu-item" href="{% url 'tree' %}?person={{ person.pk }}">{% icon "family_history" %}<span>{% translate "Ver árbol" %}</span></a>{% endif %}
       <button type="button" class="menu-item" data-open-sheet="sheet-family" aria-haspopup="dialog">{% icon "group" %}<span>{% translate "Familia y relaciones" %}</span>{% if relation_count %}<span class="menu-count">{{ relation_count }}</span>{% endif %}</button>
       {% if avatar_choices|length > 1 %}<button type="button" class="menu-item" data-open-sheet="sheet-avatar" aria-haspopup="dialog">{% icon "face" %}<span>{% translate "Cambiar foto principal" %}</span></button>{% endif %}
       {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_merge' %}?source={{ person.pk }}">{% icon "merge" %}<span>{% translate "Fusionar con otra persona" %}</span></a>{% endif %}
+      <form method="post" action="{% url 'set_pet' person.pk %}"
+            data-confirm="{% if person.is_pet %}{% blocktranslate with name=person %}¿{{ name }} es una persona? Volverá a tener sugerencias de caras y podrá estar en el árbol.{% endblocktranslate %}{% else %}{% blocktranslate with name=person %}¿{{ name }} es una mascota? Dejará de recibir sugerencias de caras de personas y quedará fuera del árbol familiar.{% endblocktranslate %}{% endif %}"
+            data-confirm-ok="{% if person.is_pet %}{% translate 'Es una persona' %}{% else %}{% translate 'Es una mascota' %}{% endif %}">
+        {% csrf_token %}<input type="hidden" name="is_pet" value="{% if person.is_pet %}0{% else %}1{% endif %}">
+        <button type="submit" class="menu-item">{% if person.is_pet %}{% icon "person" %}<span>{% translate "Es una persona" %}</span>{% else %}<span class="menu-emoji" aria-hidden="true">🐾</span><span>{% translate "Es una mascota" %}</span>{% endif %}</button>
+      </form>
       {% if person.user_id == user.pk %}
       <form method="post" action="{% url 'person_unclaim' person.pk %}"
             data-confirm="{% blocktranslate with name=person %}¿Dejar de identificarte como {{ name }}?{% endblocktranslate %}" data-confirm-ok="{% translate 'No soy yo' %}" data-confirm-variant="danger">

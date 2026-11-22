@@ -965,6 +965,7 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .tree-svg .edge-godparent { stroke: var(--md-secondary, var(--md-outline)); stroke-dasharray: 2 4; }
 .tree-svg .edge-neighbor { stroke: var(--md-on-surface-variant); stroke-dasharray: 8 4 2 4; }
 .tree-svg .edge-coworker { stroke: var(--md-error); }
+.tree-svg .edge-owner { stroke: var(--md-success); stroke-dasharray: 1 5; stroke-linecap: round; stroke-width: 3; }
 .tree-svg .edge-classmate { stroke: var(--md-success, var(--md-primary)); }
 .tree-svg .edge-activity_mate { stroke: var(--md-primary); stroke-dasharray: 1 5; stroke-linecap: round; stroke-width: 3; }
 .tree-node { cursor: pointer; }
@@ -988,6 +989,7 @@ body.has-banner { padding-bottom: calc(var(--nav-h) + 12rem); }
 .legend-swatch { width: 24px; height: 0; border-top: 3px solid var(--md-primary); }
 .legend-swatch.edge-compadre { border-top-style: dashed; border-color: var(--md-tertiary, var(--md-primary)); }
 .legend-swatch.edge-godparent, .legend-swatch.edge-activity_mate { border-top-style: dotted; }
+.legend-swatch.edge-owner { border-top-style: dotted; border-color: var(--md-success); }
 .legend-swatch.edge-neighbor { border-top-style: dashed; border-color: var(--md-on-surface-variant); }
 .legend-swatch.edge-coworker { border-color: var(--md-error); }
 .legend-swatch.edge-classmate { border-color: var(--md-success, var(--md-primary)); }

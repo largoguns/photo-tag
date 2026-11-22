@@ -22,7 +22,7 @@
           <label class="option">
             <input type="checkbox" name="person" value="{{ person.pk }}" {% if person.pk in chosen_ids %}checked{% endif %}>
             {% if person.avatar_id %}<img src="{% url 'face_image' person.avatar_id %}" alt="" loading="lazy" width="36" height="36">{% else %}<span class="avatar-mini" aria-hidden="true">{{ person.display_name|first|upper }}</span>{% endif %}
-            <span>{{ person }}</span>
+            <span>{% if person.is_pet %}🐾 {% endif %}{{ person }}</span>
           </label>
         </li>
         {% endfor %}
