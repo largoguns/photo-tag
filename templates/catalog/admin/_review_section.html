@@ -12,6 +12,7 @@
         <div class="meta muted">
           {% if entry.created_by %}{% blocktranslate with user=entry.created_by %}De {{ user }}{% endblocktranslate %} · {% endif %}{% blocktranslate count counter=entry.open_count %}{{ counter }} propuesta{% plural %}{{ counter }} propuestas{% endblocktranslate %} · {% blocktranslate count counter=entry.photo_count %}{{ counter }} foto{% plural %}{{ counter }} fotos{% endblocktranslate %}
           {% if entry.example_photo %} · <a href="{% url 'photo_detail' entry.example_photo %}">{% translate "Ver foto" %}</a>{% endif %}
+          {% if kind == "location" %} · <a href="{% url 'admin_location_edit' entry.pk %}">{% translate "Situar en el mapa" %}</a>{% endif %}
         </div>
       </div>
       <div class="review-actions">
@@ -19,6 +20,7 @@
           {% csrf_token %}<input type="hidden" name="action" value="accept">
           <label class="visually-hidden" for="review-text-{{ kind }}-{{ entry.pk }}">{% blocktranslate with name=entry.name %}Texto para «{{ name }}»{% endblocktranslate %}</label>
           <input type="text" id="review-text-{{ kind }}-{{ entry.pk }}" name="text" value="{{ entry.name }}" maxlength="{% if kind == 'event' %}100{% else %}150{% endif %}" required>
+          {% if kind == "location" %}<input type="text" name="locality" value="{{ entry.locality }}" maxlength="150" class="review-locality" aria-label="{% blocktranslate with name=entry.name %}Localidad de «{{ name }}»{% endblocktranslate %}" placeholder="{% translate 'Localidad' %}">{% endif %}
           <button type="submit" class="button small primary">{% translate "Aceptar" %}</button>
         </form>
         <form method="post" action="{% url review_url entry.pk %}"

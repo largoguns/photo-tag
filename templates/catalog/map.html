@@ -1,0 +1,39 @@
+{% extends "base.html" %}{% load i18n static catalog_tags %}
+{% block title %}{% translate "Mapa" %}{% endblock %}
+{% block main_class %}container wide map-page{% endblock %}
+{% block head %}
+<link rel="stylesheet" href="{% static 'vendor/leaflet/leaflet.css' %}">
+<link rel="stylesheet" href="{% static 'vendor/leaflet/MarkerCluster.css' %}">
+<script src="{% static 'vendor/leaflet/leaflet.js' %}" defer></script>
+<script src="{% static 'vendor/leaflet/leaflet.markercluster.js' %}" defer></script>
+<script src="{% static 'js/map.js' %}" defer></script>
+{% endblock %}
+{% block content %}
+<div class="page-header map-header">
+  <h1>{% translate "Mapa" %}</h1>
+  {% if places %}<p class="muted">{% blocktranslate count counter=places|length %}{{ counter }} lugar{% plural %}{{ counter }} lugares{% endblocktranslate %}</p>{% endif %}
+</div>
+{% if places %}
+<div class="map-layout">
+  <div class="photo-map" data-photo-map role="application" aria-label="{% translate 'Mapa de las fotos' %}"
+       data-photos-label="{% translate '%s fotos' %}" data-photo-label="{% translate '1 foto' %}"></div>
+  {# Details of the chosen place: a bottom sheet on mobile, a side panel on desktop. #}
+  <aside class="map-detail" data-map-detail hidden aria-live="polite">
+    <div class="sheet-handle" aria-hidden="true"></div>
+    <div class="map-detail-header">
+      <div class="map-detail-title"><h2 data-map-name></h2><p class="muted" data-map-locality></p></div>
+      <button type="button" class="button text icon-only" data-map-close aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button>
+    </div>
+    <ul class="map-thumbs" data-map-thumbs></ul>
+    <a class="button primary" data-map-gallery href="#">{% translate "Ver en la galería" %} <span data-map-count></span></a>
+  </aside>
+</div>
+{{ places|json_script:"map-places" }}
+{% else %}
+<div class="card stack map-empty">
+  <p>{% translate "Todavía no hay ubicaciones situadas en el mapa." %}</p>
+  {% if user.is_catalog_admin %}<a class="button" href="{% url 'admin_locations' %}">{% translate "Situar ubicaciones" %}</a>{% endif %}
+</div>
+{% endif %}
+{% if unplaced %}<p class="muted map-unplaced"><a href="{% url 'admin_locations' %}?unplaced=1">{% blocktranslate count counter=unplaced %}{{ counter }} ubicación sin situar en el mapa{% plural %}{{ counter }} ubicaciones sin situar en el mapa{% endblocktranslate %}</a></p>{% endif %}
+{% endblock %}

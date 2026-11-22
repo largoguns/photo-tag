@@ -250,13 +250,15 @@
         <form method="post" class="inline-form" action="{% url 'propose_location' photo.pk %}" hx-post="{% url 'propose_location' photo.pk %}">
           {% csrf_token %}<input type="hidden" name="panel" value="location">
           <label for="location-name">{% if not photo.location and not location_proposals %}{% translate "¿Dónde se hizo?" %}{% elif user.is_catalog_admin %}{% translate "Cambiar la ubicación" %}{% else %}{% translate "Proponer otra ubicación" %}{% endif %}</label>
-          <div class="input-row">
+          <div class="input-row location-row">
             <div class="combobox">
               <input type="text" id="location-name" name="location" maxlength="150" autocomplete="off" required
                      role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="location-name-list"
                      data-combobox="locations" placeholder="{% translate 'Casa de los abuelos' %}">
               <ul class="combobox-list" id="location-name-list" role="listbox" hidden></ul>
             </div>
+            <input type="text" name="locality" class="location-locality" maxlength="150" autocomplete="off"
+                   aria-label="{% translate 'Localidad (opcional)' %}" placeholder="{% translate 'Localidad' %}">
             <button type="submit" class="button primary">{% if user.is_catalog_admin %}{% translate "Guardar" %}{% else %}{% translate "Proponer" %}{% endif %}</button>
           </div>
           {% if not user.is_catalog_admin %}<span class="helptext">{% translate "Elige uno de la lista si ya existe. Un lugar nuevo lo revisará un administrador." %}</span>{% endif %}

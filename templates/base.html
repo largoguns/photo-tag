@@ -74,6 +74,10 @@
       <span class="nav-indicator">{% if name == 'tree' %}{% icon "family_history-fill" %}{% else %}{% icon "family_history" %}{% endif %}</span>
       <span class="nav-label">{% translate "Árbol" %}</span>
     </a>
+    <a class="nav-item" href="{% url 'photo_map' %}" {% if name == 'photo_map' %}aria-current="page"{% endif %}>
+      <span class="nav-indicator">{% if name == 'photo_map' %}{% icon "map-fill" %}{% else %}{% icon "map" %}{% endif %}</span>
+      <span class="nav-label">{% translate "Mapa" %}</span>
+    </a>
   </nav>
   {% endwith %}
   {% endif %}
