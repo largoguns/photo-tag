@@ -7,10 +7,16 @@
          alt="{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}{% if photo.event_type %} — {{ photo.event_type }}{% endif %}"
          loading="lazy" width="{{ photo.width }}" height="{{ photo.height }}">
     <span class="select-mark" aria-hidden="true">{% icon "radio_button_unchecked" %}{% icon "check_circle-fill" %}</span>
+    {# What is left to do, most urgent first; a cataloged photo shows nothing (shared gallery). #}
     {% if photo.pending_my_vote %}
     <span class="jitem-status vote" title="{% translate 'Pendiente de mi voto' %}">{% icon "how_to_vote" _("Pendiente de mi voto") %}</span>
-    {% elif photo.status == "cataloged" %}
-    <span class="jitem-status cataloged" title="{% translate 'Catalogada' %}">{% icon "check" _("Catalogada") %}</span>
+    {% elif photo.status == "pending" %}
+    <span class="jitem-status pending" title="{% translate 'Pendiente' %}">{% icon "pending" _("Pendiente") %}</span>
+    {% elif photo.status == "in_progress" %}
+    <span class="jitem-status in-progress" title="{% translate 'En curso' %}">{% icon "edit" _("En curso") %}</span>
+    {% endif %}
+    {% if photo.has_open_questions %}
+    <span class="jitem-question" title="{% translate 'Tiene preguntas abiertas' %}">{% icon "help" _("Tiene preguntas abiertas") %}</span>
     {% endif %}
   </a>
 </li>
