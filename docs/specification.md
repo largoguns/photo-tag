@@ -258,8 +258,17 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
    - **Girar**: cualquier usuario puede girar una foto 90° desde su vista. El giro lo aplica el `worker` en unos segundos (fichero, miniaturas y recuadros de cara) y se mantiene al reprocesar el escaneo.
    - **Recortar** (solo administradores): editor de recorte sobre el escaneo original (ver 3.6).
 4. **Vista de foto** (pantalla principal):
+   - **Modo vista**: una foto **completa** se abre solo para verla. Completa significa catalogada (todas las caras con persona aceptada y evento), con fecha y ubicación, y sin propuestas ni preguntas abiertas.
+     - Muestra la foto, que se amplía y se desliza como siempre, con los recuadros de cara ocultos.
+     - Ficha de solo lectura (al lado en escritorio, debajo en móvil):
+       - **Quién sale**: chips con su cara, que llevan a su ficha y marcan su recuadro al pasar por encima o tocarlos;
+       - evento, fecha y ubicación, con su localidad.
+     - Bajo la foto, **Compartir**, **Editar** y **Borrar**. Borrar es solo para administradores y siempre pide confirmación.
+     - Sin herramientas de edición (dibujar cara, girar, recortar ni paneles).
+     - «Editar» (`?edit=1`) abre la edición, que es lo descrito a continuación; desde ella, «Ver foto» vuelve al modo vista. Las acciones siempre responden con la edición, para no cambiar de modo a mitad.
+     - Si falta cualquier dato, la foto se abre directamente en edición.
    - Imagen con recuadros de caras numerados superpuestos. Al pulsar un recuadro se abre su panel.
-   - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes).
+   - Por cada cara: persona aceptada o propuestas abiertas con botones 👍 / 👎, y opción de proponer otro nombre (autocompletado de personas existentes). Una cara **consolidada** (persona aceptada y nada abierto) empieza siempre plegada, aunque esté seleccionada, y su número se ve en verde.
    - Panel de evento, fecha y ubicación con el mismo mecanismo. El campo de ubicación sugiere las del catálogo con la búsqueda laxa.
    - Botón para dibujar una cara nueva y para marcar una cara como falso positivo.
    - Por cada cara sin persona aceptada: hasta 3 sugerencias automáticas («¿Es Abuela Carmen? · muy probable»). Pulsar una crea una propuesta normal con el voto del usuario.

@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PhotoTag\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-28 12:49+0100\n"
+"POT-Creation-Date: 2026-11-28 13:08+0100\n"
 "Language: en\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -102,7 +102,7 @@ msgid "Debe existir al menos un superadmin activo."
 msgstr "There must be at least one active superadmin."
 
 #: accounts/services/audit_catalog.py:20
-#: templates/catalog/_photo_workspace.html:91
+#: templates/catalog/_photo_workspace.html:112
 msgid "Catalogación"
 msgstr "Cataloging"
 
@@ -412,12 +412,13 @@ msgid "Escaneo"
 msgstr "Scan"
 
 #: accounts/services/audit_catalog.py:103
-#: templates/catalog/_photo_workspace.html:193
+#: templates/catalog/_photo_workspace.html:216
 msgid "Tipo de evento"
 msgstr "Event type"
 
 #: accounts/services/audit_catalog.py:104 catalog/models.py:370
-#: catalog/models.py:718 templates/catalog/_photo_workspace.html:245
+#: catalog/models.py:718 templates/catalog/_photo_facts.html:20
+#: templates/catalog/_photo_workspace.html:268
 #: templates/catalog/gallery.html:17 templates/catalog/gallery.html:55
 msgid "Ubicación"
 msgstr "Location"
@@ -450,10 +451,10 @@ msgstr "%(name)s (no longer exists)"
 
 #: accounts/services/audit_catalog.py:221 catalog/models.py:136
 #: templates/accounts/audit.html:70 templates/catalog/_justified_item.html:7
-#: templates/catalog/_photo_card.html:7
+#: templates/catalog/_photo_card.html:7 templates/catalog/_photo_facts.html:4
 #: templates/catalog/_photo_workspace.html:33
 #: templates/catalog/_photo_workspace.html:48
-#: templates/catalog/_photo_workspace.html:94
+#: templates/catalog/_photo_workspace.html:116
 #: templates/catalog/_proposal_activity.html:16
 #: templates/catalog/admin/review_queue.html:37 templates/catalog/home.html:45
 #: templates/catalog/photo.html:2 templates/scanner/_scan_panel.html:24
@@ -706,11 +707,11 @@ msgstr "In progress"
 msgid "Catalogada"
 msgstr "Cataloged"
 
-#: catalog/models.py:73 templates/catalog/_photo_workspace.html:228
+#: catalog/models.py:73 templates/catalog/_photo_workspace.html:251
 msgid "Fecha exacta"
 msgstr "Exact date"
 
-#: catalog/models.py:74 templates/catalog/_photo_workspace.html:232
+#: catalog/models.py:74 templates/catalog/_photo_workspace.html:255
 msgid "Año"
 msgstr "Year"
 
@@ -843,15 +844,16 @@ msgid "Identidad de cara"
 msgstr "Face identity"
 
 #: catalog/models.py:368 catalog/models.py:716 templates/accounts/audit.html:13
-#: templates/accounts/audit.html:113
-#: templates/catalog/_photo_workspace.html:183
+#: templates/accounts/audit.html:113 templates/catalog/_photo_facts.html:18
+#: templates/catalog/_photo_workspace.html:206
 #: templates/catalog/gallery.html:14 templates/catalog/gallery.html:55
 msgid "Evento"
 msgstr "Event"
 
 #: catalog/models.py:369 catalog/models.py:717
-#: templates/catalog/_photo_workspace.html:215
-#: templates/catalog/_photo_workspace.html:236
+#: templates/catalog/_photo_facts.html:19
+#: templates/catalog/_photo_workspace.html:238
+#: templates/catalog/_photo_workspace.html:259
 msgid "Fecha"
 msgstr "Date"
 
@@ -883,7 +885,7 @@ msgstr "(deleted person)"
 msgid "Añadir esta cara"
 msgstr "Add this face"
 
-#: catalog/models.py:447 templates/catalog/_photo_workspace.html:171
+#: catalog/models.py:447 templates/catalog/_photo_workspace.html:194
 msgid "No es una cara"
 msgstr "Not a face"
 
@@ -1060,27 +1062,27 @@ msgstr "Marked as a person."
 msgid "Relación guardada."
 msgstr "Relationship saved."
 
-#: catalog/presenters.py:120
+#: catalog/presenters.py:135
 msgid "¡La familia ha catalogado todo el álbum!"
 msgstr "The family has catalogued the whole album!"
 
-#: catalog/presenters.py:122
+#: catalog/presenters.py:137
 msgid "¡Ya tenéis tres cuartas partes del álbum catalogadas!"
 msgstr "Three quarters of the album are catalogued!"
 
-#: catalog/presenters.py:124
+#: catalog/presenters.py:139
 msgid "¡La familia ha catalogado la mitad del álbum!"
 msgstr "The family has catalogued half the album!"
 
-#: catalog/presenters.py:126
+#: catalog/presenters.py:141
 msgid "¡Un cuarto del álbum ya está catalogado!"
 msgstr "A quarter of the album is catalogued!"
 
-#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:103
+#: catalog/presenters.py:205 templates/catalog/_person_sheets.html:103
 msgid "Familia"
 msgstr "Family"
 
-#: catalog/presenters.py:190 templates/catalog/_person_sheets.html:106
+#: catalog/presenters.py:205 templates/catalog/_person_sheets.html:106
 #: templates/catalog/tree.html:9
 msgid "Relaciones"
 msgstr "Relationships"
@@ -1397,21 +1399,21 @@ msgstr "That face is not this person."
 msgid "Foto principal actualizada."
 msgstr "Main photo updated."
 
-#: catalog/views.py:317
+#: catalog/views.py:330
 msgid "¡No quedan fotos sin catalogar!"
 msgstr "No uncataloged photos left!"
 
-#: catalog/views.py:441
+#: catalog/views.py:454
 msgid "Indica la fecha completa."
 msgstr "Enter the full date."
 
-#: catalog/views.py:505
+#: catalog/views.py:518
 msgid ""
 "No se puede recortar así: el recuadro se sale del escaneo o es muy pequeño."
 msgstr ""
 "That crop is not possible: the box goes outside the scan or is too small."
 
-#: catalog/views.py:507
+#: catalog/views.py:520
 msgid "Recorte guardado. Se aplica en unos segundos."
 msgstr "Crop saved. It will be applied in a few seconds."
 
@@ -1639,7 +1641,7 @@ msgid "Guardián del álbum"
 msgstr "Album guardian"
 
 #: gamification/services/quiz.py:65 gamification/services/quiz.py:355
-#: templates/catalog/_photo_workspace.html:155
+#: templates/catalog/_photo_workspace.html:178
 msgid "¿Quién es?"
 msgstr "Who is it?"
 
@@ -2183,6 +2185,7 @@ msgid "nunca"
 msgstr "never"
 
 #: templates/accounts/audit.html:31 templates/accounts/user_list.html:28
+#: templates/catalog/_photo_workspace.html:78
 #: templates/catalog/admin/event_types.html:12
 #: templates/catalog/admin/locations.html:21
 msgid "Editar"
@@ -2375,8 +2378,8 @@ msgstr "Theme"
 #: templates/accounts/user_form.html:13
 #: templates/catalog/_person_sheets.html:17
 #: templates/catalog/_person_sheets.html:116
-#: templates/catalog/_photo_workspace.html:163
-#: templates/catalog/_photo_workspace.html:264
+#: templates/catalog/_photo_workspace.html:186
+#: templates/catalog/_photo_workspace.html:287
 #: templates/catalog/admin/event_type_form.html:11
 #: templates/catalog/admin/thresholds.html:12
 msgid "Guardar"
@@ -2403,7 +2406,7 @@ msgid "Ver el ranking"
 msgstr "See the ranking"
 
 #: templates/accounts/profile.html:71
-#: templates/catalog/_photo_workspace.html:120
+#: templates/catalog/_photo_workspace.html:143
 msgid "Sin identificar"
 msgstr "Unidentified"
 
@@ -2483,7 +2486,7 @@ msgstr ""
 "The user will have to change the password when signing in for the first time."
 
 #: templates/accounts/user_form.html:14 templates/base.html:128
-#: templates/catalog/_photo_workspace.html:77
+#: templates/catalog/_photo_workspace.html:98
 #: templates/catalog/admin/event_type_form.html:12
 #: templates/catalog/admin/merge.html:15
 #: templates/catalog/admin/thresholds.html:13 templates/catalog/crop.html:56
@@ -2772,7 +2775,7 @@ msgstr "Remove the nickname “%(text)s”?"
 
 #: templates/catalog/_person_sheets.html:53
 #: templates/catalog/_person_sheets.html:135
-#: templates/catalog/_photo_workspace.html:169
+#: templates/catalog/_photo_workspace.html:192
 #: templates/catalog/admin/location_form.html:48
 msgid "Quitar"
 msgstr "Remove"
@@ -2866,6 +2869,14 @@ msgstr "Remove the relationship with %(name)s (%(label)s)"
 msgid "Todavía no se sabe con quién está relacionado %(person)s."
 msgstr "Nobody knows yet who %(person)s is related to."
 
+#: templates/catalog/_photo_facts.html:3
+msgid "Datos de la foto"
+msgstr "Photo details"
+
+#: templates/catalog/_photo_facts.html:7
+msgid "Quién sale"
+msgstr "Who is in it"
+
 #: templates/catalog/_photo_workspace.html:7
 msgid "Aplicando el giro…"
 msgstr "Rotating…"
@@ -2906,77 +2917,31 @@ msgid "Alejar"
 msgstr "Zoom out"
 
 #: templates/catalog/_photo_workspace.html:74
-msgid "¿Añadir este recuadro como una cara nueva?"
-msgstr "Add this box as a new face?"
-
-#: templates/catalog/_photo_workspace.html:74
-msgid "¿Proponer este recuadro como una cara nueva?"
-msgstr "Propose this box as a new face?"
-
-#: templates/catalog/_photo_workspace.html:76
-msgid "Añadir cara"
-msgstr "Add face"
-
-#: templates/catalog/_photo_workspace.html:76
-msgid "Proponer cara"
-msgstr "Propose face"
-
-#: templates/catalog/_photo_workspace.html:82
+#: templates/catalog/_photo_workspace.html:103
 msgid "Foto anterior"
 msgstr "Previous photo"
 
-#: templates/catalog/_photo_workspace.html:83
-msgid "Dibujar cara"
-msgstr "Draw face"
-
-#: templates/catalog/_photo_workspace.html:84
-msgid "Pantalla completa"
-msgstr "Full screen"
-
-#: templates/catalog/_photo_workspace.html:84
-msgid "Ampliar"
-msgstr "Enlarge"
-
-#: templates/catalog/_photo_workspace.html:85
-msgid "Siguiente sin catalogar"
-msgstr "Next uncataloged"
-
-#: templates/catalog/_photo_workspace.html:85
-msgid "Sin catalogar"
-msgstr "Uncataloged"
-
-#: templates/catalog/_photo_workspace.html:86
-msgid "Foto siguiente"
-msgstr "Next photo"
-
-#: templates/catalog/_photo_workspace.html:88
-msgid "Arrastra sobre la foto para dibujar el recuadro de la cara."
-msgstr "Drag over the photo to draw the face box."
-
-#: templates/catalog/_photo_workspace.html:94
-#, python-format
-msgid "%(counter)s cara"
-msgid_plural "%(counter)s caras"
-msgstr[0] "%(counter)s face"
-msgstr[1] "%(counter)s faces"
-
-#: templates/catalog/_photo_workspace.html:97 templates/catalog/gallery.html:70
+#: templates/catalog/_photo_workspace.html:76
+#: templates/catalog/_photo_workspace.html:119
+#: templates/catalog/gallery.html:70
 msgid "Compartir ahora"
 msgstr "Share now"
 
-#: templates/catalog/_photo_workspace.html:98
+#: templates/catalog/_photo_workspace.html:77
+#: templates/catalog/_photo_workspace.html:120
 msgid "Compartir o descargar la foto"
 msgstr "Share or download the photo"
 
-#: templates/catalog/_photo_workspace.html:101
-msgid "Girar 90° a la derecha"
-msgstr "Rotate 90° clockwise"
+#: templates/catalog/_photo_workspace.html:77 templates/catalog/gallery.html:73
+msgid "Compartir"
+msgstr "Share"
 
-#: templates/catalog/_photo_workspace.html:103
-msgid "Recortar"
-msgstr "Crop"
+#: templates/catalog/_photo_workspace.html:78
+msgid "Editar la catalogación de la foto"
+msgstr "Edit the photo's cataloguing"
 
-#: templates/catalog/_photo_workspace.html:106
+#: templates/catalog/_photo_workspace.html:81
+#: templates/catalog/_photo_workspace.html:128
 #: templates/catalog/admin/review_queue.html:48
 msgid ""
 "¿Borrar esta foto? Se eliminan sus caras, propuestas y votos. No se puede "
@@ -2985,70 +2950,138 @@ msgstr ""
 "Delete this photo? Its faces, proposals and votes are removed. This cannot "
 "be undone."
 
-#: templates/catalog/_photo_workspace.html:107
+#: templates/catalog/_photo_workspace.html:82
+#: templates/catalog/_photo_workspace.html:84
+#: templates/catalog/_photo_workspace.html:129
 #: templates/catalog/admin/review_queue.html:49
 #: templates/catalog/admin/review_queue.html:51
 msgid "Borrar"
 msgstr "Delete"
 
-#: templates/catalog/_photo_workspace.html:109
+#: templates/catalog/_photo_workspace.html:84
+#: templates/catalog/_photo_workspace.html:131
 msgid "Borrar foto"
 msgstr "Delete photo"
 
-#: templates/catalog/_photo_workspace.html:120
+#: templates/catalog/_photo_workspace.html:87
+#: templates/catalog/_photo_workspace.html:107
+msgid "Foto siguiente"
+msgstr "Next photo"
+
+#: templates/catalog/_photo_workspace.html:95
+msgid "¿Añadir este recuadro como una cara nueva?"
+msgstr "Add this box as a new face?"
+
+#: templates/catalog/_photo_workspace.html:95
+msgid "¿Proponer este recuadro como una cara nueva?"
+msgstr "Propose this box as a new face?"
+
+#: templates/catalog/_photo_workspace.html:97
+msgid "Añadir cara"
+msgstr "Add face"
+
+#: templates/catalog/_photo_workspace.html:97
+msgid "Proponer cara"
+msgstr "Propose face"
+
+#: templates/catalog/_photo_workspace.html:104
+msgid "Dibujar cara"
+msgstr "Draw face"
+
+#: templates/catalog/_photo_workspace.html:105
+msgid "Pantalla completa"
+msgstr "Full screen"
+
+#: templates/catalog/_photo_workspace.html:105
+msgid "Ampliar"
+msgstr "Enlarge"
+
+#: templates/catalog/_photo_workspace.html:106
+msgid "Siguiente sin catalogar"
+msgstr "Next uncataloged"
+
+#: templates/catalog/_photo_workspace.html:106
+msgid "Sin catalogar"
+msgstr "Uncataloged"
+
+#: templates/catalog/_photo_workspace.html:109
+msgid "Arrastra sobre la foto para dibujar el recuadro de la cara."
+msgstr "Drag over the photo to draw the face box."
+
+#: templates/catalog/_photo_workspace.html:115
+#: templates/catalog/admin/_review_section.html:14
+msgid "Ver foto"
+msgstr "See photo"
+
+#: templates/catalog/_photo_workspace.html:116
+#, python-format
+msgid "%(counter)s cara"
+msgid_plural "%(counter)s caras"
+msgstr[0] "%(counter)s face"
+msgstr[1] "%(counter)s faces"
+
+#: templates/catalog/_photo_workspace.html:123
+msgid "Girar 90° a la derecha"
+msgstr "Rotate 90° clockwise"
+
+#: templates/catalog/_photo_workspace.html:125
+msgid "Recortar"
+msgstr "Crop"
+
+#: templates/catalog/_photo_workspace.html:143
 msgid "Cara propuesta"
 msgstr "Proposed face"
 
-#: templates/catalog/_photo_workspace.html:126
+#: templates/catalog/_photo_workspace.html:149
 msgid "Persona aceptada:"
 msgstr "Accepted person:"
 
-#: templates/catalog/_photo_workspace.html:132
+#: templates/catalog/_photo_workspace.html:155
 msgid "Propuestas de nombre"
 msgstr "Name proposals"
 
-#: templates/catalog/_photo_workspace.html:137
+#: templates/catalog/_photo_workspace.html:160
 msgid "Sugerencias automáticas"
 msgstr "Automatic suggestions"
 
-#: templates/catalog/_photo_workspace.html:145
+#: templates/catalog/_photo_workspace.html:168
 #, python-format
 msgid "¿Es %(person)s?"
 msgstr "Is it %(person)s?"
 
-#: templates/catalog/_photo_workspace.html:149
+#: templates/catalog/_photo_workspace.html:172
 msgid "Pulsar una sugerencia la guarda directamente."
 msgstr "Tapping a suggestion saves it directly."
 
-#: templates/catalog/_photo_workspace.html:149
+#: templates/catalog/_photo_workspace.html:172
 msgid ""
 "Pulsar una sugerencia crea una propuesta con tu voto; la deciden los votos."
 msgstr "Tapping a suggestion creates a proposal with your vote; votes decide."
 
-#: templates/catalog/_photo_workspace.html:155
+#: templates/catalog/_photo_workspace.html:178
 msgid "Cambiar el nombre"
 msgstr "Rename"
 
-#: templates/catalog/_photo_workspace.html:155
+#: templates/catalog/_photo_workspace.html:178
 msgid "Proponer otro nombre"
 msgstr "Propose another name"
 
-#: templates/catalog/_photo_workspace.html:160
+#: templates/catalog/_photo_workspace.html:183
 msgid "Nombre y apellidos"
 msgstr "Full name"
 
-#: templates/catalog/_photo_workspace.html:163
-#: templates/catalog/_photo_workspace.html:169
-#: templates/catalog/_photo_workspace.html:264
+#: templates/catalog/_photo_workspace.html:186
+#: templates/catalog/_photo_workspace.html:192
+#: templates/catalog/_photo_workspace.html:287
 msgid "Proponer"
 msgstr "Propose"
 
-#: templates/catalog/_photo_workspace.html:168
+#: templates/catalog/_photo_workspace.html:191
 #, python-format
 msgid "¿Quitar el recuadro %(number)s? No es una cara."
 msgstr "Remove box %(number)s? It is not a face."
 
-#: templates/catalog/_photo_workspace.html:168
+#: templates/catalog/_photo_workspace.html:191
 #, python-format
 msgid ""
 "¿Proponer que el recuadro %(number)s no es una cara? Se votará como "
@@ -3057,40 +3090,40 @@ msgstr ""
 "Propose that box %(number)s is not a face? It will be voted like any other "
 "proposal."
 
-#: templates/catalog/_photo_workspace.html:175
+#: templates/catalog/_photo_workspace.html:198
 msgid "Preguntar sobre esta cara"
 msgstr "Ask about this face"
 
-#: templates/catalog/_photo_workspace.html:179
+#: templates/catalog/_photo_workspace.html:202
 msgid "No se han detectado caras. Usa «Dibujar cara» si falta alguna."
 msgstr "No faces were detected. Use “Draw face” if one is missing."
 
-#: templates/catalog/_photo_workspace.html:188
+#: templates/catalog/_photo_workspace.html:211
 msgid "Aceptado:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:195
+#: templates/catalog/_photo_workspace.html:218
 #: templates/catalog/admin/location_form.html:90
 msgid "— Elige —"
 msgstr "— Choose —"
 
-#: templates/catalog/_photo_workspace.html:197
+#: templates/catalog/_photo_workspace.html:220
 msgid "Otro…"
 msgstr "Other…"
 
-#: templates/catalog/_photo_workspace.html:201
+#: templates/catalog/_photo_workspace.html:224
 msgid "¿Qué evento es?"
 msgstr "Which event is it?"
 
-#: templates/catalog/_photo_workspace.html:202
+#: templates/catalog/_photo_workspace.html:225
 msgid "Graduación"
 msgstr "Graduation"
 
-#: templates/catalog/_photo_workspace.html:203
+#: templates/catalog/_photo_workspace.html:226
 msgid "Se añadirá a la lista de eventos."
 msgstr "It will be added to the list of events."
 
-#: templates/catalog/_photo_workspace.html:203
+#: templates/catalog/_photo_workspace.html:226
 msgid ""
 "Si no está en la lista. Lo revisará un administrador antes de añadirlo; los "
 "lugares van en Ubicación."
@@ -3098,66 +3131,66 @@ msgstr ""
 "If it is not in the list. An administrator will review it before adding it; "
 "places go in Location."
 
-#: templates/catalog/_photo_workspace.html:206
+#: templates/catalog/_photo_workspace.html:229
 msgid "Descripción (opcional)"
 msgstr "Description (optional)"
 
-#: templates/catalog/_photo_workspace.html:207
+#: templates/catalog/_photo_workspace.html:230
 msgid "Boda de Luis y Ana"
 msgstr "Luis and Ana's wedding"
 
-#: templates/catalog/_photo_workspace.html:209
+#: templates/catalog/_photo_workspace.html:232
 msgid "Guardar evento"
 msgstr "Save event"
 
-#: templates/catalog/_photo_workspace.html:209
+#: templates/catalog/_photo_workspace.html:232
 msgid "Proponer evento"
 msgstr "Propose event"
 
-#: templates/catalog/_photo_workspace.html:220
-#: templates/catalog/_photo_workspace.html:250
+#: templates/catalog/_photo_workspace.html:243
+#: templates/catalog/_photo_workspace.html:273
 msgid "Aceptada:"
 msgstr "Accepted:"
 
-#: templates/catalog/_photo_workspace.html:225
+#: templates/catalog/_photo_workspace.html:248
 msgid "Precisión"
 msgstr "Precision"
 
-#: templates/catalog/_photo_workspace.html:239
+#: templates/catalog/_photo_workspace.html:262
 msgid "Guardar fecha"
 msgstr "Save date"
 
-#: templates/catalog/_photo_workspace.html:239
+#: templates/catalog/_photo_workspace.html:262
 msgid "Proponer fecha"
 msgstr "Propose date"
 
-#: templates/catalog/_photo_workspace.html:254
+#: templates/catalog/_photo_workspace.html:277
 msgid "¿Dónde se hizo?"
 msgstr "Where was it taken?"
 
-#: templates/catalog/_photo_workspace.html:254
+#: templates/catalog/_photo_workspace.html:277
 msgid "Cambiar la ubicación"
 msgstr "Change location"
 
-#: templates/catalog/_photo_workspace.html:254
+#: templates/catalog/_photo_workspace.html:277
 msgid "Proponer otra ubicación"
 msgstr "Propose another location"
 
-#: templates/catalog/_photo_workspace.html:259
+#: templates/catalog/_photo_workspace.html:282
 msgid "Casa de los abuelos"
 msgstr "Grandparents' house"
 
-#: templates/catalog/_photo_workspace.html:263
+#: templates/catalog/_photo_workspace.html:286
 msgid "Localidad (opcional)"
 msgstr "Town (optional)"
 
-#: templates/catalog/_photo_workspace.html:263
+#: templates/catalog/_photo_workspace.html:286
 #: templates/catalog/admin/_review_section.html:23
 #: templates/catalog/admin/location_form.html:41
 msgid "Localidad"
 msgstr "Town"
 
-#: templates/catalog/_photo_workspace.html:266
+#: templates/catalog/_photo_workspace.html:289
 msgid ""
 "Elige uno de la lista si ya existe. Un lugar nuevo lo revisará un "
 "administrador."
@@ -3165,18 +3198,18 @@ msgstr ""
 "Choose one from the list if it exists. An administrator will review a new "
 "place."
 
-#: templates/catalog/_photo_workspace.html:275
+#: templates/catalog/_photo_workspace.html:298
 msgid "Escaneo de origen"
 msgstr "Source scan"
 
-#: templates/catalog/_photo_workspace.html:277
+#: templates/catalog/_photo_workspace.html:300
 #, python-format
 msgid "%(name)s · %(counter)s foto"
 msgid_plural "%(name)s · %(counter)s fotos"
 msgstr[0] "%(name)s · %(counter)s photo"
 msgstr[1] "%(name)s · %(counter)s photos"
 
-#: templates/catalog/_photo_workspace.html:278
+#: templates/catalog/_photo_workspace.html:301
 msgid ""
 "Reprocesar vuelve a recortar el original con el algoritmo actual y conserva "
 "los votos y los recortes manuales."
@@ -3184,7 +3217,7 @@ msgstr ""
 "Reprocessing crops the original again with the current algorithm and keeps "
 "votes and manual crops."
 
-#: templates/catalog/_photo_workspace.html:281
+#: templates/catalog/_photo_workspace.html:304
 msgid ""
 "¿Reprocesar el escaneo? Los recortes automáticos se rehacen; las fotos que "
 "ya no aparezcan se borrarán."
@@ -3192,16 +3225,16 @@ msgstr ""
 "Reprocess the scan? Automatic crops are redone; photos that no longer appear "
 "will be deleted."
 
-#: templates/catalog/_photo_workspace.html:282
+#: templates/catalog/_photo_workspace.html:305
 #: templates/catalog/admin/review_queue.html:13
 msgid "Reprocesar"
 msgstr "Reprocess"
 
-#: templates/catalog/_photo_workspace.html:284
+#: templates/catalog/_photo_workspace.html:307
 msgid "Reprocesar escaneo"
 msgstr "Reprocess scan"
 
-#: templates/catalog/_photo_workspace.html:287
+#: templates/catalog/_photo_workspace.html:310
 #: templates/catalog/admin/review_queue.html:16
 msgid ""
 "¿Borrar el escaneo completo? Se borran todas sus fotos con sus caras, "
@@ -3210,13 +3243,13 @@ msgstr ""
 "Delete the whole scan? All its photos are deleted with their faces, "
 "proposals and votes. The original is set aside in scans/deleted."
 
-#: templates/catalog/_photo_workspace.html:288
+#: templates/catalog/_photo_workspace.html:311
 #: templates/catalog/admin/review_queue.html:17
 #: templates/catalog/admin/review_queue.html:19
 msgid "Borrar escaneo"
 msgstr "Delete scan"
 
-#: templates/catalog/_photo_workspace.html:290
+#: templates/catalog/_photo_workspace.html:313
 msgid "Borrar escaneo completo"
 msgstr "Delete whole scan"
 
@@ -3358,7 +3391,8 @@ msgstr "Reopen"
 
 #: templates/catalog/_questions_panel.html:50
 msgid "¿Dudas sobre esta foto? Pregunta a la familia: a todos o a quien sepa."
-msgstr "Not sure about this photo? Ask the family: everyone, or whoever might know."
+msgstr ""
+"Not sure about this photo? Ask the family: everyone, or whoever might know."
 
 #: templates/catalog/_questions_panel.html:55
 #: templates/catalog/_questions_panel.html:76
@@ -3383,7 +3417,8 @@ msgstr "To everyone · choose who"
 
 #: templates/catalog/_questions_panel.html:74
 msgid "Si no eliges a nadie, es para todos. Todos pueden leerla y responder."
-msgstr "If you choose nobody, it is for everyone. Everyone can read and answer it."
+msgstr ""
+"If you choose nobody, it is for everyone. Everyone can read and answer it."
 
 #: templates/catalog/_tree_list.html:2
 msgid "Lista"
@@ -3467,10 +3502,6 @@ msgid "%(counter)s foto"
 msgid_plural "%(counter)s fotos"
 msgstr[0] "%(counter)s photo"
 msgstr[1] "%(counter)s photos"
-
-#: templates/catalog/admin/_review_section.html:14
-msgid "Ver foto"
-msgstr "See photo"
 
 #: templates/catalog/admin/_review_section.html:15
 msgid "Situar en el mapa"
@@ -4080,10 +4111,6 @@ msgstr "Up to %(share_max)s photos at a time"
 msgid "Cancelar selección"
 msgstr "Cancel selection"
 
-#: templates/catalog/gallery.html:73
-msgid "Compartir"
-msgstr "Share"
-
 #: templates/catalog/gallery.html:74
 msgid "Descargar"
 msgstr "Download"
@@ -4374,7 +4401,9 @@ msgstr "Resolved"
 msgid ""
 "Preguntas abiertas dirigidas a ti, y las que son para todos que aún no has "
 "contestado."
-msgstr "Open questions addressed to you, and those for everyone you have not answered yet."
+msgstr ""
+"Open questions addressed to you, and those for everyone you have not "
+"answered yet."
 
 #: templates/catalog/questions.html:26
 #, python-format

@@ -132,7 +132,9 @@ for (const variant of variants) {
     await page.click('[data-selection="cancel"]');
     if (photoLink) {
       await page.goto(base + photoLink, { waitUntil: "networkidle" });
-      await page.click('[data-action="open-viewer"]');
+      // Editing has an «Ampliar» button; view mode (complete photos) opens it with a tap.
+      if (await page.locator('[data-action="open-viewer"]').count()) await page.click('[data-action="open-viewer"]');
+      else await page.click(".photo-frame", { position: { x: 10, y: 10 } });
       await page.waitForTimeout(300);
       await shot("viewer");
       if (await page.locator('[data-viewer="faces"]').count()) await page.click('[data-viewer="faces"]'); // only photos with faces
