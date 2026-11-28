@@ -149,11 +149,31 @@ def _select_family(graph, focus, up, down, partners, in_laws, direct):
             for other in sorted(graph.partners[pid] | graph.ex_partners[pid]):
                 add(other, gen[pid])
 
+    # Relatives with no line to the central person yet: explicit ones (a cousin added
+    # without their parent)…
+    loose = []
     for other, (role, kind, _activity) in _explicit_roles(graph, focus).items():
         wanted = (in_laws and kind in IN_LAW_KINDS) or (direct and kind in DIRECT_KINDS)
         level = ROLE_OFFSET.get(role)
-        if wanted and level is not None and -up <= level <= down:
-            add(other, level)
+        if wanted and level is not None and -up <= level <= down and add(other, level):
+            loose.append(other)
+    # …their siblings, deduced relatives of the same kind (that cousin's brothers are
+    # cousins too), in the same row…
+    for other in list(loose):
+        for sibling in sorted(graph.siblings_of(other)):
+            if add(sibling, gen[other]):
+                loose.append(sibling)
+
+    # …and their descendants (a cousin's daughter) with their partners.
+    queue = list(loose)
+    while queue:
+        current = queue.pop(0)
+        if partners:
+            for other in sorted(graph.partners[current] | graph.ex_partners[current]):
+                add(other, gen[current])
+        for child in sorted(graph.children[current]):
+            if gen[current] + 1 <= down and add(child, gen[current] + 1):
+                queue.append(child)
     return gen, truncated
 
 
@@ -236,7 +256,12 @@ def family_tree(graph, focus, up=3, down=3, partners=True, in_laws=True, direct=
 
     # Roots: the central person's ancestors' side first, then the rest, top to bottom.
     roots = [u for u in range(len(units)) if not has_parents(u)]
-    roots.sort(key=lambda u: (level[u], min(units[u])))
+
+    def family_key(u):
+        # Siblings without parents in the tree (cousins whose parent is missing) go together.
+        return min(min(graph.siblings_of(m) | {m}) for m in units[u])
+
+    roots.sort(key=lambda u: (level[u], family_key(u), min(units[u])))
     cursor = 0
     for root in roots:
         if root not in claimed:

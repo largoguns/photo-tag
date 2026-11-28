@@ -237,11 +237,12 @@ def test_each_partner_sits_on_their_parents_side_and_family_lines_do_not_merge()
                 assert r1 < l2 or r2 < l1, (y1, (l1, r1), (l2, r2))
 
 
-def _family_of_the_screenshots():
+def _family_of_the_screenshots(extra=()):
     """Grandmother 60 → dad 62 and aunt 64 (ex-partner 65, daughter 73); grandmother 61 →
     mum 63. Dad and mum → 66 (focus), 67, 68. 77: a cousin whose parent is not in the tree.
     The focus has explicit links to a sibling, the cousins and a sibling-in-law."""
     rows = [
+        *extra,
         (60, 62, K.PARENT),
         (60, 64, K.PARENT),
         (61, 63, K.PARENT),
@@ -287,3 +288,22 @@ def test_unlinked_people_sit_next_to_their_row():
     row = sorted(n.x for n in layout.nodes if n.y == layout.node(77).y)
     gaps = [b - a for a, b in zip(row, row[1:], strict=False)]
     assert layout.node(77).x == row[-1] and gaps[-1] == SLOT
+
+
+def test_a_loose_cousin_brings_their_siblings_and_children():
+    """Regression: Susi (77) is an explicit cousin with no parent in the tree; her brothers
+    Mayte (80) and Pablo (81) are cousins too (deduced) and Dámaris (82) is her daughter.
+    Before, only Susi was drawn."""
+    layout = _family_of_the_screenshots(
+        extra=[(77, 80, K.SIBLING), (77, 81, K.SIBLING), (77, 82, K.PARENT)]
+    )
+    pos = positions(layout)
+    assert {77, 80, 81, 82} <= set(pos)
+    assert pos[80][1] == pos[81][1] == pos[77][1]  # same row as Susi…
+    assert pos[82][1] > pos[77][1]  # …and her daughter below
+    assert layout.node(80).unlinked and layout.node(80).role == "cousin"
+    row = sorted((x, pid) for pid, (x, y) in pos.items() if y == pos[77][1])
+    ids = [pid for _x, pid in row]
+    start = ids.index(min(77, 80, 81, key=ids.index))
+    assert set(ids[start : start + 3]) == {77, 80, 81}  # the three siblings together
+    assert_no_overlaps(layout)
