@@ -1,0 +1,22 @@
+{% load i18n catalog_tags %}
+{# View mode (spec 5.5): what is known about the photo, read only. #}
+<aside class="photo-facts" aria-label="{% translate 'Datos de la foto' %}">
+  <p class="muted">{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %}</p>
+  {% if faces %}
+  <section class="stack" aria-labelledby="facts-people">
+    <h2 id="facts-people" class="facts-title">{% translate "Quién sale" %}</h2>
+    <ul class="facts-people">
+      {% for face in faces %}{% if face.person %}
+      <li><a class="chip facts-person" href="{% url 'person_detail' face.person.pk %}" data-highlight-face="{{ face.pk }}">
+        <img src="{% url 'face_image' face.pk %}" alt="" width="28" height="28" loading="lazy">{{ face.person }}
+      </a></li>
+      {% endif %}{% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+  <dl class="facts-list">
+    <div><dt>{% icon "event" %}{% translate "Evento" %}</dt><dd>{{ photo.event_type }}{% if photo.event_description %} · {{ photo.event_description }}{% endif %}</dd></div>
+    <div><dt>{% icon "calendar_month" %}{% translate "Fecha" %}</dt><dd>{{ photo.date_label }}</dd></div>
+    <div><dt>{% icon "map" %}{% translate "Ubicación" %}</dt><dd>{{ photo.location }}{% if photo.location.locality %} · {{ photo.location.locality }}{% endif %}</dd></div>
+  </dl>
+</aside>

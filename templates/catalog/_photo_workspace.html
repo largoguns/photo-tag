@@ -1,5 +1,5 @@
 {% load catalog_tags i18n %}
-<div id="photo-workspace" class="photo-layout" hx-target="#photo-workspace" hx-swap="outerHTML">
+<div id="photo-workspace" class="photo-layout{% if view_mode %} view-mode{% endif %}" hx-target="#photo-workspace" hx-swap="outerHTML">
   <section class="photo-stage" aria-label="{% translate 'Foto' %}">
     {% if request.htmx_partial %}{% include "_messages.html" %}{% endif %}
     {% if photo.pending_rotation %}
@@ -68,6 +68,27 @@
       </div>
     </dialog>
 
+    {% if view_mode %}
+    {# View mode (spec 5.5): just the photo; editing is behind «Editar». #}
+    <div class="photo-toolbar photo-actions">
+      {% if prev_photo %}<a class="button icon-only" href="{% url 'photo_detail' prev_photo.pk %}" rel="prev" aria-label="{% translate 'Foto anterior' %}" title="{% translate 'Foto anterior' %}">{% icon "chevron_left" %}</a>{% else %}<span class="button icon-only disabled" aria-hidden="true">{% icon "chevron_left" %}</span>{% endif %}
+      <button type="button" class="button grow" data-share-photos="{{ photo.pk }}"
+              data-download-url="{% url 'download_photos' %}?ids={{ photo.pk }}" data-log-url="{% url 'log_share' %}" data-ready-text="{% translate 'Compartir ahora' %}"
+              aria-label="{% translate 'Compartir o descargar la foto' %}" title="{% translate 'Compartir o descargar la foto' %}">{% icon "share" %}<span class="label">{% translate "Compartir" %}</span></button>
+      <a class="button primary grow" href="{% url 'photo_detail' photo.pk %}?edit=1" title="{% translate 'Editar la catalogación de la foto' %}">{% icon "edit" %}<span class="label">{% translate "Editar" %}</span></a>
+      {% if user.is_catalog_admin %}
+      <form method="post" action="{% url 'admin_photo_delete' photo.pk %}" class="grow"
+            data-confirm="{% translate '¿Borrar esta foto? Se eliminan sus caras, propuestas y votos. No se puede deshacer.' %}"
+            data-confirm-ok="{% translate 'Borrar' %}" data-confirm-variant="danger">
+        {% csrf_token %}
+        <button type="submit" class="button danger" aria-label="{% translate 'Borrar foto' %}" title="{% translate 'Borrar foto' %}">{% icon "delete" %}<span class="label">{% translate "Borrar" %}</span></button>
+      </form>
+      {% endif %}
+      {% if next_photo %}<a class="button icon-only" href="{% url 'photo_detail' next_photo.pk %}" rel="next" aria-label="{% translate 'Foto siguiente' %}" title="{% translate 'Foto siguiente' %}">{% icon "chevron_right" %}</a>{% else %}<span class="button icon-only disabled" aria-hidden="true">{% icon "chevron_right" %}</span>{% endif %}
+    </div>
+  </section>
+  {% include "catalog/_photo_facts.html" %}
+  {% else %}
     <form id="add-face-form" class="draw-form card" method="post" action="{% url 'propose_add_face' photo.pk %}" hx-post="{% url 'propose_add_face' photo.pk %}" hidden>
       {% csrf_token %}
       <input type="hidden" name="x"><input type="hidden" name="y"><input type="hidden" name="w"><input type="hidden" name="h">
@@ -91,6 +112,7 @@
   <aside class="photo-panels" aria-label="{% translate 'Catalogación' %}">
     <div class="photo-status">
       <span class="badge status-{{ photo.status }}">{{ photo.get_status_display }}</span>
+      {% if photo_complete %}<a class="button small" href="{% url 'photo_detail' photo.pk %}" hx-boost="false">{% icon "visibility" %}{% translate "Ver foto" %}</a>{% endif %}
       <span class="muted">{% blocktranslate with id=photo.pk %}Foto {{ id }}{% endblocktranslate %} · {% blocktranslate count counter=faces|length %}{{ counter }} cara{% plural %}{{ counter }} caras{% endblocktranslate %}</span>
       <span class="status-actions">
         <button type="button" class="button text icon-only" data-share-photos="{{ photo.pk }}"
@@ -113,7 +135,8 @@
     </div>
 
     {% for face in faces %}
-    <details class="panel face-panel" id="face-panel-{{ face.pk }}" data-face="{{ face.pk }}" {% if selected_face == face.pk|stringformat:'s' %}open{% endif %}>
+    {# Consolidated (accepted person, nothing open): always starts folded, green number. #}
+    <details class="panel face-panel{% if face.consolidated %} consolidated{% endif %}" id="face-panel-{{ face.pk }}" data-face="{{ face.pk }}" {% if selected_face == face.pk|stringformat:'s' and not face.consolidated %}open{% endif %}>
       <summary>
         <span class="face-num">{{ face.number }}</span>
         <span class="panel-title">
@@ -294,4 +317,5 @@
     </details>
     {% endif %}
   </aside>
+  {% endif %}
 </div>

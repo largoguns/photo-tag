@@ -288,6 +288,21 @@
     applyTransform();
   }
 
+  // View mode (spec 5.5): pointing at, focusing or touching a name marks that face.
+  function highlightFace(faceId) {
+    document.querySelectorAll(".face-box.highlight").forEach((box) => box.classList.remove("highlight"));
+    if (!faceId) return;
+    const box = document.querySelector(`.face-box[data-face="${faceId}"]`);
+    if (box) box.classList.add("highlight");
+  }
+  ["mouseover", "focusin", "touchstart"].forEach((type) => document.addEventListener(type, (event) => {
+    const chip = event.target.closest && event.target.closest("[data-highlight-face]");
+    if (chip) highlightFace(chip.dataset.highlightFace);
+  }, { passive: true }));
+  ["mouseout", "focusout"].forEach((type) => document.addEventListener(type, (event) => {
+    if (event.target.closest && event.target.closest("[data-highlight-face]")) highlightFace(null);
+  }));
+
   function openViewer() {
     const parts = viewerParts();
     const frame = document.getElementById("photo-frame");

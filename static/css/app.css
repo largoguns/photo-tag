@@ -471,7 +471,7 @@ body.selecting .fab { display: none; }
   position: absolute; left: 50%; bottom: calc(100% + 2px); transform: translateX(-50%);
   min-width: 1.05rem; height: 1.05rem; padding: 0 .2rem; font-size: .65rem; pointer-events: none;
 }
-.face-box.known .face-num { background: #5fd17a; }
+.face-box.known .face-num, .face-panel.consolidated .face-num { background: #5fd17a; }
 .photo-frame.rotating img { transform: rotate(var(--pending)) scale(var(--fit)); transition: transform .3s; }
 .photo-frame.rotating .face-box { display: none; }
 .status-actions { display: flex; gap: .25rem; margin-left: auto; }
@@ -1241,3 +1241,30 @@ body.selecting .jitem-question { display: none; } /* the selection mark goes the
 .question-row-text { overflow-wrap: anywhere; }
 .question-row-meta { font-size: .8rem; }
 .questions-banner .quiz-kind-icon { background: #ecdcff; color: #4a1d96; }
+
+/* ------------------------------------------------------ Photo view mode (5.5) -- */
+/* Face boxes stay out of the way; a name in the details marks its face. */
+.photo-layout.view-mode .face-box { opacity: 0; pointer-events: none; transition: opacity .15s; }
+.photo-layout.view-mode .face-box.highlight { opacity: 1; }
+.photo-actions form.grow { display: flex; }
+.photo-actions form.grow .button { flex: 1; }
+.photo-actions .button { min-height: var(--tap, 44px); justify-content: center; }
+/* Narrow: Compartir and Borrar as icons (with their accessible name), «Editar» with text. */
+@container (max-width: 430px) {
+  .photo-actions .button.primary .label { display: inline; }
+  .photo-actions > .button.grow:not(.primary), .photo-actions > form.grow { flex: 0 0 auto; }
+  .photo-actions > .button.grow:not(.primary), .photo-actions > form.grow .button { width: var(--tap, 44px); padding: 0; }
+}
+@media (min-width: 840px) { .photo-actions { max-width: 36rem; margin: 0 auto; width: 100%; } }
+.photo-facts { display: flex; flex-direction: column; gap: 1rem; min-width: 0; }
+.photo-facts > p { margin: 0; }
+.facts-title { margin: 0; font-size: 1rem; }
+.facts-people { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: .5rem; }
+.facts-person { min-height: 44px; padding: 0 .75rem 0 .3rem; }
+.facts-person img { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; }
+.facts-person:hover, .facts-person:focus-visible { background: var(--md-secondary-container); color: var(--md-on-secondary-container); }
+.facts-list { margin: 0; display: grid; gap: .75rem; }
+.facts-list > div { display: grid; gap: .15rem; padding: .75rem 1rem; border-radius: 16px; background: var(--md-surface-container-low); }
+.facts-list dt { display: flex; align-items: center; gap: .4rem; font-size: .8rem; color: var(--md-on-surface-variant); }
+.facts-list dt .icon { width: 18px; height: 18px; }
+.facts-list dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }

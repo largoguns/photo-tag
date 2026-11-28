@@ -296,6 +296,19 @@ def _render_photo(request, photo, status=200):
     if context["ask_face"]:
         context["open_panel"] = "questions"
     context["question_users"] = User.objects.filter(is_active=True).exclude(pk=request.user.pk)
+    # View mode (spec 5.5): a complete photo opens just to look at it. Editing is one tap
+    # away (?edit=1), and actions (POST / HTMX) always answer with the editing view so the
+    # mode never changes in the middle of editing.
+    complete = presenters.photo_is_complete(
+        photo, context["has_open_proposals"], context["open_questions"]
+    )
+    context["photo_complete"] = complete
+    context["view_mode"] = (
+        complete
+        and request.method == "GET"
+        and not request.htmx_partial
+        and not request.GET.get("edit")
+    )
     if not request.htmx_partial:
         context["people_json"] = presenters.people_json()
         context["locations_json"] = [

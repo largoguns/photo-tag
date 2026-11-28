@@ -36,6 +36,8 @@ def photo_context(photo, user, selected_face=None):
         face.number = number
         face.box = face.as_percent()
         face.open_proposals = by_face.get(face.pk, [])
+        # Accepted person and nothing open: its panel starts folded, number in green.
+        face.consolidated = bool(face.person_id and not face.open_proposals)
         face.identity_proposals = [
             p for p in face.open_proposals if p.kind == Proposal.Kind.FACE_IDENTITY
         ]
@@ -52,7 +54,20 @@ def photo_context(photo, user, selected_face=None):
         "location_proposals": [p for p in open_proposals if p.kind == Proposal.Kind.LOCATION],
         "prev_photo": Photo.objects.visible().filter(pk__lt=photo.pk).order_by("-pk").first(),
         "next_photo": Photo.objects.visible().filter(pk__gt=photo.pk).order_by("pk").first(),
+        "has_open_proposals": bool(open_proposals),
     }
+
+
+def photo_is_complete(photo, has_open_proposals, open_questions):
+    """Nothing left to do (spec 5.5, view mode): cataloged (every face with an accepted
+    person and the event), with date and location, and nothing open (proposals, questions)."""
+    return (
+        photo.status == Photo.Status.CATALOGED
+        and photo.date_value is not None
+        and photo.location_id is not None
+        and not has_open_proposals
+        and not open_questions
+    )
 
 
 def next_uncataloged(after=None):
