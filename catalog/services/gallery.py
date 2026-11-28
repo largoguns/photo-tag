@@ -11,10 +11,11 @@ from dataclasses import dataclass, field
 from django.db.models import Case, Count, F, IntegerField, Q, Value, When
 from django.utils.translation import gettext
 
-from catalog.models import Face, Location, Person, Photo
+from catalog.models import Face, Location, Person, Photo, Question
 from catalog.services import voting
 
 BLOCK_SIZE = 120
+QUESTIONS_STATUS = "questions"  # «Estado» option: photos with open questions (5.17)
 
 
 def selected_people(params):
@@ -60,6 +61,8 @@ def gallery_queryset(params, user):
     )
     if params.get("status") in Photo.Status.values:
         photos = photos.filter(status=params["status"])
+    elif params.get("status") == QUESTIONS_STATUS:
+        photos = photos.filter(questions__status=Question.Status.OPEN).distinct()
     people = selected_people(params)
     if people:
         # Every chosen person appears in the photo («salen todas juntas»).
@@ -146,6 +149,12 @@ def block_photos(block, user):
     pending = set(
         voting.photos_pending_for_user(user).filter(pk__in=block.ids).values_list("pk", flat=True)
     )
+    asked = set(
+        Question.objects.filter(photo_id__in=block.ids, status=Question.Status.OPEN).values_list(
+            "photo_id", flat=True
+        )
+    )
     for photo in photos:
         photo.pending_my_vote = photo.pk in pending
+        photo.has_open_questions = photo.pk in asked
     return photos

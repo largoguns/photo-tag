@@ -30,6 +30,10 @@ CATEGORIES = {
 EVENTS = {
     "proposal.create": ("catalog", _("Propuesta creada")),
     "vote.cast": ("catalog", _("Voto")),
+    "question.create": ("catalog", _("Pregunta hecha")),
+    "question.answer": ("catalog", _("Pregunta respondida")),
+    "question.resolve": ("catalog", _("Pregunta resuelta")),
+    "question.reopen": ("catalog", _("Pregunta reabierta")),
     "proposal.admin_accept": ("catalog", _("Propuesta aceptada por un administrador")),
     "proposal.admin_reject": ("catalog", _("Propuesta rechazada por un administrador")),
     "photo.rotate": ("photos", _("Foto girada")),

@@ -16,7 +16,11 @@ def navigation(request):
 
         level = level_for(total(user))
     push_key = settings.VAPID_PUBLIC_KEY if settings.VAPID_PRIVATE_KEY else ""
+    from catalog.services import questions
+
     return {
+        # Questions waiting for this user (avatar menu, spec 5.17).
+        "nav_questions": questions.pending_count(user),
         # Navigation is hidden until the generic password has been replaced.
         "nav_shell": not user.must_change_password,
         "nav_avatar_face_id": avatar_face,

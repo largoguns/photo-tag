@@ -1,0 +1,79 @@
+{% load i18n catalog_tags %}
+{# Questions about this photo (spec 5.17): open ones first, answers in a thread. #}
+<details class="panel questions-panel" id="questions-panel"{% if open_panel == "questions" or open_questions %} open{% endif %}>
+  <summary><span class="panel-title">{% icon "help" %}{% translate "Preguntas" %}</span>
+    {% if open_questions %}<span class="badge warn">{% blocktranslate count counter=open_questions %}{{ counter }} abierta{% plural %}{{ counter }} abiertas{% endblocktranslate %}</span>
+    {% elif questions %}<span class="badge">{{ questions|length }}</span>{% endif %}
+  </summary>
+  <div class="panel-body stack">
+    {% if questions %}
+    <ul class="question-list">
+      {% for q in questions %}
+      <li class="question{% if not q.is_open %} resolved{% endif %}" id="question-{{ q.pk }}">
+        <div class="question-head">
+          {% if q.face_id %}<img src="{% url 'face_image' q.face_id %}" alt="" width="40" height="40" class="question-face">{% endif %}
+          <div class="question-meta">
+            <span class="question-topic">{{ q.topic_label }}</span>
+            <span class="muted">{% blocktranslate with author=q.author.get_display_name when=q.created_at|timesince %}{{ author }} · hace {{ when }}{% endblocktranslate %}</span>
+            {% if q.recipients.all %}<span class="muted question-to">{% translate "Para" %} {% for r in q.recipients.all %}{{ r.get_display_name }}{% if not forloop.last %}, {% endif %}{% endfor %}</span>
+            {% else %}<span class="muted question-to">{% translate "Para todos" %}</span>{% endif %}
+          </div>
+          <span class="badge{% if q.is_open %} warn{% else %} ok{% endif %}">{{ q.get_status_display }}</span>
+        </div>
+        <p class="question-text">{{ q.text|linebreaksbr }}</p>
+        {% if q.answers.all %}
+        <ul class="answer-list">
+          {% for a in q.answers.all %}
+          <li class="answer"><strong>{{ a.author.get_display_name }}</strong> <span class="muted">· {% blocktranslate with when=a.created_at|timesince %}hace {{ when }}{% endblocktranslate %}</span><p>{{ a.text|linebreaksbr }}</p></li>
+          {% endfor %}
+        </ul>
+        {% endif %}
+        <form method="post" class="answer-form" action="{% url 'answer_question' q.pk %}" hx-post="{% url 'answer_question' q.pk %}">
+          {% csrf_token %}<input type="hidden" name="panel" value="questions">
+          <label class="visually-hidden" for="answer-{{ q.pk }}">{% translate "Tu respuesta" %}</label>
+          <div class="input-row">
+            <input type="text" id="answer-{{ q.pk }}" name="text" maxlength="1000" required autocomplete="off" placeholder="{% if q.is_open %}{% translate 'Responder…' %}{% else %}{% translate 'Responder (la reabre)…' %}{% endif %}">
+            <button type="submit" class="button">{% translate "Responder" %}</button>
+          </div>
+        </form>
+        {% if q.author_id == user.pk or user.is_catalog_admin %}
+        <form method="post" action="{% url 'resolve_question' q.pk %}" hx-post="{% url 'resolve_question' q.pk %}">
+          {% csrf_token %}<input type="hidden" name="panel" value="questions">
+          {% if q.is_open %}<button type="submit" class="button text">{% icon "check" %}{% translate "Marcar resuelta" %}</button>
+          {% else %}<input type="hidden" name="reopen" value="1"><button type="submit" class="button text">{% translate "Reabrir" %}</button>{% endif %}
+        </form>
+        {% endif %}
+      </li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p class="muted">{% translate "¿Dudas sobre esta foto? Pregunta a la familia: a todos o a quien sepa." %}</p>
+    {% endif %}
+
+    <form method="post" class="stack ask-form" action="{% url 'ask_question' photo.pk %}" hx-post="{% url 'ask_question' photo.pk %}">
+      {% csrf_token %}<input type="hidden" name="panel" value="questions">
+      <h3 class="sheet-subtitle">{% translate "Preguntar" %}</h3>
+      <div class="field">
+        <label for="ask-topic">{% translate "Sobre" %}</label>
+        <select id="ask-topic" name="topic">
+          {% for value, label in question_topics %}{% if value != "face" %}<option value="{{ value }}"{% if not ask_face and value == "general" %} selected{% endif %}>{{ label }}</option>{% endif %}{% endfor %}
+          {% for face in faces %}<option value="face:{{ face.pk }}"{% if ask_face == face.pk %} selected{% endif %}>{% blocktranslate with number=face.number %}Cara {{ number }}{% endblocktranslate %}{% if face.person %} ({{ face.person }}){% endif %}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label for="ask-text">{% translate "Pregunta" %}</label>
+        <textarea id="ask-text" name="text" rows="2" maxlength="1000" required placeholder="{% translate '¿Alguien sabe quién es?' %}"></textarea>
+      </div>
+      <details class="ask-recipients">
+        <summary class="button text">{% icon "group" %}{% translate "Para todos · elegir a quién" %}</summary>
+        <ul class="recipient-list">
+          {% for u in question_users %}
+          <li><label class="option"><input type="checkbox" name="recipients" value="{{ u.pk }}"><span>{{ u.get_display_name }}</span></label></li>
+          {% endfor %}
+        </ul>
+        <p class="helptext">{% translate "Si no eliges a nadie, es para todos. Todos pueden leerla y responder." %}</p>
+      </details>
+      <div class="actions"><button type="submit" class="button primary">{% translate "Preguntar" %}</button></div>
+    </form>
+  </div>
+</details>

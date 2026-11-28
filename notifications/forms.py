@@ -14,4 +14,5 @@ class NotificationSettingsForm(forms.ModelForm):
             "achievements",
             "challenges",
             "reviews",
+            "questions",
         ]

@@ -20,6 +20,13 @@
 </section>
 {% endif %}
 
+{% if nav_questions %}
+<a class="card quiz-banner questions-banner" href="{% url 'questions' %}">
+  <span class="quiz-kind-icon" aria-hidden="true">{% icon "help" %}</span>
+  <span class="quiz-banner-text"><strong>{% blocktranslate count counter=nav_questions %}{{ counter }} pregunta para ti{% plural %}{{ counter }} preguntas para ti{% endblocktranslate %}</strong><span class="muted">{% translate "La familia tiene dudas sobre algunas fotos: ¿las sabes?" %}</span></span>
+  {% icon "chevron_right" %}
+</a>
+{% endif %}
 <a class="card quiz-banner" href="{% url 'quiz_home' %}">
   <span class="quiz-kind-icon" aria-hidden="true">{% icon "quiz" %}</span>
   <span class="quiz-banner-text"><strong>{% translate "Quiz familiar" %}</strong><span class="muted">{% translate "¿Cuánto sabes de la familia? 10 preguntas sobre caras, apodos, fechas y parentescos." %}</span></span>

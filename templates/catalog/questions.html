@@ -1,0 +1,34 @@
+{% extends "base.html" %}{% load i18n catalog_tags %}
+{% block title %}{% translate "Preguntas" %}{% endblock %}
+{% block content %}
+<h1>{% translate "Preguntas" %}</h1>
+<nav class="segmented audit-tabs" aria-label="{% translate 'Buzón' %}">
+  <a href="?box=for_me" {% if box == "for_me" %}aria-current="page"{% endif %}><span><span>{% translate "Para mí" %}{% if counts.for_me %} ({{ counts.for_me }}){% endif %}</span></span></a>
+  <a href="?box=mine&amp;status={{ status }}" {% if box == "mine" %}aria-current="page"{% endif %}><span><span>{% translate "Mías" %}</span></span></a>
+  <a href="?box=all&amp;status={{ status }}" {% if box == "all" %}aria-current="page"{% endif %}><span><span>{% translate "Todas" %}</span></span></a>
+</nav>
+{% if box != "for_me" %}
+<nav class="chips" aria-label="{% translate 'Estado' %}">
+  <a class="chip" href="?box={{ box }}&amp;status=open" {% if status == "open" %}aria-current="true"{% endif %}>{% translate "Abiertas" %}</a>
+  <a class="chip" href="?box={{ box }}&amp;status=resolved" {% if status == "resolved" %}aria-current="true"{% endif %}>{% translate "Resueltas" %}</a>
+</nav>
+{% else %}
+<p class="muted">{% translate "Preguntas abiertas dirigidas a ti, y las que son para todos que aún no has contestado." %}</p>
+{% endif %}
+<ul class="question-inbox">
+  {% for q in items %}
+  <li>
+    <a class="card question-row" href="{% url 'photo_detail' q.photo_id %}?panel=questions{% if q.face_id %}&amp;face={{ q.face_id }}{% endif %}#question-{{ q.pk }}">
+      <img src="{% if q.face_id %}{% url 'face_image' q.face_id %}{% else %}{% url 'photo_image' q.photo_id 400 %}?v={{ q.photo.image_version }}{% endif %}" alt="" width="64" height="64" loading="lazy" class="question-thumb">
+      <span class="question-row-main">
+        <span class="question-row-head"><strong>{{ q.topic_label }}</strong>{% if not q.is_open %} <span class="badge ok">{{ q.get_status_display }}</span>{% endif %}</span>
+        <span class="question-row-text">{{ q.text|truncatechars:140 }}</span>
+        <span class="muted question-row-meta">{{ q.author.get_display_name }} · {% blocktranslate with when=q.updated_at|timesince %}hace {{ when }}{% endblocktranslate %} · {% blocktranslate count counter=q.answer_count %}{{ counter }} respuesta{% plural %}{{ counter }} respuestas{% endblocktranslate %}{% if q.recipients.all %} · {% translate "Para" %} {% for r in q.recipients.all %}{{ r.get_display_name }}{% if not forloop.last %}, {% endif %}{% endfor %}{% endif %}</span>
+      </span>
+    </a>
+  </li>
+  {% empty %}
+  <li class="empty">{% if box == "for_me" %}{% translate "No hay preguntas esperándote. ¡Bien!" %}{% else %}{% translate "No hay preguntas aquí." %}{% endif %}</li>
+  {% endfor %}
+</ul>
+{% endblock %}

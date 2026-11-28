@@ -19,13 +19,15 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 from PIL import Image
 
+from accounts.models import User
 from accounts.permissions import admin_required
 from accounts.services import audit
 from catalog import presenters
-from catalog.models import EventType, Face, Person, Photo, Proposal, Scan, Vote
-from catalog.services import avatars, person_details, sharing, similarity, voting
+from catalog.models import EventType, Face, Person, Photo, Proposal, Question, Scan, Vote
+from catalog.services import avatars, person_details, questions, sharing, similarity, voting
 from scanner.services.images import photo_path, thumb_path
 
+QUESTIONS_STATUS = "questions"  # gallery «Estado»: photos with open questions (5.17)
 PERSON_PREVIEW_PHOTOS = 10  # person page; «Ver todas las fotos» opens the gallery
 IMAGE_CACHE = "private, max-age=86400"
 
@@ -114,14 +116,17 @@ def gallery(request):
             "photo_count": sum(block.count for block in all_blocks),
             "anchor": anchor,
             "query": query.urlencode(),
-            "statuses": Photo.Status.choices,
+            # Plus the photos with open questions (spec 5.17), as one more state.
+            "statuses": [*Photo.Status.choices, (QUESTIONS_STATUS, _("Con preguntas abiertas"))],
             "persons": people,
             "chosen_people": chosen,
             "chosen_ids": [person.pk for person in chosen],
             "event_types": event_types,
             "locations": gallery_service.location_options(),
             "decades": decades,
-            "selected_status": selected(Photo.Status.choices, "status"),
+            "selected_status": selected(
+                [*Photo.Status.choices, (QUESTIONS_STATUS, _("Con preguntas abiertas"))], "status"
+            ),
             "selected_event": selected([(e.pk, str(e)) for e in event_types], "event"),
             "selected_location": location.name if location else None,
             "location_param": str(location.pk) if location else "",
@@ -280,8 +285,17 @@ def _render_photo(request, photo, status=200):
     context = presenters.photo_context(photo, request.user, selected_face=selected)
     context["event_types"] = voting.event_types()
     # Panels start folded; the one just used stays open (its result or error shows).
-    panel = request.POST.get("panel", "")
-    context["open_panel"] = panel if panel in ("event", "date", "location") else ""
+    panel = request.POST.get("panel") or request.GET.get("panel", "")
+    context["open_panel"] = panel if panel in ("event", "date", "location", "questions") else ""
+    # Questions (spec 5.17): the panel opens when there are open ones or one is being asked.
+    context["questions"] = questions.for_photo(photo)
+    context["open_questions"] = sum(1 for q in context["questions"] if q.is_open)
+    context["question_topics"] = Question.Topic.choices
+    ask_face = request.GET.get("ask_face", "")
+    context["ask_face"] = int(ask_face) if ask_face.isdigit() else None
+    if context["ask_face"]:
+        context["open_panel"] = "questions"
+    context["question_users"] = User.objects.filter(is_active=True).exclude(pk=request.user.pk)
     if not request.htmx_partial:
         context["people_json"] = presenters.people_json()
         context["locations_json"] = [

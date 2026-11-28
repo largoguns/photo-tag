@@ -697,3 +697,98 @@ class PersonNickname(models.Model):
 
     def __str__(self):
         return self.text
+
+
+# ---------------------------------------------------------------------------
+# Questions between users while cataloging (spec section 5.17)
+# ---------------------------------------------------------------------------
+
+
+class Question(models.Model):
+    """A doubt about a photo («¿quién es la cara 3?»), to everyone or to some users.
+
+    Not a chat: it has a topic, answers in a thread and is resolved by its author (or an
+    administrator). An answer to a resolved question opens it again.
+    """
+
+    class Topic(models.TextChoices):
+        FACE = "face", _("Cara")
+        EVENT = "event", _("Evento")
+        DATE = "date", _("Fecha")
+        LOCATION = "location", _("Ubicación")
+        GENERAL = "general", _("General")
+
+    class Status(models.TextChoices):
+        OPEN = "open", _("Abierta")
+        RESOLVED = "resolved", _("Resuelta")
+
+    photo = models.ForeignKey(Photo, on_delete=models.CASCADE, related_name="questions")
+    face = models.ForeignKey(
+        Face, null=True, blank=True, on_delete=models.SET_NULL, related_name="questions"
+    )
+    topic = models.CharField(max_length=10, choices=Topic.choices, default=Topic.GENERAL)
+    text = models.TextField(_("pregunta"), max_length=1000)
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="questions_asked"
+    )
+    # Nobody chosen: it is for everyone.
+    recipients = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="questions_received"
+    )
+    status = models.CharField(
+        max_length=10, choices=Status.choices, default=Status.OPEN, db_index=True
+    )
+    resolved_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="questions_resolved",
+    )
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+    updated_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ["-updated_at", "-id"]
+
+    def __str__(self):
+        return f"{self.get_topic_display()} · {self.photo}"
+
+    @property
+    def is_open(self):
+        return self.status == self.Status.OPEN
+
+    def topic_label(self):
+        """«Cara 3», «Evento», «General»…"""
+        if self.topic == self.Topic.FACE and self.face_id:
+            return _("Cara %(number)s") % {"number": self.face_number()}
+        return self.get_topic_display()
+
+    def face_number(self):
+        """The number the photo page shows for the face (visible faces, left to right,
+        as presenters.photo_workspace numbers them)."""
+        face = self.face
+        number = getattr(face, "number", None)
+        if number is None:
+            visible = face.photo.faces.filter(
+                status__in=[Face.Status.ACTIVE, Face.Status.PROPOSED]
+            ).order_by("x", "id")
+            ids = list(visible.values_list("pk", flat=True))
+            number = ids.index(face.pk) + 1 if face.pk in ids else "?"
+        return number
+
+
+class Answer(models.Model):
+    question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answers")
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="answers"
+    )
+    text = models.TextField(_("respuesta"), max_length=1000)
+    created_at = models.DateTimeField(default=timezone.now, db_index=True)
+
+    class Meta:
+        ordering = ["created_at", "id"]
+
+    def __str__(self):
+        return f"{self.author} → {self.question_id}"

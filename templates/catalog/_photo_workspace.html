@@ -171,6 +171,8 @@
           <button type="submit" class="button small">{% translate "No es una cara" %}</button>
         </form>
         {% endif %}
+        {# Not sure who it is: ask the family about this face (spec 5.17). #}
+        <a class="button small text" href="{% url 'photo_detail' photo.pk %}?face={{ face.pk }}&amp;ask_face={{ face.pk }}#questions-panel" hx-boost="false">{% icon "help" %}{% translate "Preguntar sobre esta cara" %}</a>
       </div>
     </details>
     {% empty %}
@@ -265,6 +267,8 @@
         </form>
       </div>
     </details>
+
+    {% include "catalog/_questions_panel.html" %}
 
     {% if user.is_catalog_admin %}
     <details class="panel" id="scan-panel">

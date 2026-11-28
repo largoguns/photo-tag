@@ -45,12 +45,16 @@ class NotificationSettings(models.Model):
     challenges = models.BooleanField(_("Retos para subir de nivel"), default=True)
     # Administrators only: new event types and places waiting for their review.
     reviews = models.BooleanField(_("Eventos y lugares nuevos para revisar"), default=True)
+    # Questions for me and answers to my questions (spec 5.17).
+    questions = models.BooleanField(_("Preguntas y respuestas"), default=True)
     # Start "now" so a new user is not notified about the whole history.
     new_photos_sent_at = models.DateTimeField(default=timezone.now)
     pending_votes_sent_at = models.DateTimeField(default=timezone.now)
     resolved_sent_at = models.DateTimeField(default=timezone.now)
     challenge_sent_at = models.DateTimeField(default=timezone.now)
     reviews_sent_at = models.DateTimeField(default=timezone.now)
+    questions_sent_at = models.DateTimeField(default=timezone.now)
+    answers_sent_at = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return str(self.user)

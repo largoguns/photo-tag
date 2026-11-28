@@ -24,7 +24,7 @@ logger = logging.getLogger("notifications")
 
 @dataclass
 class Digest:
-    kind: str  # "new_photos" | "pending_votes" | "resolved" | "challenge" | "reviews"
+    kind: str  # new_photos, pending_votes, resolved, challenge, reviews, questions, answers
     counts: dict
 
     @property
@@ -32,6 +32,10 @@ class Digest:
         return f"phototag-{self.kind}"
 
     def url(self):
+        if self.kind == "questions":
+            return reverse("questions")
+        if self.kind == "answers":
+            return reverse("questions") + "?box=mine"
         if self.kind == "reviews":
             return reverse("admin_event_types" if self.counts["events"] else "admin_locations")
         if self.kind == "challenge":
@@ -49,6 +53,20 @@ class Digest:
         """Generic text in the active language; never includes people's names."""
         if self.kind == "challenge":
             return challenge_body(self.counts)
+        if self.kind == "questions":
+            n = self.counts["questions"]
+            return ngettext(
+                "%(count)s pregunta nueva para ti sobre las fotos",
+                "%(count)s preguntas nuevas para ti sobre las fotos",
+                n,
+            ) % {"count": n}
+        if self.kind == "answers":
+            n = self.counts["answers"]
+            return ngettext(
+                "%(count)s respuesta nueva a tus preguntas",
+                "%(count)s respuestas nuevas a tus preguntas",
+                n,
+            ) % {"count": n}
         if self.kind == "reviews":
             n = self.counts["events"] + self.counts["locations"]
             return ngettext(
@@ -196,6 +214,15 @@ def collect(user, prefs, now=None):
         places = waiting.filter(kind=Proposal.Kind.LOCATION, location__is_provisional=True).count()
         if events or places:
             digests.append(Digest("reviews", {"events": events, "locations": places}))
+    if prefs.questions:
+        from catalog.services import questions
+
+        asked = questions.new_for(user, prefs.questions_sent_at)
+        if asked:
+            digests.append(Digest("questions", {"questions": asked}))
+        answered = questions.answers_for(user, prefs.answers_sent_at)
+        if answered:
+            digests.append(Digest("answers", {"answers": answered}))
     if prefs.new_photos:
         photos = Photo.objects.visible().filter(created_at__gt=prefs.new_photos_sent_at).count()
         if photos:

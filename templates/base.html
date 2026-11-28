@@ -30,6 +30,7 @@
     <details class="user-menu">
       <summary class="avatar-button" aria-label="{% blocktranslate with name=user.get_display_name %}Menú de {{ name }}{% endblocktranslate %}">
         {% if nav_level %}<span {% level_ring nav_level %}>{% endif %}{% if nav_avatar_face_id %}<img src="{% url 'face_image' nav_avatar_face_id %}" alt="" width="40" height="40">{% else %}<span class="avatar-initial" aria-hidden="true">{{ nav_initial }}</span>{% endif %}{% if nav_level %}</span>{% endif %}
+        {% if nav_questions %}<span class="avatar-dot" title="{% translate 'Preguntas para ti' %}"></span>{% endif %}
       </summary>
       <div class="menu">
         <div class="menu-header">
@@ -37,6 +38,7 @@
           <span>{{ user.get_role_display }}</span>
         </div>
         <a class="menu-item" href="{% url 'profile' %}">{% icon "person" %}<span>{% translate "Mi perfil" %}</span></a>
+        <a class="menu-item" href="{% url 'questions' %}">{% icon "help" %}<span>{% translate "Preguntas" %}</span>{% if nav_questions %}<span class="menu-count">{{ nav_questions }}</span>{% endif %}</a>
         <a class="menu-item" href="{% url 'ranking' %}">{% icon "how_to_vote" %}<span>{% translate "Ranking" %}</span></a>
         {% if user.is_catalog_admin %}<a class="menu-item" href="{% url 'admin_home' %}">{% icon "admin_panel_settings" %}<span>{% translate "Administración" %}</span></a>{% endif %}
         {% if user.is_catalog_admin and nav_scanner %}<a class="menu-item" href="{% url 'scan' %}">{% icon "photo_library" %}<span>{% translate "Escanear" %}</span></a>{% endif %}
