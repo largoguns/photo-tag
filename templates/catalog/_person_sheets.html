@@ -80,6 +80,43 @@
     <form method="dialog"><button class="button text icon-only" aria-label="{% translate 'Cerrar' %}">{% icon "close" %}</button></form>
   </div>
   <div class="sheet-body sheet-form stack">
+    {# Always on top: the actions, then the list (the form opens under both buttons). #}
+    <div class="relation-top">
+      {% if person.is_pet %}<a class="button tree-link" href="{% url 'tree' %}?mode=social&amp;person={{ person.pk }}" hx-boost="false">{% icon "family_history" %}{% translate "Ver relaciones" %}</a>
+      {% else %}<a class="button tree-link" href="{% url 'tree' %}?person={{ person.pk }}" hx-boost="false">{% icon "family_history" %}{% translate "Ver árbol" %}</a>{% endif %}
+      <details class="relation-add"{% if not family_relations and not social_relations %} open{% endif %}>
+        <summary class="button">{% icon "add" %}{% translate "Añadir relación" %}</summary>
+        <form method="post" class="stack relation-form" action="{% url 'add_relationship' person.pk %}" hx-boost="true">
+          {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+          <div class="field">
+            <label for="relation-name">{% translate "Persona" %}</label>
+            <div class="combobox">
+              <input type="text" id="relation-name" name="name" autocomplete="off" required
+                     role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="relation-name-list"
+                     data-person-combobox placeholder="{% translate 'Nombre, honorífico o apodo' %}">
+              <ul class="combobox-list" id="relation-name-list" role="listbox" hidden></ul>
+            </div>
+          </div>
+          <div class="field">
+            <label for="relation-role">{% blocktranslate %}Es … de {{ person }}{% endblocktranslate %}</label>
+            <select id="relation-role" name="role" required data-relation-role>
+              {% if family_roles %}<optgroup label="{% translate 'Familia' %}">
+                {% for role, label in family_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
+              </optgroup>{% endif %}
+              <optgroup label="{% translate 'Relaciones' %}">
+                {% for role, label in social_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
+              </optgroup>
+            </select>
+          </div>
+          <div class="field" data-relation-activity>
+            <label for="relation-activity">{% translate "Actividad" %}</label>
+            <input type="text" id="relation-activity" name="activity" maxlength="100" autocomplete="off" placeholder="{% translate 'Fútbol, coro…' %}">
+          </div>
+          <p class="helptext">{% translate "Si la persona no está en el álbum, se añade con este nombre." %}</p>
+          <div class="actions"><button type="submit" class="button primary">{% translate "Guardar" %}</button></div>
+        </form>
+      </details>
+    </div>
     {% for title, relations in relation_groups %}
     {% if relations %}
     <h3 class="sheet-subtitle">{{ title }}</h3>
@@ -108,38 +145,5 @@
     {% if not family_relations and not social_relations %}
     <p class="muted">{% blocktranslate %}Todavía no se sabe con quién está relacionado {{ person }}.{% endblocktranslate %}</p>
     {% endif %}
-    <a class="button small tree-link" href="{% url 'tree' %}?person={{ person.pk }}" hx-boost="false">{% icon "family_history" %}{% translate "Ver árbol" %}</a>
-    <details class="relation-add"{% if not family_relations and not social_relations %} open{% endif %}>
-      <summary class="button small">{% icon "add" %}{% translate "Añadir relación" %}</summary>
-      <form method="post" class="stack relation-form" action="{% url 'add_relationship' person.pk %}" hx-boost="true">
-        {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
-        <div class="field">
-          <label for="relation-name">{% translate "Persona" %}</label>
-          <div class="combobox">
-            <input type="text" id="relation-name" name="name" autocomplete="off" required
-                   role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="relation-name-list"
-                   data-person-combobox placeholder="{% translate 'Nombre, honorífico o apodo' %}">
-            <ul class="combobox-list" id="relation-name-list" role="listbox" hidden></ul>
-          </div>
-        </div>
-        <div class="field">
-          <label for="relation-role">{% blocktranslate %}Es … de {{ person }}{% endblocktranslate %}</label>
-          <select id="relation-role" name="role" required data-relation-role>
-            {% if family_roles %}<optgroup label="{% translate 'Familia' %}">
-              {% for role, label in family_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
-            </optgroup>{% endif %}
-            <optgroup label="{% translate 'Relaciones' %}">
-              {% for role, label in social_roles %}<option value="{{ role }}">{{ label }}</option>{% endfor %}
-            </optgroup>
-          </select>
-        </div>
-        <div class="field" data-relation-activity>
-          <label for="relation-activity">{% translate "Actividad" %}</label>
-          <input type="text" id="relation-activity" name="activity" maxlength="100" autocomplete="off" placeholder="{% translate 'Fútbol, coro…' %}">
-        </div>
-        <p class="helptext">{% translate "Si la persona no está en el álbum, se añade con este nombre." %}</p>
-        <div class="actions"><button type="submit" class="button primary">{% translate "Guardar" %}</button></div>
-      </form>
-    </details>
   </div>
 </dialog>

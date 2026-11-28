@@ -253,3 +253,13 @@ def test_namesakes_from_the_person_page(client, alice, ana, luis):
 def test_login_is_required(client, ana):
     response = client.post(reverse("add_relationship", args=[ana.pk]), {"role": "friend"})
     assert response.status_code == 302 and "login" in response.url
+
+
+def test_family_sheet_has_the_actions_above_the_list(client, alice, ana, luis):
+    relationships.add(alice, ana, "child", other=luis)
+    client.force_login(alice)
+    content = client.get(reverse("person_detail", args=[ana.pk])).content.decode()
+    sheet = content.split('id="sheet-family"')[1].split("</dialog>")[0]
+    assert sheet.index('class="relation-top"') < sheet.index('class="relation-list"')
+    top = sheet.split('class="relation-top"')[1].split('class="relation-list"')[0]
+    assert "Ver árbol" in top and "Añadir relación" in top
