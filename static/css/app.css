@@ -370,8 +370,9 @@ progress { width: 100%; height: .5rem; accent-color: var(--md-primary); border-r
   display: grid; place-items: center; background: rgb(0 0 0 / .5); color: #fff;
 }
 .jitem-status .icon { width: 16px; height: 16px; }
-.jitem-status.cataloged { background: #1e7b34; }
 .jitem-status.vote { background: #1f5fbf; }
+.jitem-status.pending { background: rgb(60 64 72 / .85); }
+.jitem-status.in-progress { background: #a15c00; }
 /* Gallery selection mode (share / download several photos). */
 .select-mark { display: none; position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; color: #fff; filter: drop-shadow(0 1px 2px rgb(0 0 0 / .6)); pointer-events: none; }
 .select-mark .icon { width: 28px; height: 28px; position: absolute; inset: 0; }
@@ -1192,3 +1193,51 @@ button.quiz-option:hover { background: var(--md-surface-container-low); }
 .review-accept:has(.review-locality) input[name="text"] { flex: 2 1 10rem; }
 .place-unsaved { color: var(--md-on-surface); font-weight: 600; }
 [data-place-save].pulse { box-shadow: 0 0 0 4px color-mix(in srgb, var(--md-primary) 35%, transparent); }
+/* «Familia y relaciones»: the actions always on top; «Ver árbol» on the right of the
+   «Añadir relación» row, so its form opens under both. */
+.relation-top { position: relative; }
+.relation-top > .tree-link { position: absolute; top: 0; right: 0; }
+.relation-top .button { min-height: 44px; }
+.relation-top + .sheet-subtitle { margin-top: .5rem; }
+
+/* ------------------------------------------------------ Questions (5.17) -- */
+.jitem-question {
+  position: absolute; top: 6px; left: 6px; width: 24px; height: 24px; border-radius: 50%;
+  display: grid; place-items: center; background: #8a3ffc; color: #fff;
+}
+.jitem-question .icon { width: 16px; height: 16px; }
+body.selecting .jitem-question { display: none; } /* the selection mark goes there */
+.avatar-button { position: relative; }
+.avatar-dot {
+  position: absolute; top: 0; right: 0; width: 12px; height: 12px; border-radius: 50%;
+  background: var(--md-error); border: 2px solid var(--md-surface);
+}
+.questions-panel .panel-title .icon { width: 18px; height: 18px; vertical-align: -3px; margin-right: .25rem; }
+.question-list, .answer-list, .recipient-list, .question-inbox { list-style: none; margin: 0; padding: 0; }
+.question-list { display: flex; flex-direction: column; gap: .75rem; }
+.question { display: flex; flex-direction: column; gap: .5rem; padding: .75rem; border-radius: 12px; background: var(--md-surface); border: 1px solid var(--md-outline-variant); min-width: 0; }
+.question.resolved { opacity: .75; }
+.question-head { display: flex; align-items: flex-start; gap: .6rem; min-width: 0; }
+.question-face { flex: none; width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.question-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: .85rem; overflow-wrap: anywhere; }
+.question-topic { font-weight: 600; font-size: .95rem; }
+.question-text { margin: 0; overflow-wrap: anywhere; }
+.answer-list { display: flex; flex-direction: column; gap: .4rem; padding-left: .75rem; border-left: 3px solid var(--md-outline-variant); }
+.answer { font-size: .9rem; overflow-wrap: anywhere; }
+.answer p { margin: .15rem 0 0; }
+.answer-form .input-row input { min-width: 0; }
+.ask-form textarea { width: 100%; resize: vertical; }
+.ask-recipients > summary { list-style: none; cursor: pointer; display: inline-flex; min-height: 44px; }
+.ask-recipients > summary::-webkit-details-marker { display: none; }
+.recipient-list { display: grid; gap: .25rem; grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr)); max-height: 14rem; overflow-y: auto; }
+.recipient-list .option { min-height: 44px; display: flex; align-items: center; gap: .5rem; cursor: pointer; }
+.recipient-list input { width: 20px; height: 20px; accent-color: var(--md-primary); }
+/* Inbox: one column on mobile, two on desktop. */
+.question-inbox { display: grid; gap: .5rem; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 840px) { .question-inbox { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.question-row { display: flex; gap: .75rem; align-items: flex-start; text-decoration: none; color: var(--md-on-surface); min-width: 0; height: 100%; }
+.question-thumb { flex: none; width: 64px; height: 64px; border-radius: 12px; object-fit: cover; }
+.question-row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .2rem; }
+.question-row-text { overflow-wrap: anywhere; }
+.question-row-meta { font-size: .8rem; }
+.questions-banner .quiz-kind-icon { background: #ecdcff; color: #4a1d96; }

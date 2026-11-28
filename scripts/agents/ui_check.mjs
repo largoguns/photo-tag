@@ -23,7 +23,7 @@ const variants = [
   { name: "light-es", scheme: "light", locale: "es-ES" },
   { name: "dark-en", scheme: "dark", locale: "en-GB" },
 ];
-const pages = ["/", "/gallery/", "/persons/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/accounts/audit/", "/ranking/", "/ranking/quiz/", "/admin/honorifics/", "/map/", "/admin/locations/", "/admin/locations/1/", "/admin/export/", "/tree/", "/tree/?mode=social&depth=2", "/tree/?view=list"];
+const pages = ["/", "/gallery/", "/persons/", "/accounts/profile/", "/upload/", "/admin/", "/admin/scan/", "/accounts/users/", "/accounts/audit/", "/ranking/", "/ranking/quiz/", "/questions/", "/questions/?box=all", "/admin/honorifics/", "/map/", "/admin/locations/", "/admin/locations/1/", "/admin/export/", "/tree/", "/tree/?mode=social&depth=2", "/tree/?view=list"];
 
 async function findIssues(page) {
   return page.evaluate(() => {

@@ -106,6 +106,7 @@ def main():
     seed_locations(maria, demo)
     seed_family(maria)
     seed_players(maria)
+    seed_questions(maria, demo)
     print(
         f"Seeded {Photo.objects.count()} photos. Users: demo / maria / pablo / lucia, "
         f"password {PASSWORD}"
@@ -269,6 +270,24 @@ def seed_quiz(maria, family):
             person_details.add_nickname(maria, person, nickname, emojis[index])
         except Exception:  # already there from a previous run
             continue
+
+
+def seed_questions(maria, demo):
+    """Two questions (spec 5.17): one about a face to the demo user, already answered by
+    Pablo, and one about the date for everyone."""
+    from catalog.services import questions
+
+    pablo = User.objects.filter(username="pablo").first()
+    photos = list(Photo.objects.order_by("pk")[:2])
+    face = photos[0].faces.order_by("x").first()
+    if face is not None:
+        about_face = questions.ask(
+            maria, photos[0], "face", "¿Alguien sabe quién es? Me suena de la boda.", face=face,
+            recipients=[demo],
+        )  # fmt: skip
+        if pablo:
+            questions.answer(pablo, about_face, "Creo que es un primo de la abuela Carmen.")
+    questions.ask(maria, photos[-1], "date", "¿Es del verano del 92 o del 93?")
 
 
 def seed_players(maria):

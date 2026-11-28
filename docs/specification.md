@@ -245,7 +245,7 @@ Al proponer un nombre que no existe, se crea una `Person` provisional; si la pro
 
 1. **Login** y **cambio obligatorio de contraseña** en el primer acceso.
 2. **Inicio**: progreso global (fotos catalogadas / total), propuestas abiertas pendientes de mi voto y botón «Siguiente foto sin catalogar».
-3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, ubicación, década y «pendientes de mi voto») que abren hojas inferiores con las opciones. La de ubicación tiene buscador y muestra el número de fotos de cada una (`?location=<id>`; las ubicaciones fusionadas se resuelven a la de destino).
+3. **Galería** al estilo Google Photos: cuadrícula justificada que respeta la proporción de cada foto, con **secciones por año** de la fecha aceptada (más reciente primero; las fechadas solo por década en «Década de 19X0» y las demás en «Sin fecha» al final). Filtros como **chips** (estado, persona, evento, ubicación, década y «pendientes de mi voto») que abren hojas inferiores con las opciones. La de ubicación tiene buscador y muestra el número de fotos de cada una (`?location=<id>`; las ubicaciones fusionadas se resuelven a la de destino). Cada miniatura lleva un **icono de estado** con lo que falta, de más a menos urgente: «Pendiente de mi voto», «Pendiente» o «En curso». Las catalogadas no llevan ninguno: al final es una galería compartida.
    - **Varias personas**: la hoja de persona (con buscador y caras) permite elegir varias y muestra las fotos donde **salen todas juntas**; el chip dice «Ana +2» y la URL (`?person=12&person=45`) se puede compartir. Las personas fusionadas se resuelven a la persona destino.
    - **Carga por bloques** (como Google Fotos e Immich), para que miles de fotos no saturen la memoria: la página trae solo el esqueleto (cada sección partida en bloques de hasta 120 fotos, con su recuento y la suma de proporciones para estimar su altura) y los primeros bloques ya llenos. El navegador pide cada bloque (`?block=i`) al acercarse a menos de ~2 pantallas y lo vacía al pasar de ~4, dejando un hueco de su altura medida; así nunca hay más de unos pocos bloques vivos. Lo visible no se mueve cuando un bloque cambia de altura, y al volver desde una foto se reabre en el mismo punto (`?anchor=i`).
    - **Barra de años** a la derecha: arrastrar recorre toda la galería y tocar un año salta a él; en escritorio, al pasar el ratón, muestra los años con el actual resaltado; en móvil aparece al hacer scroll con una burbuja del año. Los años también son enlaces, accesibles con teclado.
@@ -293,6 +293,7 @@ Avisos Web Push (estándar VAPID) en los dispositivos que cada usuario active de
 
 - Tres tipos, activables por usuario: **fotos nuevas para catalogar**, **propuestas pendientes de mi voto** (de otros autores y no votadas) y **mis propuestas aceptadas o rechazadas**.
 - **Resumen agrupado**: el `worker` revisa cada `NOTIFY_POLL_MINUTES` (10) lo ocurrido desde el último aviso de cada tipo y envía como mucho uno por tipo cada `NOTIFY_MIN_INTERVAL_MINUTES` (60). En las horas de silencio `NOTIFY_QUIET_HOURS` (`22-9`, zona `TZ`) no se envía nada; lo acumulado se avisa al terminar.
+- **Preguntas y respuestas** (5.17, preferencia propia): mismo resumen agrupado, con las preguntas nuevas para mí y las respuestas nuevas a mis preguntas.
 - **Eventos y lugares nuevos para revisar** (solo administradores, preferencia propia): mismo resumen agrupado; abre Administración → Tipos de evento (o Ubicaciones si solo hay lugares).
 - Al activar los avisos no se notifica el histórico anterior.
 - Textos genéricos, sin nombres de personas, en el idioma con el que se suscribió cada dispositivo. Al tocar el aviso se abre la pantalla correspondiente (siguiente foto sin catalogar, galería «pendientes de mi voto» o, para las propuestas resueltas, Inicio).
@@ -379,9 +380,9 @@ Desde cada persona se muestra con la etiqueta que le corresponde: si A es progen
 - Tíos: los hermanos de mis progenitores y los **progenitores de mis primos** (C hijo de D y C primo de A ⇒ D tío de A y de sus hermanos). Primos: los hijos de mis tíos y los hermanos de mis primos. Sobrinos, el inverso de tíos.
 - No existen «primo segundo» ni «tío abuelo»: el primo de mi primo no es mi primo (salvo que sea su hermano) y nada se deduce más allá.
 
-Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol no se unen con ninguna línea: mientras falte el eslabón, la persona aparece en su fila, junto a las demás, con su parentesco respecto a la persona central bajo el nombre («primo»). Cuando el eslabón se añade, cuelga de él y la etiqueta desaparece.
+Todos los tipos se pueden proponer de forma explícita aunque falte el eslabón intermedio, por ejemplo un suegro sin fotos de la pareja. En el árbol no se unen con ninguna línea: mientras falte el eslabón, la persona aparece en su fila, junto a las demás, con su parentesco respecto a la persona central bajo el nombre («primo»). Cuando el eslabón se añade, cuelga de él y la etiqueta desaparece. Con esa persona entran también sus **hermanos**, que son parientes deducidos del mismo tipo (los hermanos de una prima son primos), en la misma fila y seguidos, y sus **descendientes** y parejas, dentro del límite de generaciones.
 
-**Ficha de persona.** Sección «Familia y relaciones» con:
+**Ficha de persona.** Sección «Familia y relaciones». Siempre **arriba**, los botones «Añadir relación» (su formulario se despliega justo debajo) y «Ver árbol»; debajo, la lista con:
 - Las relaciones aceptadas, agrupadas por árbol.
 - Las deducidas.
 - Las propuestas abiertas, con 👍 / 👎.
@@ -532,6 +533,33 @@ Las mascotas se etiquetan como cualquier persona del álbum, pero marcadas como 
   - el autocompletado de nombres y la hoja de personas de la galería marcan las mascotas con 🐾.
 - **Quiz (5.14):** en «¿Quién es?» las mascotas solo se preguntan entre mascotas (y las personas entre personas); un grupo de menos de 4 no se pregunta.
 - **Exportación (6):** sus regiones van con `mwg-rs:Type = Pet`.
+
+### 5.17 Preguntas
+
+Durante la catalogación surgen dudas («¿quién es la cara 3?», «¿es del 92 o del 93?»). Las **preguntas** sirven para resolverlas entre la familia. No es un chat: cada pregunta va ligada a **una foto** y tiene un **tema**, respuestas en hilo y un estado.
+
+- **Modelo:**
+  - `Question`: foto, cara (opcional), tema (`face`, `event`, `date`, `location` o `general`), texto (hasta 1000 caracteres), autor, destinatarios (ninguno = para todos), estado (`open` / `resolved`), resuelta_por y resuelta_en, creada_en y actualizada_en;
+  - `Answer`: pregunta, autor, texto y fecha.
+- **Preguntar** desde la vista de foto, en el panel **«Preguntas»**, que está plegado salvo que haya preguntas abiertas:
+  - se elige el tema («Cara 1 (Tito Paco)», Evento, Fecha, Ubicación o General) y se escribe la pregunta;
+  - «¿A quién?»: por defecto **para todos**, o se eligen usuarios concretos; todos pueden leerla y contestar igualmente;
+  - en el panel de cada cara, **«Preguntar sobre esta cara»** abre el formulario con esa cara ya elegida.
+- **Responder y cerrar:**
+  - cualquiera responde y las respuestas se ven en hilo bajo la pregunta;
+  - **el autor o un administrador** la marca **«Resuelta»** o la reabre;
+  - responder a una resuelta la **reabre**, porque hay algo nuevo.
+  - Todo queda en la auditoría (`question.create`, `question.answer`, `question.resolve`, `question.reopen`).
+- **Bandeja «Preguntas»** (`/questions/`, desde el menú del avatar con un contador):
+  - pestañas **Para mí** (abiertas dirigidas a mí, y las de «para todos» que no he hecho ni contestado), **Mías** y **Todas**, con un filtro Abiertas o Resueltas;
+  - cada fila muestra la cara o la foto, el tema, el texto, el autor, la antigüedad, las respuestas y los destinatarios, y abre la foto con el panel desplegado;
+  - una columna en móvil y dos en escritorio.
+- **Aviso en la app:** si hay alguna «para mí», el avatar lleva un punto y en Inicio aparece la tarjeta «N preguntas para ti».
+- **Galería:**
+  - las fotos con preguntas abiertas llevan un icono `help` arriba a la izquierda (el estado va a la derecha);
+  - en la hoja «Estado», **«Con preguntas abiertas»** (`?status=questions`) las filtra.
+- **Avisos push (5.9):** preferencia «Preguntas y respuestas». Va en el resumen agrupado: «N preguntas nuevas para ti sobre las fotos», que abre la bandeja, y «N respuestas nuevas a tus preguntas», que abre «Mías».
+- **Implementación:** la lógica está en `catalog/services/questions.py` y las vistas en `catalog/question_views.py`. Sin dependencias nuevas.
 
 ## 6. Exportación a Immich (app `exporter`)
 
