@@ -32,8 +32,8 @@ def test_destructive_actions_ask_for_confirmation():
         "catalog/admin/review_queue.html": 3,  # discard crop, delete photo, delete scan
         "catalog/admin/merge.html": 1,
         "catalog/_proposal.html": 2,  # admin accept / reject
-        # not a face, delete photo, reprocess scan, delete scan
-        "catalog/_photo_workspace.html": 4,
+        # not a face, delete photo (editing and view mode), reprocess scan, delete scan
+        "catalog/_photo_workspace.html": 5,
     }
     for name, count in expected.items():
         text = (TEMPLATES / name).read_text()
